@@ -1,41 +1,347 @@
 ---
 import Layout from '~/layouts/PageLayout.astro';
+import { ssrToolsApi } from '~/utils/ssr-api';
 
+// Generate static paths for all tools at build time
 export async function getStaticPaths() {
-  return [];
+  try {
+    const tools = await ssrToolsApi.getAll({ limit: 1000 });
+    
+    return tools.map((tool: any) => ({
+      params: { slug: tool.slug },
+      props: { tool },
+    }));
+  } catch (error) {
+    console.error('Error generating static paths for tools:', error);
+    return [];
+  }
 }
 
 const { slug } = Astro.params;
+const { tool } = Astro.props;
 
+// Fetch reviews at build time
+let reviews: any[] = [];
+try {
+  reviews = await ssrToolsApi.getReviews(tool.id, { limit: 10 });
+} catch (error) {
+  console.error('Error fetching reviews:', error);
+}
+
+// Generate metadata for SEO
 const metadata = {
-  title: 'Tool Details',
-  description: 'Detailed information about the tool',
+  title: tool.seo_title || `${tool.name} - AI Tool Review & Guide | MarketMindAI`,
+  description: tool.seo_description || tool.short_description || tool.description.substring(0, 160),
+  keywords: tool.seo_keywords || `${tool.name}, ai tool, ${tool.categories.map((c: any) => c.name).join(', ')}`,
+  openGraph: {
+    title: tool.name,
+    description: tool.short_description || tool.description.substring(0, 200),
+    image: tool.logo_url || tool.screenshot_url,
+    type: 'website',
+  },
 };
+
+function getPricingClass(pricingType: string): string {
+  const classes = {
+    free: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+    freemium: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+    paid: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
+  };
+  return classes[pricingType as keyof typeof classes] || classes.paid;
+}
 ---
 
 <Layout metadata={metadata}>
   <div id="tool-detail-container" class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-    <!-- Loading State -->
-    <div id="loading" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      <p class="mt-4 text-gray-600 dark:text-gray-400">Loading tool details...</p>
-    </div>
-
-    <!-- Tool Detail Content -->
-    <div id="tool-content" class="hidden">
-      <!-- Content will be rendered here -->
-    </div>
-
-    <!-- Error State -->
-    <div id="error" class="hidden text-center py-12">
-      <p class="text-xl text-red-600 dark:text-red-400">Tool not found or error loading data.</p>
-      <a href="/tools" class="mt-4 inline-block text-blue-600 hover:text-blue-800">
-        &larr; Back to Tools
+    <!-- Back Button -->
+    <div class="mb-6">
+      <a href="/tools" class="inline-flex items-center text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        Back to Tools
       </a>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Main Content (2/3) -->
+      <div class="lg:col-span-2 space-y-8">
+        <!-- Tool Header -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
+          <div class="flex items-start space-x-6">
+            {tool.logo_url && (
+              <img src={tool.logo_url} alt={`${tool.name} logo`} class="h-24 w-24 object-contain rounded-lg" />
+            )}
+            <div class="flex-1">
+              <h1 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2" data-testid="tool-title">
+                {tool.name}
+              </h1>
+              <p class="text-xl text-gray-600 dark:text-gray-300 mb-4">
+                {tool.short_description}
+              </p>
+              <div class="flex items-center space-x-4 text-sm flex-wrap gap-2">
+                <div class="flex items-center">
+                  <span class="text-yellow-500 text-xl mr-1">★</span>
+                  <span class="text-gray-900 dark:text-white font-medium text-lg">{tool.rating.toFixed(1)}</span>
+                  <span class="text-gray-500 dark:text-gray-400 ml-1">({tool.review_count} reviews)</span>
+                </div>
+                <span class={`px-3 py-1 rounded-full text-sm font-medium ${getPricingClass(tool.pricing_type)}`}>
+                  {tool.pricing_type.charAt(0).toUpperCase() + tool.pricing_type.slice(1)}
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Action Buttons -->
+          <div class="mt-6 flex flex-wrap gap-3">
+            {tool.url && (
+              <a 
+                href={tool.url} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                data-testid="visit-website-btn"
+              >
+                Visit Website
+                <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
+            )}
+            
+            <!-- Interactive buttons (client-side hydration) -->
+            <button 
+              id="like-btn"
+              data-tool-slug={tool.slug}
+              data-like-count={tool.like_count}
+              class="inline-flex items-center px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
+              data-testid="like-tool-btn"
+            >
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+              <span id="like-count">{tool.like_count}</span>
+            </button>
+            
+            <button 
+              id="write-review-btn"
+              class="inline-flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+              data-testid="write-review-btn"
+            >
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Write Review
+            </button>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">About {tool.name}</h2>
+          <div class="prose dark:prose-invert max-w-none">
+            <p class="text-gray-700 dark:text-gray-300">{tool.description}</p>
+          </div>
+        </div>
+
+        <!-- Features -->
+        {tool.features && tool.features.length > 0 && (
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Key Features</h2>
+            <ul class="space-y-3">
+              {tool.features.map((feature: string) => (
+                <li class="flex items-start">
+                  <svg class="w-6 h-6 text-green-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span class="text-gray-700 dark:text-gray-300">{feature}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <!-- Pros and Cons -->
+        {((tool.pros && tool.pros.length > 0) || (tool.cons && tool.cons.length > 0)) && (
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {tool.pros && tool.pros.length > 0 && (
+              <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-bold text-green-600 dark:text-green-400 mb-4">Pros</h3>
+                <ul class="space-y-2">
+                  {tool.pros.map((pro: string) => (
+                    <li class="flex items-start">
+                      <span class="text-green-500 mr-2">✓</span>
+                      <span class="text-gray-700 dark:text-gray-300">{pro}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {tool.cons && tool.cons.length > 0 && (
+              <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-bold text-red-600 dark:text-red-400 mb-4">Cons</h3>
+                <ul class="space-y-2">
+                  {tool.cons.map((con: string) => (
+                    <li class="flex items-start">
+                      <span class="text-red-500 mr-2">✗</span>
+                      <span class="text-gray-700 dark:text-gray-300">{con}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+
+        <!-- Reviews Section (SSR) -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8" id="reviews-section">
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Reviews ({reviews.length})</h2>
+          <div id="reviews-list" data-testid="reviews-list">
+            {reviews.length === 0 ? (
+              <p class="text-gray-500 dark:text-gray-400 text-center py-8">No reviews yet. Be the first to review!</p>
+            ) : (
+              reviews.map((review) => (
+                <div class="border-b border-gray-200 dark:border-gray-700 last:border-0 py-6">
+                  <div class="flex items-start justify-between mb-2">
+                    <div>
+                      <div class="flex items-center space-x-2 mb-1">
+                        <span class="font-medium text-gray-900 dark:text-white">{review.user_name}</span>
+                        <span class="text-yellow-500">{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</span>
+                      </div>
+                      {review.title && <h4 class="font-medium text-gray-900 dark:text-white mb-2">{review.title}</h4>}
+                    </div>
+                    <span class="text-sm text-gray-500 dark:text-gray-400">{new Date(review.created_at).toLocaleDateString()}</span>
+                  </div>
+                  {review.content && <p class="text-gray-700 dark:text-gray-300 mb-3">{review.content}</p>}
+                  {review.pros && review.pros.length > 0 && (
+                    <div class="mb-2">
+                      <span class="text-sm font-medium text-green-600 dark:text-green-400">Pros:</span>
+                      <ul class="text-sm text-gray-700 dark:text-gray-300 ml-4">
+                        {review.pros.map((pro: string) => <li>• {pro}</li>)}
+                      </ul>
+                    </div>
+                  )}
+                  {review.cons && review.cons.length > 0 && (
+                    <div>
+                      <span class="text-sm font-medium text-red-600 dark:text-red-400">Cons:</span>
+                      <ul class="text-sm text-gray-700 dark:text-gray-300 ml-4">
+                        {review.cons.map((con: string) => <li>• {con}</li>)}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        <!-- Comments Section (Client-side for interactivity) -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Comments</h2>
+          
+          <div class="mb-6" id="comment-form-container">
+            <textarea
+              id="comment-input"
+              rows="3"
+              class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+              placeholder="Write a comment... (login required)"
+              data-testid="comment-input"
+              disabled
+            ></textarea>
+            <button 
+              id="post-comment-btn"
+              class="mt-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+              data-testid="post-comment-btn"
+              disabled
+            >
+              Post Comment
+            </button>
+          </div>
+          
+          <div id="comments-list" data-testid="comments-list">
+            <p class="text-gray-500 dark:text-gray-400 text-center py-4">Loading comments...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar (1/3) -->
+      <div class="space-y-6">
+        <!-- Quick Stats -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Quick Stats</h3>
+          <div class="space-y-3">
+            <div class="flex justify-between">
+              <span class="text-gray-600 dark:text-gray-400">Views</span>
+              <span class="font-medium text-gray-900 dark:text-white">{tool.view_count.toLocaleString()}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600 dark:text-gray-400">Reviews</span>
+              <span class="font-medium text-gray-900 dark:text-white">{tool.review_count}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600 dark:text-gray-400">Likes</span>
+              <span class="font-medium text-gray-900 dark:text-white" id="sidebar-like-count">{tool.like_count}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Categories -->
+        {tool.categories && tool.categories.length > 0 && (
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Categories</h3>
+            <div class="flex flex-wrap gap-2">
+              {tool.categories.map((cat: any) => (
+                <a 
+                  href={`/tools?category=${cat.slug}`}
+                  class="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
+                >
+                  {cat.name}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <!-- Pricing Details -->
+        {tool.pricing_details && Object.keys(tool.pricing_details).length > 0 && (
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Pricing</h3>
+            <div class="space-y-2">
+              {Object.entries(tool.pricing_details).map(([plan, price]: [string, any]) => (
+                <div class="flex justify-between items-center">
+                  <span class="text-gray-600 dark:text-gray-400 capitalize">{plan}:</span>
+                  <span class="font-medium text-gray-900 dark:text-white">{price}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <!-- Company Info -->
+        {(tool.about || tool.company_location || tool.started_on) && (
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Company Info</h3>
+            <div class="space-y-3 text-sm">
+              {tool.company_location && (
+                <div>
+                  <span class="text-gray-600 dark:text-gray-400">Location:</span>
+                  <span class="text-gray-900 dark:text-white ml-2">{tool.company_location}</span>
+                </div>
+              )}
+              {tool.started_on && (
+                <div>
+                  <span class="text-gray-600 dark:text-gray-400">Founded:</span>
+                  <span class="text-gray-900 dark:text-white ml-2">{tool.started_on}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   </div>
 
-  <!-- Review Modal -->
+  <!-- Review Modal (Client-side component) -->
   <div id="review-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
     <div class="bg-white dark:bg-gray-800 rounded-lg p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
       <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Write a Review</h2>
@@ -44,11 +350,9 @@ const metadata = {
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Rating *</label>
           <div class="flex space-x-2">
-            <button type="button" data-rating="1" class="rating-btn text-3xl text-gray-300 hover:text-yellow-500 transition-colors">★</button>
-            <button type="button" data-rating="2" class="rating-btn text-3xl text-gray-300 hover:text-yellow-500 transition-colors">★</button>
-            <button type="button" data-rating="3" class="rating-btn text-3xl text-gray-300 hover:text-yellow-500 transition-colors">★</button>
-            <button type="button" data-rating="4" class="rating-btn text-3xl text-gray-300 hover:text-yellow-500 transition-colors">★</button>
-            <button type="button" data-rating="5" class="rating-btn text-3xl text-gray-300 hover:text-yellow-500 transition-colors">★</button>
+            {[1, 2, 3, 4, 5].map((rating) => (
+              <button type="button" data-rating={rating} class="rating-btn text-3xl text-gray-300 hover:text-yellow-500 transition-colors">★</button>
+            ))}
           </div>
           <input type="hidden" id="review-rating" required />
         </div>
@@ -94,349 +398,28 @@ const metadata = {
   </div>
 </Layout>
 
-<script define:vars={{ slug }}>
+<script define:vars={{ slug: slug, toolId: tool.id }}>
   import { toolsApi } from '~/utils/api';
 
-  let currentTool: any = null;
+  // Client-side interactivity
   let userLoggedIn = false;
   let selectedRating = 0;
 
-  async function loadToolDetail() {
-    const loading = document.getElementById('loading');
-    const content = document.getElementById('tool-content');
-    const error = document.getElementById('error');
-
-    try {
-      currentTool = await toolsApi.getBySlug(slug);
-      
-      // Check if user is logged in
-      userLoggedIn = !!localStorage.getItem('auth_token');
-      
-      loading.classList.add('hidden');
-      content.classList.remove('hidden');
-      
-      renderToolDetail();
-      await loadReviews();
-      await loadComments();
-      setupEventListeners();
-    } catch (err) {
-      console.error('Error loading tool:', err);
-      loading.classList.add('hidden');
-      error.classList.remove('hidden');
-    }
-  }
-
-  function renderToolDetail() {
-    const content = document.getElementById('tool-content');
+  function init() {
+    userLoggedIn = !!localStorage.getItem('auth_token');
     
-    content.innerHTML = `
-      <!-- Back Button -->
-      <div class="mb-6">
-        <a href="/tools" class="inline-flex items-center text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
-          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-          </svg>
-          Back to Tools
-        </a>
-      </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- Main Content (2/3) -->
-        <div class="lg:col-span-2 space-y-8">
-          <!-- Tool Header -->
-          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
-            <div class="flex items-start space-x-6">
-              ${currentTool.logo_url ? `
-                <img src="${currentTool.logo_url}" alt="${currentTool.name} logo" class="h-24 w-24 object-contain rounded-lg" />
-              ` : ''}
-              <div class="flex-1">
-                <h1 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2" data-testid="tool-title">
-                  ${currentTool.name}
-                </h1>
-                <p class="text-xl text-gray-600 dark:text-gray-300 mb-4">
-                  ${currentTool.short_description || ''}
-                </p>
-                <div class="flex items-center space-x-4 text-sm flex-wrap gap-2">
-                  <div class="flex items-center">
-                    <span class="text-yellow-500 text-xl mr-1">★</span>
-                    <span class="text-gray-900 dark:text-white font-medium text-lg">${currentTool.rating.toFixed(1)}</span>
-                    <span class="text-gray-500 dark:text-gray-400 ml-1">(${currentTool.review_count} reviews)</span>
-                  </div>
-                  <span class="px-3 py-1 rounded-full text-sm font-medium ${getPricingClass(currentTool.pricing_type)}">
-                    ${currentTool.pricing_type.charAt(0).toUpperCase() + currentTool.pricing_type.slice(1)}
-                  </span>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Action Buttons -->
-            <div class="mt-6 flex flex-wrap gap-3">
-              ${currentTool.url ? `
-                <a 
-                  href="${currentTool.url}" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                  data-testid="visit-website-btn"
-                >
-                  Visit Website
-                  <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </a>
-              ` : ''}
-              
-              ${userLoggedIn ? `
-                <button 
-                  id="like-btn"
-                  class="inline-flex items-center px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
-                  data-testid="like-tool-btn"
-                >
-                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
-                  <span id="like-count">${currentTool.like_count}</span>
-                </button>
-                
-                <button 
-                  id="favorite-btn"
-                  class="inline-flex items-center px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
-                  data-testid="favorite-tool-btn"
-                >
-                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                  </svg>
-                  Favorite
-                </button>
-                
-                <button 
-                  id="write-review-btn"
-                  class="inline-flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
-                  data-testid="write-review-btn"
-                >
-                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                  Write Review
-                </button>
-              ` : `
-                <a href="/auth/login" class="inline-flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
-                  Login to Review
-                </a>
-              `}
-            </div>
-          </div>
-
-          <!-- Description -->
-          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">About ${currentTool.name}</h2>
-            <div class="prose dark:prose-invert max-w-none">
-              <p class="text-gray-700 dark:text-gray-300">${currentTool.description}</p>
-            </div>
-          </div>
-
-          <!-- Features -->
-          ${currentTool.features && currentTool.features.length > 0 ? `
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
-              <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Key Features</h2>
-              <ul class="space-y-3">
-                ${currentTool.features.map(feature => `
-                  <li class="flex items-start">
-                    <svg class="w-6 h-6 text-green-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span class="text-gray-700 dark:text-gray-300">${feature}</span>
-                  </li>
-                `).join('')}
-              </ul>
-            </div>
-          ` : ''}
-
-          <!-- Pros and Cons -->
-          ${(currentTool.pros && currentTool.pros.length > 0) || (currentTool.cons && currentTool.cons.length > 0) ? `
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              ${currentTool.pros && currentTool.pros.length > 0 ? `
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-                  <h3 class="text-xl font-bold text-green-600 dark:text-green-400 mb-4">Pros</h3>
-                  <ul class="space-y-2">
-                    ${currentTool.pros.map(pro => `
-                      <li class="flex items-start">
-                        <span class="text-green-500 mr-2">✓</span>
-                        <span class="text-gray-700 dark:text-gray-300">${pro}</span>
-                      </li>
-                    `).join('')}
-                  </ul>
-                </div>
-              ` : ''}
-              ${currentTool.cons && currentTool.cons.length > 0 ? `
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-                  <h3 class="text-xl font-bold text-red-600 dark:text-red-400 mb-4">Cons</h3>
-                  <ul class="space-y-2">
-                    ${currentTool.cons.map(con => `
-                      <li class="flex items-start">
-                        <span class="text-red-500 mr-2">✗</span>
-                        <span class="text-gray-700 dark:text-gray-300">${con}</span>
-                      </li>
-                    `).join('')}
-                  </ul>
-                </div>
-              ` : ''}
-            </div>
-          ` : ''}
-
-          <!-- Reviews Section -->
-          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8" id="reviews-section">
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Reviews</h2>
-            <div id="reviews-list" data-testid="reviews-list">
-              <!-- Reviews will be loaded here -->
-            </div>
-          </div>
-
-          <!-- Comments Section -->
-          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Comments</h2>
-            
-            ${userLoggedIn ? `
-              <div class="mb-6">
-                <textarea
-                  id="comment-input"
-                  rows="3"
-                  class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-                  placeholder="Write a comment..."
-                  data-testid="comment-input"
-                ></textarea>
-                <button 
-                  id="post-comment-btn"
-                  class="mt-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  data-testid="post-comment-btn"
-                >
-                  Post Comment
-                </button>
-              </div>
-            ` : ''}
-            
-            <div id="comments-list" data-testid="comments-list">
-              <!-- Comments will be loaded here -->
-            </div>
-          </div>
-        </div>
-
-        <!-- Sidebar (1/3) -->
-        <div class="space-y-6">
-          <!-- Quick Stats -->
-          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Quick Stats</h3>
-            <div class="space-y-3">
-              <div class="flex justify-between">
-                <span class="text-gray-600 dark:text-gray-400">Views</span>
-                <span class="font-medium text-gray-900 dark:text-white">${currentTool.view_count.toLocaleString()}</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-gray-600 dark:text-gray-400">Reviews</span>
-                <span class="font-medium text-gray-900 dark:text-white">${currentTool.review_count}</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-gray-600 dark:text-gray-400">Likes</span>
-                <span class="font-medium text-gray-900 dark:text-white" id="sidebar-like-count">${currentTool.like_count}</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Categories -->
-          ${currentTool.categories && currentTool.categories.length > 0 ? `
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-              <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Categories</h3>
-              <div class="flex flex-wrap gap-2">
-                ${currentTool.categories.map(cat => `
-                  <a 
-                    href="/tools?category=${cat.slug}" 
-                    class="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
-                  >
-                    ${cat.name}
-                  </a>
-                `).join('')}
-              </div>
-            </div>
-          ` : ''}
-
-          <!-- Company Info -->
-          ${currentTool.about || currentTool.company_location || currentTool.started_on ? `
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-              <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Company Info</h3>
-              <div class="space-y-3 text-sm">
-                ${currentTool.company_location ? `
-                  <div>
-                    <span class="text-gray-600 dark:text-gray-400">Location:</span>
-                    <span class="text-gray-900 dark:text-white ml-2">${currentTool.company_location}</span>
-                  </div>
-                ` : ''}
-                ${currentTool.started_on ? `
-                  <div>
-                    <span class="text-gray-600 dark:text-gray-400">Founded:</span>
-                    <span class="text-gray-900 dark:text-white ml-2">${currentTool.started_on}</span>
-                  </div>
-                ` : ''}
-              </div>
-            </div>
-          ` : ''}
-        </div>
-      </div>
-    `;
-  }
-
-  function getPricingClass(pricingType: string): string {
-    const classes = {
-      free: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-      freemium: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-      paid: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
-    };
-    return classes[pricingType as keyof typeof classes] || classes.paid;
-  }
-
-  async function loadReviews() {
-    try {
-      const reviews = await toolsApi.getReviews(currentTool.id, { limit: 10 });
-      const reviewsList = document.getElementById('reviews-list');
-      
-      if (reviews.length === 0) {
-        reviewsList.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center py-8">No reviews yet. Be the first to review!</p>';
-        return;
-      }
-      
-      reviewsList.innerHTML = reviews.map(review => `
-        <div class="border-b border-gray-200 dark:border-gray-700 last:border-0 py-6">
-          <div class="flex items-start justify-between mb-2">
-            <div>
-              <div class="flex items-center space-x-2 mb-1">
-                <span class="font-medium text-gray-900 dark:text-white">${review.user_name}</span>
-                <span class="text-yellow-500">${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}</span>
-              </div>
-              ${review.title ? `<h4 class="font-medium text-gray-900 dark:text-white mb-2">${review.title}</h4>` : ''}
-            </div>
-            <span class="text-sm text-gray-500 dark:text-gray-400">${new Date(review.created_at).toLocaleDateString()}</span>
-          </div>
-          ${review.content ? `<p class="text-gray-700 dark:text-gray-300 mb-3">${review.content}</p>` : ''}
-          ${review.pros && review.pros.length > 0 ? `
-            <div class="mb-2">
-              <span class="text-sm font-medium text-green-600 dark:text-green-400">Pros:</span>
-              <ul class="text-sm text-gray-700 dark:text-gray-300 ml-4">
-                ${review.pros.map(pro => `<li>• ${pro}</li>`).join('')}
-              </ul>
-            </div>
-          ` : ''}
-          ${review.cons && review.cons.length > 0 ? `
-            <div>
-              <span class="text-sm font-medium text-red-600 dark:text-red-400">Cons:</span>
-              <ul class="text-sm text-gray-700 dark:text-gray-300 ml-4">
-                ${review.cons.map(con => `<li>• ${con}</li>`).join('')}
-              </ul>
-            </div>
-          ` : ''}
-        </div>
-      `).join('');
-    } catch (error) {
-      console.error('Error loading reviews:', error);
+    // Enable/disable comment form based on auth
+    const commentInput = document.getElementById('comment-input') as HTMLTextAreaElement;
+    const postCommentBtn = document.getElementById('post-comment-btn') as HTMLButtonElement;
+    
+    if (userLoggedIn && commentInput && postCommentBtn) {
+      commentInput.disabled = false;
+      commentInput.placeholder = 'Write a comment...';
+      postCommentBtn.disabled = false;
     }
+    
+    loadComments();
+    setupEventListeners();
   }
 
   async function loadComments() {
@@ -444,12 +427,14 @@ const metadata = {
       const comments = await toolsApi.getComments(slug, { limit: 50 });
       const commentsList = document.getElementById('comments-list');
       
+      if (!commentsList) return;
+      
       if (comments.length === 0) {
         commentsList.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center py-8">No comments yet. Start the conversation!</p>';
         return;
       }
       
-      commentsList.innerHTML = comments.map(comment => `
+      commentsList.innerHTML = comments.map((comment: any) => `
         <div class="border-b border-gray-200 dark:border-gray-700 last:border-0 py-4">
           <div class="flex items-start space-x-3">
             <div class="flex-shrink-0 w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-medium">
@@ -461,24 +446,6 @@ const metadata = {
                 <span class="text-sm text-gray-500 dark:text-gray-400">${new Date(comment.created_at).toLocaleDateString()}</span>
               </div>
               <p class="text-gray-700 dark:text-gray-300">${comment.content}</p>
-              ${comment.replies && comment.replies.length > 0 ? `
-                <div class="mt-4 ml-8 space-y-3">
-                  ${comment.replies.map(reply => `
-                    <div class="flex items-start space-x-3">
-                      <div class="flex-shrink-0 w-8 h-8 rounded-full bg-gray-400 flex items-center justify-center text-white text-sm font-medium">
-                        ${reply.user_name.charAt(0).toUpperCase()}
-                      </div>
-                      <div class="flex-1">
-                        <div class="flex items-center space-x-2 mb-1">
-                          <span class="font-medium text-gray-900 dark:text-white text-sm">${reply.user_name}</span>
-                          <span class="text-xs text-gray-500 dark:text-gray-400">${new Date(reply.created_at).toLocaleDateString()}</span>
-                        </div>
-                        <p class="text-sm text-gray-700 dark:text-gray-300">${reply.content}</p>
-                      </div>
-                    </div>
-                  `).join('')}
-                </div>
-              ` : ''}
             </div>
           </div>
         </div>
@@ -493,10 +460,18 @@ const metadata = {
     const likeBtn = document.getElementById('like-btn');
     if (likeBtn) {
       likeBtn.addEventListener('click', async () => {
+        if (!userLoggedIn) {
+          window.location.href = '/auth/login?redirect=/tools/' + slug;
+          return;
+        }
+        
         try {
           const result = await toolsApi.toggleLike(slug);
-          document.getElementById('like-count').textContent = result.like_count;
-          document.getElementById('sidebar-like-count').textContent = result.like_count;
+          const likeCount = document.getElementById('like-count');
+          const sidebarLikeCount = document.getElementById('sidebar-like-count');
+          
+          if (likeCount) likeCount.textContent = result.like_count.toString();
+          if (sidebarLikeCount) sidebarLikeCount.textContent = result.like_count.toString();
           
           if (result.liked) {
             likeBtn.classList.add('bg-red-100', 'dark:bg-red-900', 'text-red-700', 'dark:text-red-200');
@@ -507,29 +482,6 @@ const metadata = {
           }
         } catch (error) {
           console.error('Error toggling like:', error);
-          alert('Please log in to like this tool');
-        }
-      });
-    }
-
-    // Favorite button
-    const favoriteBtn = document.getElementById('favorite-btn');
-    if (favoriteBtn) {
-      favoriteBtn.addEventListener('click', async () => {
-        try {
-          const result = await toolsApi.toggleFavorite(currentTool.id);
-          alert(result.message);
-          
-          if (result.favorited) {
-            favoriteBtn.classList.add('bg-yellow-100', 'dark:bg-yellow-900', 'text-yellow-700', 'dark:text-yellow-200');
-            favoriteBtn.classList.remove('bg-gray-200', 'dark:bg-gray-700');
-          } else {
-            favoriteBtn.classList.remove('bg-yellow-100', 'dark:bg-yellow-900', 'text-yellow-700', 'dark:text-yellow-200');
-            favoriteBtn.classList.add('bg-gray-200', 'dark:bg-gray-700');
-          }
-        } catch (error) {
-          console.error('Error toggling favorite:', error);
-          alert('Please log in to favorite this tool');
         }
       });
     }
@@ -538,16 +490,20 @@ const metadata = {
     const writeReviewBtn = document.getElementById('write-review-btn');
     if (writeReviewBtn) {
       writeReviewBtn.addEventListener('click', () => {
-        document.getElementById('review-modal').classList.remove('hidden');
+        if (!userLoggedIn) {
+          window.location.href = '/auth/login?redirect=/tools/' + slug;
+          return;
+        }
+        document.getElementById('review-modal')?.classList.remove('hidden');
       });
     }
 
-    // Post comment button
+    // Post comment
     const postCommentBtn = document.getElementById('post-comment-btn');
     if (postCommentBtn) {
       postCommentBtn.addEventListener('click', async () => {
         const commentInput = document.getElementById('comment-input') as HTMLTextAreaElement;
-        const content = commentInput.value.trim();
+        const content = commentInput?.value.trim();
         
         if (!content) {
           alert('Please write a comment');
@@ -566,7 +522,6 @@ const metadata = {
       });
     }
 
-    // Review modal
     setupReviewModal();
   }
 
@@ -576,15 +531,16 @@ const metadata = {
     const reviewForm = document.getElementById('review-form') as HTMLFormElement;
     const ratingButtons = document.querySelectorAll('.rating-btn');
 
+    if (!modal || !reviewForm) return;
+
     // Rating buttons
     ratingButtons.forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.preventDefault();
         const rating = parseInt((btn as HTMLElement).getAttribute('data-rating') || '0');
         selectedRating = rating;
-        document.getElementById('review-rating')!.setAttribute('value', rating.toString());
+        document.getElementById('review-rating')?.setAttribute('value', rating.toString());
         
-        // Update button styles
         ratingButtons.forEach((b, index) => {
           if (index < rating) {
             b.classList.remove('text-gray-300');
@@ -597,7 +553,7 @@ const metadata = {
       });
     });
 
-    cancelBtn.addEventListener('click', () => {
+    cancelBtn?.addEventListener('click', () => {
       modal.classList.add('hidden');
       reviewForm.reset();
       selectedRating = 0;
@@ -615,12 +571,12 @@ const metadata = {
         return;
       }
       
-      const title = (document.getElementById('review-title') as HTMLInputElement).value;
-      const content = (document.getElementById('review-content') as HTMLTextAreaElement).value;
+      const title = (document.getElementById('review-title') as HTMLInputElement)?.value;
+      const content = (document.getElementById('review-content') as HTMLTextAreaElement)?.value;
       
       try {
         await toolsApi.createReview({
-          tool_id: currentTool.id,
+          tool_id: toolId,
           rating: selectedRating,
           title,
           content
@@ -628,18 +584,14 @@ const metadata = {
         
         modal.classList.add('hidden');
         reviewForm.reset();
-        selectedRating = 0;
-        
-        // Reload reviews
-        await loadReviews();
-        alert('Review submitted successfully!');
+        alert('Review submitted successfully! Page will reload.');
+        window.location.reload();
       } catch (error) {
         console.error('Error submitting review:', error);
         alert('Failed to submit review. You may have already reviewed this tool.');
       }
     });
 
-    // Close on outside click
     modal.addEventListener('click', (e) => {
       if (e.target === modal) {
         modal.classList.add('hidden');
@@ -647,5 +599,10 @@ const metadata = {
     });
   }
 
-  loadToolDetail();
+  // Initialize
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 </script>
