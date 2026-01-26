@@ -2,30 +2,29 @@
 import Layout from '~/layouts/PageLayout.astro';
 import { ssrToolsApi } from '~/utils/ssr-api';
 
-// Generate static paths for all tools at build time
-export async function getStaticPaths() {
-  try {
-    const tools = await ssrToolsApi.getAll({ limit: 1000 });
-    
-    return tools.map((tool: any) => ({
-      params: { slug: tool.slug },
-      props: { tool },
-    }));
-  } catch (error) {
-    console.error('Error generating static paths for tools:', error);
-    return [];
+// SSR: Fetch tool data on each request for SEO-optimized content
+const { slug } = Astro.params;
+
+// Fetch tool data
+let tool: any = null;
+let reviews: any[] = [];
+let errorMessage = '';
+
+try {
+  tool = await ssrToolsApi.getBySlug(slug as string);
+  
+  // Fetch reviews
+  if (tool) {
+    reviews = await ssrToolsApi.getReviews(tool.id, { limit: 10 });
   }
+} catch (error) {
+  console.error('Error fetching tool:', error);
+  errorMessage = 'Tool not found';
 }
 
-const { slug } = Astro.params;
-const { tool } = Astro.props;
-
-// Fetch reviews at build time
-let reviews: any[] = [];
-try {
-  reviews = await ssrToolsApi.getReviews(tool.id, { limit: 10 });
-} catch (error) {
-  console.error('Error fetching reviews:', error);
+// If tool not found, return 404
+if (!tool) {
+  return Astro.redirect('/404');
 }
 
 // Generate metadata for SEO
