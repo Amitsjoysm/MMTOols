@@ -9,12 +9,15 @@ load_dotenv()
 class AIService:
     def __init__(self):
         # Use API key from environment variable
-        groq_api_key = os.getenv('GROQ_API_KEY')
-        if not groq_api_key:
-            raise ValueError("GROQ_API_KEY environment variable is not set")
-        self.client = Groq(api_key=groq_api_key)
-        # Using llama-3.1-8b-instant for fast and reliable responses
-        self.model = "llama-3.1-8b-instant"
+        groq_api_key = os.getenv('GROQ_API_KEY', '')
+        if not groq_api_key or groq_api_key == 'placeholder-key-not-configured':
+            print("⚠️ WARNING: GROQ_API_KEY not configured. AI features will be disabled.")
+            self.client = None
+            self.model = None
+        else:
+            self.client = Groq(api_key=groq_api_key)
+            # Using llama-3.1-8b-instant for fast and reliable responses
+            self.model = "llama-3.1-8b-instant"
     
     def generate_blog_content(self, topic: str, keywords: List[str] = [], target_length: str = "medium") -> Dict[str, Any]:
         """Generate comprehensive blog content using AI"""
