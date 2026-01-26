@@ -1,0 +1,273 @@
+---
+import Layout from '~/layouts/PageLayout.astro';
+
+const metadata = {
+  title: 'My Dashboard - MarketMindAI',
+  description: 'Manage your profile, favorite tools, and activity.',
+};
+---
+
+<Layout metadata={metadata}>
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Loading State -->
+    <div id="loading" class="text-center py-12">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <p class="mt-4 text-gray-600 dark:text-gray-400">Loading dashboard...</p>
+    </div>
+
+    <!-- Not Logged In State -->
+    <div id="not-logged-in" class="hidden text-center py-12">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Please Log In</h2>
+      <p class="text-gray-600 dark:text-gray-400 mb-6">You need to be logged in to access your dashboard.</p>
+      <a href="/auth/login" class="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+        Log In
+      </a>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div id="dashboard-content" class="hidden space-y-8">
+      <!-- User Header -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
+        <div class="flex items-start justify-between">
+          <div class="flex items-start space-x-6">
+            <div id="user-avatar" class="w-24 h-24 rounded-full bg-blue-600 flex items-center justify-center text-white text-3xl font-bold"></div>
+            <div>
+              <h1 id="user-name" class="text-3xl font-bold text-gray-900 dark:text-white mb-2" data-testid="user-name"></h1>
+              <p id="user-email" class="text-gray-600 dark:text-gray-400 mb-4" data-testid="user-email"></p>
+              <p id="user-bio" class="text-gray-700 dark:text-gray-300" data-testid="user-bio"></p>
+            </div>
+          </div>
+          <button id="edit-profile-btn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" data-testid="edit-profile-btn">
+            Edit Profile
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6" data-testid="stat-total-blogs">
+          <div class="text-3xl font-bold text-blue-600 dark:text-blue-400" id="stat-blogs">0</div>
+          <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">Total Blogs</div>
+        </div>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6" data-testid="stat-published-blogs">
+          <div class="text-3xl font-bold text-green-600 dark:text-green-400" id="stat-published">0</div>
+          <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">Published</div>
+        </div>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6" data-testid="stat-total-reviews">
+          <div class="text-3xl font-bold text-purple-600 dark:text-purple-400" id="stat-reviews">0</div>
+          <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">Reviews Written</div>
+        </div>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6" data-testid="stat-favorite-tools">
+          <div class="text-3xl font-bold text-yellow-600 dark:text-yellow-400" id="stat-favorites">0</div>
+          <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">Favorite Tools</div>
+        </div>
+      </div>
+
+      <!-- Recent Blogs -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Recent Blogs</h2>
+          <a href="/user/blogs" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+            View All →
+          </a>
+        </div>
+        <div id="recent-blogs" data-testid="recent-blogs-list">
+          <!-- Blogs will be rendered here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Profile Modal -->
+  <div id="edit-profile-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white dark:bg-gray-800 rounded-lg p-8 max-w-md w-full mx-4">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Edit Profile</h2>
+      
+      <form id="edit-profile-form" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Full Name</label>
+          <input
+            type="text"
+            id="edit-full-name"
+            class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+            data-testid="edit-full-name-input"
+          />
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Bio</label>
+          <textarea
+            id="edit-bio"
+            rows="4"
+            class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+            data-testid="edit-bio-input"
+          ></textarea>
+        </div>
+        
+        <div class="flex items-center justify-end space-x-4">
+          <button
+            type="button"
+            id="cancel-edit-btn"
+            class="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            data-testid="cancel-edit-btn"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            data-testid="save-profile-btn"
+          >
+            Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  import { authApi, userApi } from '~/utils/api';
+
+  let currentUser: any = null;
+  let dashboardData: any = null;
+
+  async function init() {
+    const loading = document.getElementById('loading')!;
+    const notLoggedIn = document.getElementById('not-logged-in')!;
+    const dashboardContent = document.getElementById('dashboard-content')!;
+
+    try {
+      // Check if user is logged in
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        loading.classList.add('hidden');
+        notLoggedIn.classList.remove('hidden');
+        return;
+      }
+
+      // Load user data
+      currentUser = await authApi.getCurrentUser();
+      dashboardData = await userApi.getDashboard();
+
+      // Render dashboard
+      renderDashboard();
+
+      loading.classList.add('hidden');
+      dashboardContent.classList.remove('hidden');
+
+      // Setup event listeners
+      setupEventListeners();
+    } catch (error) {
+      console.error('Error loading dashboard:', error);
+      loading.classList.add('hidden');
+      notLoggedIn.classList.remove('hidden');
+      // Clear invalid token
+      localStorage.removeItem('auth_token');
+    }
+  }
+
+  function renderDashboard() {
+    // User header
+    const avatar = document.getElementById('user-avatar')!;
+    const name = document.getElementById('user-name')!;
+    const email = document.getElementById('user-email')!;
+    const bio = document.getElementById('user-bio')!;
+
+    const initials = (dashboardData.user.full_name || dashboardData.user.username)
+      .split(' ')
+      .map((n: string) => n[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+
+    avatar.textContent = initials;
+    name.textContent = dashboardData.user.full_name || dashboardData.user.username;
+    email.textContent = dashboardData.user.email;
+    bio.textContent = dashboardData.user.bio || 'No bio added yet.';
+
+    // Stats
+    document.getElementById('stat-blogs')!.textContent = dashboardData.stats.total_blogs;
+    document.getElementById('stat-published')!.textContent = dashboardData.stats.published_blogs;
+    document.getElementById('stat-reviews')!.textContent = dashboardData.stats.total_reviews;
+    document.getElementById('stat-favorites')!.textContent = dashboardData.stats.favorite_tools;
+
+    // Recent blogs
+    const recentBlogsDiv = document.getElementById('recent-blogs')!;
+    if (dashboardData.recent_blogs && dashboardData.recent_blogs.length > 0) {
+      recentBlogsDiv.innerHTML = dashboardData.recent_blogs.map((blog: any) => `
+        <div class="border-b border-gray-200 dark:border-gray-700 last:border-0 py-4">
+          <div class="flex items-start justify-between">
+            <div class="flex-1">
+              <h3 class="font-medium text-gray-900 dark:text-white mb-1">${blog.title}</h3>
+              <div class="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
+                <span class="px-2 py-1 rounded-full text-xs font-medium ${
+                  blog.status === 'published' 
+                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+                    : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                }">
+                  ${blog.status}
+                </span>
+                <span>${blog.view_count} views</span>
+                <span>${new Date(blog.updated_at).toLocaleDateString()}</span>
+              </div>
+            </div>
+            <a href="/user/blogs/${blog.id}/edit" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 text-sm">
+              Edit
+            </a>
+          </div>
+        </div>
+      `).join('');
+    } else {
+      recentBlogsDiv.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center py-8">No blogs yet. Create your first blog!</p>';
+    }
+  }
+
+  function setupEventListeners() {
+    const editProfileBtn = document.getElementById('edit-profile-btn')!;
+    const editProfileModal = document.getElementById('edit-profile-modal')!;
+    const cancelEditBtn = document.getElementById('cancel-edit-btn')!;
+    const editProfileForm = document.getElementById('edit-profile-form')! as HTMLFormElement;
+
+    editProfileBtn.addEventListener('click', () => {
+      // Pre-fill form
+      (document.getElementById('edit-full-name')! as HTMLInputElement).value = dashboardData.user.full_name || '';
+      (document.getElementById('edit-bio')! as HTMLTextAreaElement).value = dashboardData.user.bio || '';
+      editProfileModal.classList.remove('hidden');
+    });
+
+    cancelEditBtn.addEventListener('click', () => {
+      editProfileModal.classList.add('hidden');
+    });
+
+    editProfileForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const fullName = (document.getElementById('edit-full-name')! as HTMLInputElement).value;
+      const bio = (document.getElementById('edit-bio')! as HTMLTextAreaElement).value;
+
+      try {
+        await userApi.updateProfile({ full_name: fullName, bio });
+        
+        // Reload dashboard
+        dashboardData = await userApi.getDashboard();
+        renderDashboard();
+        
+        editProfileModal.classList.add('hidden');
+        alert('Profile updated successfully!');
+      } catch (error) {
+        console.error('Error updating profile:', error);
+        alert('Failed to update profile. Please try again.');
+      }
+    });
+
+    // Close modal on outside click
+    editProfileModal.addEventListener('click', (e) => {
+      if (e.target === editProfileModal) {
+        editProfileModal.classList.add('hidden');
+      }
+    });
+  }
+
+  init();
+</script>
