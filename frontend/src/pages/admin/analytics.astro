@@ -1,0 +1,247 @@
+---
+import AdminLayout from '~/layouts/AdminLayout.astro';
+
+const metadata = {
+  title: 'Analytics - Admin',
+};
+---
+
+<AdminLayout metadata={metadata}>
+  <div id="analytics-container">
+    <!-- Loading State -->
+    <div id="loading" class="text-center py-12">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <p class="mt-4 text-gray-600 dark:text-gray-400">Loading analytics...</p>
+    </div>
+
+    <!-- Analytics Content -->
+    <div id="analytics-content" class="hidden space-y-6">
+      <!-- Timeframe Selector -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <div class="flex items-center gap-4">
+          <label for="timeframe" class="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Timeframe:
+          </label>
+          <select
+            id="timeframe"
+            class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+            data-testid="timeframe-selector"
+          >
+            <option value="7">Last 7 Days</option>
+            <option value="30" selected>Last 30 Days</option>
+            <option value="90">Last 90 Days</option>
+            <option value="365">Last Year</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Analytics Stats -->
+      <div id="stats-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Stats will be rendered here -->
+      </div>
+
+      <!-- Charts Row -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Activity Chart -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Activity Overview</h3>
+          <div id="activity-chart" class="space-y-4">
+            <!-- Activity metrics will be rendered here -->
+          </div>
+        </div>
+
+        <!-- Performance Chart -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Performance Metrics</h3>
+          <div id="performance-chart" class="space-y-4">
+            <!-- Performance metrics will be rendered here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Detailed Stats -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Detailed Statistics</h3>
+        <div id="detailed-stats" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Detailed stats will be rendered here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div id="error" class="hidden text-center py-12">
+      <p class="text-xl text-red-600 dark:text-red-400">Error loading analytics data.</p>
+      <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+        Retry
+      </button>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  import { adminApi } from '~/utils/api';
+
+  async function loadAnalytics(days: number = 30) {
+    const loading = document.getElementById('loading')!;
+    const content = document.getElementById('analytics-content')!;
+    const error = document.getElementById('error')!;
+
+    try {
+      loading.classList.remove('hidden');
+      content.classList.add('hidden');
+      error.classList.add('hidden');
+
+      const analytics = await adminApi.getAnalytics(days);
+      
+      loading.classList.add('hidden');
+      content.classList.remove('hidden');
+      
+      renderStats(analytics, days);
+      renderActivityChart(analytics);
+      renderPerformanceChart(analytics);
+      renderDetailedStats(analytics);
+    } catch (err) {
+      console.error('Error loading analytics:', err);
+      loading.classList.add('hidden');
+      error.classList.remove('hidden');
+    }
+  }
+
+  function renderStats(analytics: any, days: number) {
+    const statsGrid = document.getElementById('stats-grid')!;
+    
+    const stats = [
+      {
+        title: 'Total Blog Views',
+        value: analytics.analytics.blog_views.toLocaleString(),
+        icon: '📊',
+        color: 'blue'
+      },
+      {
+        title: 'New Blogs',
+        value: analytics.analytics.new_blogs.toLocaleString(),
+        icon: '📝',
+        color: 'green'
+      },
+      {
+        title: 'Tool Views',
+        value: analytics.analytics.tool_views.toLocaleString(),
+        icon: '🔧',
+        color: 'purple'
+      },
+      {
+        title: 'New Reviews',
+        value: analytics.analytics.new_reviews.toLocaleString(),
+        icon: '⭐',
+        color: 'yellow'
+      }
+    ];
+
+    statsGrid.innerHTML = stats.map(stat => `
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6" data-testid="stat-card-${stat.title.toLowerCase().replace(/ /g, '-')}">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-2xl">${stat.icon}</span>
+        </div>
+        <h3 class="text-3xl font-bold text-gray-900 dark:text-white mb-1">${stat.value}</h3>
+        <p class="text-sm text-gray-600 dark:text-gray-400">${stat.title}</p>
+        <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">Last ${days} days</p>
+      </div>
+    `).join('');
+  }
+
+  function renderActivityChart(analytics: any) {
+    const chartDiv = document.getElementById('activity-chart')!;
+    
+    const data = [
+      { label: 'New Users', value: analytics.analytics.new_users, max: Math.max(analytics.analytics.new_users, 10) },
+      { label: 'New Blogs', value: analytics.analytics.new_blogs, max: Math.max(analytics.analytics.new_blogs, 10) },
+      { label: 'New Reviews', value: analytics.analytics.new_reviews, max: Math.max(analytics.analytics.new_reviews, 10) }
+    ];
+
+    chartDiv.innerHTML = data.map(item => `
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-sm font-medium text-gray-700 dark:text-gray-300">${item.label}</span>
+          <span class="text-sm font-bold text-blue-600 dark:text-blue-400">${item.value}</span>
+        </div>
+        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+          <div 
+            class="h-3 rounded-full bg-gradient-to-r from-blue-500 to-blue-600" 
+            style="width: ${(item.value / item.max) * 100}%"
+          ></div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function renderPerformanceChart(analytics: any) {
+    const chartDiv = document.getElementById('performance-chart')!;
+    
+    const data = [
+      { label: 'Blog Views', value: analytics.analytics.blog_views, max: Math.max(analytics.analytics.blog_views, 100) },
+      { label: 'Tool Views', value: analytics.analytics.tool_views, max: Math.max(analytics.analytics.tool_views, 100) }
+    ];
+
+    chartDiv.innerHTML = data.map(item => `
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-sm font-medium text-gray-700 dark:text-gray-300">${item.label}</span>
+          <span class="text-sm font-bold text-green-600 dark:text-green-400">${item.value.toLocaleString()}</span>
+        </div>
+        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+          <div 
+            class="h-3 rounded-full bg-gradient-to-r from-green-500 to-green-600" 
+            style="width: ${(item.value / item.max) * 100}%"
+          ></div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function renderDetailedStats(analytics: any) {
+    const detailedDiv = document.getElementById('detailed-stats')!;
+    
+    detailedDiv.innerHTML = `
+      <div class="space-y-3">
+        <h4 class="font-semibold text-gray-900 dark:text-white">Content Activity</h4>
+        <div class="space-y-2">
+          <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+            <span class="text-gray-700 dark:text-gray-300">New Blogs Created</span>
+            <span class="font-bold text-gray-900 dark:text-white">${analytics.analytics.new_blogs}</span>
+          </div>
+          <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+            <span class="text-gray-700 dark:text-gray-300">Total Blog Views</span>
+            <span class="font-bold text-gray-900 dark:text-white">${analytics.analytics.blog_views.toLocaleString()}</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="space-y-3">
+        <h4 class="font-semibold text-gray-900 dark:text-white">User Engagement</h4>
+        <div class="space-y-2">
+          <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+            <span class="text-gray-700 dark:text-gray-300">New Users</span>
+            <span class="font-bold text-gray-900 dark:text-white">${analytics.analytics.new_users}</span>
+          </div>
+          <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+            <span class="text-gray-700 dark:text-gray-300">New Reviews</span>
+            <span class="font-bold text-gray-900 dark:text-white">${analytics.analytics.new_reviews}</span>
+          </div>
+          <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+            <span class="text-gray-700 dark:text-gray-300">Tool Views</span>
+            <span class="font-bold text-gray-900 dark:text-white">${analytics.analytics.tool_views.toLocaleString()}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Timeframe selector
+  document.getElementById('timeframe')?.addEventListener('change', (e) => {
+    const days = parseInt((e.target as HTMLSelectElement).value);
+    loadAnalytics(days);
+  });
+
+  // Load analytics on page load
+  loadAnalytics(30);
+</script>

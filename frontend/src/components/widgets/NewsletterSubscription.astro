@@ -1,0 +1,80 @@
+---
+interface Props {
+  className?: string;
+  source?: string;
+}
+
+const { className = '', source = 'website' } = Astro.props;
+---
+
+<div class={`newsletter-subscription ${className}`}>
+  <div class="max-w-md mx-auto">
+    <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Stay Updated</h3>
+    <p class="text-gray-600 dark:text-gray-400 mb-4 text-sm">
+      Subscribe to our newsletter for the latest AI tools and insights.
+    </p>
+    
+    <form id="newsletter-form" class="flex flex-col sm:flex-row gap-2" data-source={source}>
+      <input
+        type="email"
+        id="newsletter-email"
+        name="email"
+        required
+        placeholder="Enter your email"
+        class="flex-1 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        data-testid="newsletter-email-input"
+      />
+      <button
+        type="submit"
+        class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium whitespace-nowrap"
+        data-testid="newsletter-subscribe-btn"
+      >
+        Subscribe
+      </button>
+    </form>
+    
+    <div id="newsletter-message" class="mt-3 hidden"></div>
+  </div>
+</div>
+
+<script>
+  import { newsletterApi } from '~/utils/api';
+
+  document.querySelectorAll('#newsletter-form').forEach(form => {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formElement = e.target as HTMLFormElement;
+      const emailInput = formElement.querySelector('#newsletter-email') as HTMLInputElement;
+      const messageDiv = formElement.parentElement?.querySelector('#newsletter-message') as HTMLElement;
+      const submitBtn = formElement.querySelector('button[type="submit"]') as HTMLButtonElement;
+      const source = formElement.dataset.source || 'website';
+      
+      if (!emailInput || !messageDiv || !submitBtn) return;
+      
+      const originalText = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Subscribing...';
+      
+      messageDiv.classList.add('hidden');
+
+      try {
+        const response = await newsletterApi.subscribe(emailInput.value, source);
+        
+        messageDiv.className = 'mt-3 p-3 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-lg text-sm';
+        messageDiv.textContent = response.message || 'Thank you for subscribing!';
+        messageDiv.classList.remove('hidden');
+        
+        emailInput.value = '';
+      } catch (error: any) {
+        console.error('Newsletter subscription error:', error);
+        messageDiv.className = 'mt-3 p-3 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded-lg text-sm';
+        messageDiv.textContent = error.message || 'Failed to subscribe. Please try again.';
+        messageDiv.classList.remove('hidden');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
+    });
+  });
+</script>
