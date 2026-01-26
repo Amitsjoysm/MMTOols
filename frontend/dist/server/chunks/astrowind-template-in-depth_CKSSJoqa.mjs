@@ -1,5 +1,5 @@
 async function getMod() {
-						return import('./astrowind-template-in-depth_CRfeXC77.mjs');
+						return import('./astrowind-template-in-depth_BvWJV-vx.mjs');
 					}
 					const collectedLinks = [];
 					const collectedStyles = [];

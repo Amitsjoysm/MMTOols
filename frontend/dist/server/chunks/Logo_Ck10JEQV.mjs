@@ -1,4 +1,4 @@
-import { e as createAstro, c as createComponent, m as maybeRenderHead, z as spreadAttributes, b as addAttribute, a as renderTemplate, r as renderComponent, F as Fragment, u as unescapeHTML } from './astro/server_DU95tW1k.mjs';
+import { e as createAstro, c as createComponent, m as maybeRenderHead, z as spreadAttributes, b as addAttribute, a as renderTemplate, r as renderComponent, F as Fragment, u as unescapeHTML } from './astro/server_CiGCQnlW.mjs';
 import 'piccolore';
 import { getIconData, iconToSVG } from '@iconify/utils';
 

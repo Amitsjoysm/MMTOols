@@ -1,7 +1,7 @@
-import { e as createAstro, c as createComponent, m as maybeRenderHead, b as addAttribute, r as renderComponent, a as renderTemplate, g as renderSlot, z as spreadAttributes, F as Fragment, u as unescapeHTML, d as renderScript } from './astro/server_DU95tW1k.mjs';
+import { e as createAstro, c as createComponent, m as maybeRenderHead, b as addAttribute, r as renderComponent, a as renderTemplate, g as renderSlot, z as spreadAttributes, F as Fragment, u as unescapeHTML, d as renderScript } from './astro/server_CiGCQnlW.mjs';
 import 'piccolore';
-import { $ as $$Layout } from './Layout_DfN2YBPX.mjs';
-import { $ as $$Icon, a as $$Logo } from './Logo_DOV44A2J.mjs';
+import { $ as $$Layout } from './Layout_DlphmZvc.mjs';
+import { $ as $$Icon, a as $$Logo } from './Logo_Ck10JEQV.mjs';
 import { U as UI, t as trimSlash, g as getHomePermalink, b as getAsset, S as SITE, a as getPermalink, d as getBlogPermalink } from './permalinks_CQw00ZKc.mjs';
 import 'clsx';
 import { twMerge } from 'tailwind-merge';
