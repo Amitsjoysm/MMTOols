@@ -7,96 +7,56 @@ const metadata = {
 ---
 
 <AdminLayout metadata={metadata}>
-  <div id="contacts-container">
+  <div id="contacts-management" class="space-y-6">
+    <div class="flex items-center justify-between">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Contact Submissions</h2>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <select
+          id="status-filter"
+          class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">All Status</option>
+          <option value="new">New</option>
+          <option value="in_progress">In Progress</option>
+          <option value="resolved">Resolved</option>
+          <option value="closed">Closed</option>
+        </select>
+        <button
+          id="reset-filters-btn"
+          class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+        >
+          Reset Filters
+        </button>
+      </div>
+    </div>
+
     <!-- Loading State -->
     <div id="loading" class="text-center py-12">
       <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      <p class="mt-4 text-gray-600 dark:text-gray-400">Loading contact submissions...</p>
+      <p class="mt-4 text-gray-600 dark:text-gray-400">Loading submissions...</p>
     </div>
 
-    <!-- Contacts Content -->
-    <div id="contacts-content" class="hidden space-y-6">
-      <!-- Filters -->
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-        <div class="flex flex-wrap items-center gap-4">
-          <div>
-            <label for="status-filter" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Status Filter
-            </label>
-            <select
-              id="status-filter"
-              class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
-              data-testid="status-filter"
-            >
-              <option value="">All Statuses</option>
-              <option value="new">New</option>
-              <option value="in_progress">In Progress</option>
-              <option value="resolved">Resolved</option>
-              <option value="closed">Closed</option>
-            </select>
-          </div>
-          <div class="flex-1"></div>
-          <div>
-            <button
-              id="refresh-btn"
-              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              data-testid="refresh-btn"
-            >
-              🔄 Refresh
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Contacts List -->
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead class="bg-gray-50 dark:bg-gray-900">
-              <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Email</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Subject</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="contacts-table" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              <!-- Contacts will be rendered here -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div id="no-contacts" class="hidden text-center py-12">
-        <p class="text-gray-600 dark:text-gray-400">No contact submissions found.</p>
-      </div>
+    <!-- Contacts List -->
+    <div id="contacts-list" class="hidden space-y-4">
+      <!-- Contact cards will be rendered here -->
     </div>
 
-    <!-- Error State -->
-    <div id="error" class="hidden text-center py-12">
-      <p class="text-xl text-red-600 dark:text-red-400">Error loading contact submissions.</p>
-      <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-        Retry
-      </button>
-    </div>
-  </div>
-
-  <!-- Contact Detail Modal -->
-  <div id="contact-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white dark:bg-gray-800 rounded-lg p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-      <div class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Contact Details</h2>
-        <button id="close-modal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
+    <!-- Pagination -->
+    <div id="pagination" class="hidden flex items-center justify-between">
+      <div class="text-sm text-gray-700 dark:text-gray-300">
+        Showing <span id="page-info"></span>
+      </div>
+      <div class="flex space-x-2">
+        <button id="prev-btn" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed">
+          Previous
         </button>
-      </div>
-      <div id="modal-content" class="space-y-4">
-        <!-- Modal content will be rendered here -->
+        <button id="next-btn" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed">
+          Next
+        </button>
       </div>
     </div>
   </div>
@@ -104,187 +64,138 @@ const metadata = {
 
 <script>
   import { adminApi } from '~/utils/api';
+  import { requireAdmin } from '~/utils/auth';
 
-  let currentContacts: any[] = [];
+  requireAdmin();
 
-  async function loadContacts(statusFilter = '') {
+  let currentSkip = 0;
+  const limit = 20;
+
+  async function init() {
+    await loadContacts();
+    setupEventListeners();
+  }
+
+  async function loadContacts() {
     const loading = document.getElementById('loading')!;
-    const content = document.getElementById('contacts-content')!;
-    const error = document.getElementById('error')!;
-    const noContacts = document.getElementById('no-contacts')!;
+    const contactsList = document.getElementById('contacts-list')!;
+    
+    loading.classList.remove('hidden');
+    contactsList.classList.add('hidden');
 
     try {
-      loading.classList.remove('hidden');
-      content.classList.add('hidden');
-      error.classList.add('hidden');
-
-      const params: any = { limit: 100 };
-      if (statusFilter) params.status_filter = statusFilter;
-
-      currentContacts = await adminApi.getContacts(params);
+      const statusFilter = (document.getElementById('status-filter') as HTMLSelectElement).value;
+      const params: any = { skip: currentSkip, limit: limit };
       
-      loading.classList.add('hidden');
-      
-      if (currentContacts.length === 0) {
-        noContacts.classList.remove('hidden');
-      } else {
-        content.classList.remove('hidden');
-        renderContacts(currentContacts);
+      if (statusFilter) {
+        params.status_filter = statusFilter;
       }
-    } catch (err) {
-      console.error('Error loading contacts:', err);
+
+      const contacts = await adminApi.getContacts(params);
+
+      contactsList.innerHTML = contacts.map((contact: any) => `
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6" data-testid="contact-card-${contact.id}">
+          <div class="flex items-start justify-between mb-4">
+            <div class="flex-1">
+              <div class="flex items-center space-x-3 mb-2">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white">${contact.name}</h3>
+                <span class="px-3 py-1 rounded-full text-xs font-medium ${
+                  contact.status === 'new' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
+                  contact.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+                  contact.status === 'resolved' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                  'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+                }">
+                  ${contact.status}
+                </span>
+                <span class="px-2 py-1 rounded text-xs bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                  ${contact.inquiry_type || 'general'}
+                </span>
+              </div>
+              <div class="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                <span class="font-medium">Email:</span> ${contact.email}
+              </div>
+              ${contact.company ? `
+                <div class="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                  <span class="font-medium">Company:</span> ${contact.company}
+                </div>
+              ` : ''}
+              <div class="text-sm text-gray-500 dark:text-gray-500">
+                ${new Date(contact.created_at).toLocaleString()}
+              </div>
+            </div>
+          </div>
+          
+          <div class="mb-4">
+            <div class="font-medium text-gray-900 dark:text-white mb-2">Subject: ${contact.subject}</div>
+            <div class="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-900 p-3 rounded">
+              ${contact.message}
+            </div>
+          </div>
+          
+          <div class="flex items-center space-x-2">
+            ${contact.status !== 'in_progress' ? `
+              <button onclick="window.updateContactStatus('${contact.id}', 'in_progress')" class="px-3 py-1 text-sm bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 rounded hover:bg-yellow-200 dark:hover:bg-yellow-800">
+                Mark In Progress
+              </button>
+            ` : ''}
+            ${contact.status !== 'resolved' ? `
+              <button onclick="window.updateContactStatus('${contact.id}', 'resolved')" class="px-3 py-1 text-sm bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded hover:bg-green-200 dark:hover:bg-green-800">
+                Mark Resolved
+              </button>
+            ` : ''}
+            ${contact.status !== 'closed' ? `
+              <button onclick="window.updateContactStatus('${contact.id}', 'closed')" class="px-3 py-1 text-sm bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200 rounded hover:bg-gray-200 dark:hover:bg-gray-800">
+                Close
+              </button>
+            ` : ''}
+          </div>
+        </div>
+      `).join('');
+
       loading.classList.add('hidden');
-      error.classList.remove('hidden');
+      contactsList.classList.remove('hidden');
+      document.getElementById('pagination')!.classList.remove('hidden');
+      updatePaginationInfo(contacts.length);
+    } catch (error) {
+      console.error('Error loading contacts:', error);
+      loading.classList.add('hidden');
     }
   }
 
-  function renderContacts(contacts: any[]) {
-    const tableBody = document.getElementById('contacts-table')!;
-    
-    tableBody.innerHTML = contacts.map(contact => {
-      const statusColors: any = {
-        new: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-        in_progress: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-        resolved: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-        closed: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
-      };
+  function updatePaginationInfo(count: number) {
+    const pageInfo = document.getElementById('page-info')!;
+    const start = currentSkip + 1;
+    const end = currentSkip + count;
+    pageInfo.textContent = `${start}-${end}`;
 
-      return `
-        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700" data-testid="contact-row">
-          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-            ${contact.name}
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
-            ${contact.email}
-          </td>
-          <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">
-            ${contact.subject}
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
-            ${contact.inquiry_type}
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap">
-            <span class="px-2 py-1 text-xs font-semibold rounded-full ${statusColors[contact.status] || statusColors.new}">
-              ${contact.status}
-            </span>
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
-            ${new Date(contact.created_at).toLocaleDateString()}
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
-            <button
-              class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-              onclick="viewContact('${contact.id}')"
-              data-testid="view-contact-btn"
-            >
-              View
-            </button>
-          </td>
-        </tr>
-      `;
-    }).join('');
+    (document.getElementById('prev-btn') as HTMLButtonElement).disabled = currentSkip === 0;
+    (document.getElementById('next-btn') as HTMLButtonElement).disabled = count < limit;
   }
 
-  (window as any).viewContact = (contactId: string) => {
-    const contact = currentContacts.find(c => c.id === contactId);
-    if (!contact) return;
-
-    const modal = document.getElementById('contact-modal')!;
-    const modalContent = document.getElementById('modal-content')!;
-
-    modalContent.innerHTML = `
-      <div class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name</label>
-          <p class="text-gray-900 dark:text-white">${contact.name}</p>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
-          <p class="text-gray-900 dark:text-white">${contact.email}</p>
-        </div>
-        ${contact.company ? `
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Company</label>
-            <p class="text-gray-900 dark:text-white">${contact.company}</p>
-          </div>
-        ` : ''}
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Subject</label>
-          <p class="text-gray-900 dark:text-white">${contact.subject}</p>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Inquiry Type</label>
-          <p class="text-gray-900 dark:text-white">${contact.inquiry_type}</p>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Message</label>
-          <p class="text-gray-900 dark:text-white whitespace-pre-wrap">${contact.message}</p>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Current Status</label>
-          <p class="text-gray-900 dark:text-white font-medium">${contact.status}</p>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Update Status</label>
-          <select id="status-update" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
-            <option value="new" ${contact.status === 'new' ? 'selected' : ''}>New</option>
-            <option value="in_progress" ${contact.status === 'in_progress' ? 'selected' : ''}>In Progress</option>
-            <option value="resolved" ${contact.status === 'resolved' ? 'selected' : ''}>Resolved</option>
-            <option value="closed" ${contact.status === 'closed' ? 'selected' : ''}>Closed</option>
-          </select>
-        </div>
-        <div class="flex justify-end space-x-3 pt-4">
-          <button
-            id="cancel-update"
-            class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
-          >
-            Cancel
-          </button>
-          <button
-            id="save-status"
-            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            data-testid="save-status-btn"
-          >
-            Update Status
-          </button>
-        </div>
-      </div>
-    `;
-
-    modal.classList.remove('hidden');
-
-    document.getElementById('cancel-update')!.addEventListener('click', () => {
-      modal.classList.add('hidden');
+  function setupEventListeners() {
+    document.getElementById('status-filter')!.addEventListener('change', () => { currentSkip = 0; loadContacts(); });
+    document.getElementById('reset-filters-btn')!.addEventListener('click', () => {
+      (document.getElementById('status-filter') as HTMLSelectElement).value = '';
+      currentSkip = 0;
+      loadContacts();
     });
 
-    document.getElementById('save-status')!.addEventListener('click', async () => {
-      const newStatus = (document.getElementById('status-update') as HTMLSelectElement).value;
-      try {
-        await adminApi.updateContactStatus(contactId, newStatus);
-        modal.classList.add('hidden');
-        loadContacts((document.getElementById('status-filter') as HTMLSelectElement).value);
-      } catch (err) {
-        console.error('Error updating status:', err);
-        alert('Failed to update status. Please try again.');
-      }
+    document.getElementById('prev-btn')!.addEventListener('click', () => {
+      if (currentSkip > 0) { currentSkip -= limit; loadContacts(); }
     });
+    document.getElementById('next-btn')!.addEventListener('click', () => { currentSkip += limit; loadContacts(); });
+  }
+
+  (window as any).updateContactStatus = async function(contactId: string, status: string) {
+    try {
+      await adminApi.updateContactStatus(contactId, status);
+      alert('Contact status updated successfully!');
+      loadContacts();
+    } catch (error: any) {
+      console.error('Error updating contact:', error);
+      alert('Failed to update contact: ' + (error.message || 'Unknown error'));
+    }
   };
 
-  // Close modal
-  document.getElementById('close-modal')?.addEventListener('click', () => {
-    document.getElementById('contact-modal')!.classList.add('hidden');
-  });
-
-  // Status filter
-  document.getElementById('status-filter')?.addEventListener('change', (e) => {
-    loadContacts((e.target as HTMLSelectElement).value);
-  });
-
-  // Refresh button
-  document.getElementById('refresh-btn')?.addEventListener('click', () => {
-    loadContacts((document.getElementById('status-filter') as HTMLSelectElement).value);
-  });
-
-  // Load contacts on page load
-  loadContacts();
+  init();
 </script>

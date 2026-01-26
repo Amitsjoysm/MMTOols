@@ -7,140 +7,124 @@ const metadata = {
 ---
 
 <AdminLayout metadata={metadata}>
-  <div id="reviews-container">
+  <div id="reviews-management" class="space-y-6">
+    <div class="flex items-center justify-between">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Reviews Management</h2>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <select
+          id="verified-filter"
+          class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">All Reviews</option>
+          <option value="false">Pending Verification</option>
+          <option value="true">Verified</option>
+        </select>
+        <button
+          id="reset-filters-btn"
+          class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+        >
+          Reset Filters
+        </button>
+      </div>
+    </div>
+
     <!-- Loading State -->
     <div id="loading" class="text-center py-12">
       <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       <p class="mt-4 text-gray-600 dark:text-gray-400">Loading reviews...</p>
     </div>
 
-    <!-- Reviews Content -->
-    <div id="reviews-content" class="hidden space-y-6">
-      <!-- Filters -->
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-        <div class="flex flex-wrap items-center gap-4">
-          <div>
-            <label for="verified-filter" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Verification Status
-            </label>
-            <select
-              id="verified-filter"
-              class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
-              data-testid="verified-filter"
-            >
-              <option value="">All Reviews</option>
-              <option value="false">Pending Verification</option>
-              <option value="true">Verified</option>
-            </select>
-          </div>
-          <div class="flex-1"></div>
-          <div>
-            <button
-              id="refresh-btn"
-              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              data-testid="refresh-btn"
-            >
-              🔄 Refresh
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Reviews List -->
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead class="bg-gray-50 dark:bg-gray-900">
-              <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">User</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tool</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Rating</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Title</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Verified</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="reviews-table" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              <!-- Reviews will be rendered here -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div id="no-reviews" class="hidden text-center py-12">
-        <p class="text-gray-600 dark:text-gray-400">No reviews found.</p>
+    <!-- Reviews Table -->
+    <div id="reviews-table-container" class="hidden bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead class="bg-gray-50 dark:bg-gray-900">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">User</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tool</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Rating</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Review</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="reviews-tbody" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+          </tbody>
+        </table>
       </div>
     </div>
 
-    <!-- Error State -->
-    <div id="error" class="hidden text-center py-12">
-      <p class="text-xl text-red-600 dark:text-red-400">Error loading reviews.</p>
-      <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-        Retry
-      </button>
+    <!-- Pagination -->
+    <div id="pagination" class="hidden flex items-center justify-between">
+      <div class="text-sm text-gray-700 dark:text-gray-300">
+        Showing <span id="page-info"></span>
+      </div>
+      <div class="flex space-x-2">
+        <button id="prev-btn" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed">
+          Previous
+        </button>
+        <button id="next-btn" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed">
+          Next
+        </button>
+      </div>
     </div>
   </div>
 </AdminLayout>
 
 <script>
   import { adminApi } from '~/utils/api';
+  import { requireAdmin } from '~/utils/auth';
 
-  async function loadReviews(verifiedFilter = '') {
+  requireAdmin();
+
+  let currentSkip = 0;
+  const limit = 20;
+
+  async function init() {
+    await loadReviews();
+    setupEventListeners();
+  }
+
+  async function loadReviews() {
     const loading = document.getElementById('loading')!;
-    const content = document.getElementById('reviews-content')!;
-    const error = document.getElementById('error')!;
-    const noReviews = document.getElementById('no-reviews')!;
+    const tableContainer = document.getElementById('reviews-table-container')!;
+    const tbody = document.getElementById('reviews-tbody')!;
+    
+    loading.classList.remove('hidden');
+    tableContainer.classList.add('hidden');
 
     try {
-      loading.classList.remove('hidden');
-      content.classList.add('hidden');
-      error.classList.add('hidden');
-
-      const params: any = { limit: 100 };
+      const verifiedFilter = (document.getElementById('verified-filter') as HTMLSelectElement).value;
+      const params: any = { skip: currentSkip, limit: limit };
+      
       if (verifiedFilter !== '') {
         params.verified = verifiedFilter === 'true';
       }
 
       const reviews = await adminApi.getReviews(params);
-      
-      loading.classList.add('hidden');
-      
-      if (reviews.length === 0) {
-        noReviews.classList.remove('hidden');
-      } else {
-        content.classList.remove('hidden');
-        renderReviews(reviews);
-      }
-    } catch (err) {
-      console.error('Error loading reviews:', err);
-      loading.classList.add('hidden');
-      error.classList.remove('hidden');
-    }
-  }
 
-  function renderReviews(reviews: any[]) {
-    const tableBody = document.getElementById('reviews-table')!;
-    
-    tableBody.innerHTML = reviews.map(review => {
-      const stars = '⭐'.repeat(review.rating);
-      
-      return `
-        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700" data-testid="review-row">
-          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-            ${review.user}
+      tbody.innerHTML = reviews.map((review: any) => `
+        <tr data-testid="review-row-${review.id}">
+          <td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">${review.user}</td>
+          <td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">${review.tool}</td>
+          <td class="px-6 py-4">
+            <div class="flex items-center">
+              <span class="text-yellow-500">★</span>
+              <span class="ml-1 text-sm font-medium text-gray-900 dark:text-white">${review.rating}/5</span>
+            </div>
           </td>
-          <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">
-            ${review.tool}
+          <td class="px-6 py-4">
+            <div class="max-w-xs">
+              <div class="font-medium text-gray-900 dark:text-white text-sm">${review.title || 'No title'}</div>
+            </div>
           </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm">
-            ${stars} (${review.rating})
-          </td>
-          <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
-            ${review.title || 'No title'}
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap">
-            <span class="px-2 py-1 text-xs font-semibold rounded-full ${
+          <td class="px-6 py-4">
+            <span class="px-3 py-1 rounded-full text-xs font-medium ${
               review.is_verified 
                 ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
                 : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
@@ -148,53 +132,69 @@ const metadata = {
               ${review.is_verified ? 'Verified' : 'Pending'}
             </span>
           </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
+          <td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
             ${new Date(review.created_at).toLocaleDateString()}
           </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
+          <td class="px-6 py-4 text-right">
             ${!review.is_verified ? `
-              <button
-                class="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 font-medium"
-                onclick="verifyReview('${review.id}', true)"
-                data-testid="verify-btn"
-              >
+              <button onclick="window.verifyReview('${review.id}', true)" class="text-green-600 hover:text-green-800 dark:text-green-400 text-sm" data-testid="verify-review-${review.id}">
                 Verify
               </button>
             ` : `
-              <button
-                class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-medium"
-                onclick="verifyReview('${review.id}', false)"
-                data-testid="unverify-btn"
-              >
+              <button onclick="window.verifyReview('${review.id}', false)" class="text-orange-600 hover:text-orange-800 dark:text-orange-400 text-sm">
                 Unverify
               </button>
             `}
           </td>
         </tr>
-      `;
-    }).join('');
+      `).join('');
+
+      loading.classList.add('hidden');
+      tableContainer.classList.remove('hidden');
+      document.getElementById('pagination')!.classList.remove('hidden');
+      updatePaginationInfo(reviews.length);
+    } catch (error) {
+      console.error('Error loading reviews:', error);
+      loading.classList.add('hidden');
+    }
   }
 
-  (window as any).verifyReview = async (reviewId: string, verified: boolean) => {
+  function updatePaginationInfo(count: number) {
+    const pageInfo = document.getElementById('page-info')!;
+    const start = currentSkip + 1;
+    const end = currentSkip + count;
+    pageInfo.textContent = `${start}-${end}`;
+
+    (document.getElementById('prev-btn') as HTMLButtonElement).disabled = currentSkip === 0;
+    (document.getElementById('next-btn') as HTMLButtonElement).disabled = count < limit;
+  }
+
+  function setupEventListeners() {
+    document.getElementById('verified-filter')!.addEventListener('change', () => { currentSkip = 0; loadReviews(); });
+    document.getElementById('reset-filters-btn')!.addEventListener('click', () => {
+      (document.getElementById('verified-filter') as HTMLSelectElement).value = '';
+      currentSkip = 0;
+      loadReviews();
+    });
+
+    document.getElementById('prev-btn')!.addEventListener('click', () => {
+      if (currentSkip > 0) { currentSkip -= limit; loadReviews(); }
+    });
+    document.getElementById('next-btn')!.addEventListener('click', () => { currentSkip += limit; loadReviews(); });
+  }
+
+  (window as any).verifyReview = async function(reviewId: string, verified: boolean) {
+    if (!confirm(`Are you sure you want to ${verified ? 'verify' : 'unverify'} this review?`)) return;
+
     try {
       await adminApi.verifyReview(reviewId, verified);
-      loadReviews((document.getElementById('verified-filter') as HTMLSelectElement).value);
-    } catch (err) {
-      console.error('Error verifying review:', err);
-      alert('Failed to update review status. Please try again.');
+      alert(`Review ${verified ? 'verified' : 'unverified'} successfully!`);
+      loadReviews();
+    } catch (error: any) {
+      console.error('Error updating review:', error);
+      alert('Failed to update review: ' + (error.message || 'Unknown error'));
     }
   };
 
-  // Verified filter
-  document.getElementById('verified-filter')?.addEventListener('change', (e) => {
-    loadReviews((e.target as HTMLSelectElement).value);
-  });
-
-  // Refresh button
-  document.getElementById('refresh-btn')?.addEventListener('click', () => {
-    loadReviews((document.getElementById('verified-filter') as HTMLSelectElement).value);
-  });
-
-  // Load reviews on page load
-  loadReviews();
+  init();
 </script>
