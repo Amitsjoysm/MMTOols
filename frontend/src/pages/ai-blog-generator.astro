@@ -132,24 +132,23 @@ const metadata = {
 
 <script>
   import { isAuthenticated } from '~/utils/auth';
+  import { aiBlogApi, userApi } from '~/utils/api';
 
   // Check authentication
   if (!isAuthenticated()) {
     window.location.href = '/auth/login?redirect=/ai-blog-generator';
   }
 
-  const API_BASE_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8001';
   let generatedBlogData: any = null;
 
   // Load blog topics
   async function loadTopics() {
     const topicsList = document.getElementById('topics-list');
     try {
-      const response = await fetch(`${API_BASE_URL}/api/ai/blog-topics`);
-      const data = await response.json();
+      const data = await aiBlogApi.getBlogTopics();
       
-      if (data.topics && data.topics.length > 0) {
-        topicsList.innerHTML = data.topics.map((topic: string) => `
+      if (data.suggested_topics && data.suggested_topics.length > 0) {
+        topicsList.innerHTML = data.suggested_topics.map((topic: string) => `
           <button 
             class="topic-suggestion w-full text-left px-4 py-2 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-800 transition-colors text-gray-700 dark:text-gray-300"
             data-topic="${topic}"
@@ -171,6 +170,7 @@ const metadata = {
         topicsList.innerHTML = '<p class="text-gray-600 dark:text-gray-400">No suggestions available</p>';
       }
     } catch (error) {
+      console.error('Error loading topics:', error);
       topicsList.innerHTML = '<p class="text-gray-600 dark:text-gray-400">Failed to load suggestions</p>';
     }
   }
@@ -187,7 +187,6 @@ const metadata = {
     const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
     const topic = (document.getElementById('topic') as HTMLInputElement).value;
     const keywords = (document.getElementById('keywords') as HTMLInputElement).value;
-    const tone = (document.getElementById('tone') as HTMLSelectElement).value;
     const length = (document.getElementById('length') as HTMLSelectElement).value;
     
     submitBtn.disabled = true;
@@ -196,44 +195,41 @@ const metadata = {
     generatedBlogDiv.classList.add('hidden');
 
     try {
-      const token = localStorage.getItem('auth_token');
-      const response = await fetch(`${API_BASE_URL}/api/ai/generate-blog`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          topic,
-          keywords: keywords.split(',').map(k => k.trim()).filter(k => k),
-          tone,
-          length,
-        }),
+      const data = await aiBlogApi.generateBlog({
+        topic,
+        keywords: keywords.split(',').map(k => k.trim()).filter(k => k),
+        target_length: length,
+        auto_publish: false
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        generatedBlogData = data;
-        
-        blogContentDiv.innerHTML = `
-          <h1 class="text-3xl font-bold mb-4">${data.title}</h1>
-          <div class="text-gray-600 dark:text-gray-400 mb-6">
-            <p><strong>Excerpt:</strong> ${data.excerpt}</p>
-            ${data.seo_keywords ? `<p><strong>Keywords:</strong> ${data.seo_keywords}</p>` : ''}
-          </div>
-          <div class="blog-content">
-            ${data.content}
-          </div>
-        `;
-        
-        generatedBlogDiv.classList.remove('hidden');
-        messageDiv.className = 'p-4 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-lg';
-        messageDiv.textContent = 'Blog post generated successfully!';
-        messageDiv.classList.remove('hidden');
-      } else {
-        throw new Error('Failed to generate blog');
-      }
+      
+      generatedBlogData = {
+        title: data.title,
+        content: data.content,
+        excerpt: data.excerpt,
+        tags: data.tags || [],
+        seo_title: data.seo_title,
+        seo_description: data.seo_description,
+        seo_keywords: data.seo_keywords
+      };
+      
+      blogContentDiv.innerHTML = `
+        <h1 class="text-3xl font-bold mb-4">${data.title}</h1>
+        <div class="text-gray-600 dark:text-gray-400 mb-6">
+          <p><strong>Excerpt:</strong> ${data.excerpt}</p>
+          ${data.seo_keywords ? `<p><strong>Keywords:</strong> ${data.seo_keywords}</p>` : ''}
+          ${data.tags && data.tags.length > 0 ? `<p><strong>Tags:</strong> ${data.tags.join(', ')}</p>` : ''}
+        </div>
+        <div class="blog-content">
+          ${data.content}
+        </div>
+      `;
+      
+      generatedBlogDiv.classList.remove('hidden');
+      messageDiv.className = 'p-4 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-lg';
+      messageDiv.textContent = 'Blog post generated successfully!';
+      messageDiv.classList.remove('hidden');
     } catch (error: any) {
+      console.error('Error generating blog:', error);
       messageDiv.className = 'p-4 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded-lg';
       messageDiv.textContent = error.message || 'Failed to generate blog post. Please try again.';
       messageDiv.classList.remove('hidden');
@@ -249,23 +245,11 @@ const metadata = {
     if (!generatedBlogData) return;
 
     try {
-      const token = localStorage.getItem('auth_token');
-      const response = await fetch(`${API_BASE_URL}/api/user/blogs`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(generatedBlogData),
-      });
-
-      if (response.ok) {
-        alert('Blog saved to drafts!');
-        window.location.href = '/user/dashboard';
-      } else {
-        throw new Error('Failed to save blog');
-      }
+      await userApi.createBlog(generatedBlogData);
+      alert('Blog saved to drafts!');
+      window.location.href = '/user/dashboard';
     } catch (error) {
+      console.error('Error saving blog:', error);
       alert('Failed to save blog. Please try again.');
     }
   });
