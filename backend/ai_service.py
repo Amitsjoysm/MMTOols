@@ -22,6 +22,9 @@ class AIService:
     def generate_blog_content(self, topic: str, keywords: List[str] = [], target_length: str = "medium") -> Dict[str, Any]:
         """Generate comprehensive blog content using AI"""
         
+        if not self.client:
+            raise Exception("AI service not configured. Please set GROQ_API_KEY environment variable.")
+        
         length_guide = {
             "short": "800-1200 words",
             "medium": "1500-2500 words", 
