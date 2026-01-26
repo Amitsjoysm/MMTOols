@@ -1,0 +1,510 @@
+---
+import AdminLayout from '~/layouts/AdminLayout.astro';
+
+const metadata = {
+  title: 'Tools Management - Admin',
+};
+---
+
+<AdminLayout metadata={metadata}>
+  <div id="tools-management" class="space-y-6">
+    <!-- Header with Actions -->
+    <div class="flex items-center justify-between">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Tools Management</h2>
+      <button
+        id="create-tool-btn"
+        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+        data-testid="create-tool-btn"
+      >
+        + Add New Tool
+      </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <input
+          type="text"
+          id="search-input"
+          placeholder="Search tools..."
+          class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+        />
+        <select
+          id="category-filter"
+          class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">All Categories</option>
+        </select>
+        <select
+          id="status-filter"
+          class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">All Status</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+        <button
+          id="reset-filters-btn"
+          class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+        >
+          Reset Filters
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading" class="text-center py-12">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <p class="mt-4 text-gray-600 dark:text-gray-400">Loading tools...</p>
+    </div>
+
+    <!-- Tools Table -->
+    <div id="tools-table-container" class="hidden bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead class="bg-gray-50 dark:bg-gray-900">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tool</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Categories</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Pricing</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Stats</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tools-tbody" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+            <!-- Tools will be rendered here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div id="pagination" class="hidden flex items-center justify-between">
+      <div class="text-sm text-gray-700 dark:text-gray-300">
+        Showing <span id="page-info"></span>
+      </div>
+      <div class="flex space-x-2">
+        <button id="prev-btn" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed">
+          Previous
+        </button>
+        <button id="next-btn" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed">
+          Next
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create/Edit Tool Modal -->
+  <div id="tool-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <div class="p-6">
+        <div class="flex items-center justify-between mb-6">
+          <h3 id="modal-title" class="text-2xl font-bold text-gray-900 dark:text-white">Add New Tool</h3>
+          <button id="close-modal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <form id="tool-form" class="space-y-6">
+          <input type="hidden" id="tool-id" />
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Name -->
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tool Name *</label>
+              <input type="text" id="tool-name" required class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500" />
+            </div>
+
+            <!-- URL -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Website URL</label>
+              <input type="url" id="tool-url" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500" />
+            </div>
+
+            <!-- Pricing Type -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Pricing Type *</label>
+              <select id="tool-pricing" required class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500">
+                <option value="free">Free</option>
+                <option value="freemium">Freemium</option>
+                <option value="paid">Paid</option>
+              </select>
+            </div>
+
+            <!-- Short Description -->
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Short Description</label>
+              <input type="text" id="tool-short-desc" maxlength="200" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500" />
+            </div>
+
+            <!-- Full Description -->
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Full Description *</label>
+              <textarea id="tool-description" required rows="4" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"></textarea>
+            </div>
+
+            <!-- Logo URL -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Logo URL</label>
+              <input type="url" id="tool-logo" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500" />
+            </div>
+
+            <!-- Screenshot URL -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Screenshot URL</label>
+              <input type="url" id="tool-screenshot" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500" />
+            </div>
+
+            <!-- Categories -->
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Categories</label>
+              <select id="tool-categories" multiple class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500" size="5">
+                <!-- Categories loaded dynamically -->
+              </select>
+              <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Hold Ctrl/Cmd to select multiple</p>
+            </div>
+
+            <!-- Active Status -->
+            <div class="md:col-span-2">
+              <label class="flex items-center space-x-2">
+                <input type="checkbox" id="tool-active" checked class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Active (visible on website)</span>
+              </label>
+            </div>
+
+            <!-- Featured -->
+            <div class="md:col-span-2">
+              <label class="flex items-center space-x-2">
+                <input type="checkbox" id="tool-featured" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Featured Tool</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-end space-x-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <button type="button" id="cancel-btn" class="px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600">
+              Cancel
+            </button>
+            <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700" data-testid="save-tool-btn">
+              Save Tool
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  import { superAdminApi, categoriesApi } from '~/utils/api';
+  import { requireAdmin } from '~/utils/auth';
+
+  // Check authentication
+  requireAdmin();
+
+  let currentSkip = 0;
+  const limit = 20;
+  let allCategories: any[] = [];
+  let editingToolId: string | null = null;
+
+  // Initialize
+  async function init() {
+    await loadCategories();
+    await loadTools();
+    setupEventListeners();
+  }
+
+  async function loadCategories() {
+    try {
+      allCategories = await categoriesApi.getAll();
+      
+      // Populate category filter
+      const categoryFilter = document.getElementById('category-filter') as HTMLSelectElement;
+      allCategories.forEach(cat => {
+        const option = document.createElement('option');
+        option.value = cat.slug;
+        option.textContent = cat.name;
+        categoryFilter.appendChild(option);
+      });
+
+      // Populate modal categories
+      const toolCategories = document.getElementById('tool-categories') as HTMLSelectElement;
+      allCategories.forEach(cat => {
+        const option = document.createElement('option');
+        option.value = cat.id;
+        option.textContent = cat.name;
+        toolCategories.appendChild(option);
+      });
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    }
+  }
+
+  async function loadTools() {
+    const loading = document.getElementById('loading')!;
+    const tableContainer = document.getElementById('tools-table-container')!;
+    const tbody = document.getElementById('tools-tbody')!;
+    
+    loading.classList.remove('hidden');
+    tableContainer.classList.add('hidden');
+
+    try {
+      const searchInput = (document.getElementById('search-input') as HTMLInputElement).value;
+      const categoryFilter = (document.getElementById('category-filter') as HTMLSelectElement).value;
+      const statusFilter = (document.getElementById('status-filter') as HTMLSelectElement).value;
+
+      const params: any = {
+        skip: currentSkip,
+        limit: limit,
+      };
+
+      if (searchInput) params.search = searchInput;
+      if (categoryFilter) params.category = categoryFilter;
+      if (statusFilter) params.status = statusFilter;
+
+      const tools = await superAdminApi.tools.getAll(params);
+
+      tbody.innerHTML = tools.map((tool: any) => `
+        <tr data-testid="tool-row-${tool.id}">
+          <td class="px-6 py-4">
+            <div class="flex items-center space-x-3">
+              ${tool.logo_url ? `<img src="${tool.logo_url}" alt="${tool.name}" class="h-10 w-10 object-contain rounded" />` : ''}
+              <div>
+                <div class="font-medium text-gray-900 dark:text-white">${tool.name}</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">${tool.slug}</div>
+              </div>
+            </div>
+          </td>
+          <td class="px-6 py-4">
+            <div class="flex flex-wrap gap-1">
+              ${tool.categories?.slice(0, 2).map((cat: any) => `
+                <span class="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded">${cat.name}</span>
+              `).join('') || '<span class="text-gray-500">-</span>'}
+            </div>
+          </td>
+          <td class="px-6 py-4">
+            <span class="px-3 py-1 rounded-full text-xs font-medium ${
+              tool.pricing_type === 'free' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+              tool.pricing_type === 'freemium' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
+              'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
+            }">
+              ${tool.pricing_type}
+            </span>
+          </td>
+          <td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+            <div>${tool.view_count} views</div>
+            <div>${tool.review_count} reviews</div>
+          </td>
+          <td class="px-6 py-4">
+            <span class="px-3 py-1 rounded-full text-xs font-medium ${
+              tool.is_active ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+            }">
+              ${tool.is_active ? 'Active' : 'Inactive'}
+            </span>
+          </td>
+          <td class="px-6 py-4 text-right space-x-2">
+            <button onclick="window.editTool('${tool.id}')" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300" data-testid="edit-tool-${tool.id}">
+              Edit
+            </button>
+            <button onclick="window.deleteTool('${tool.id}', '${tool.name}')" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300" data-testid="delete-tool-${tool.id}">
+              Delete
+            </button>
+          </td>
+        </tr>
+      `).join('');
+
+      loading.classList.add('hidden');
+      tableContainer.classList.remove('hidden');
+      document.getElementById('pagination')!.classList.remove('hidden');
+      
+      updatePaginationInfo(tools.length);
+    } catch (error) {
+      console.error('Error loading tools:', error);
+      loading.classList.add('hidden');
+    }
+  }
+
+  function updatePaginationInfo(count: number) {
+    const pageInfo = document.getElementById('page-info')!;
+    const start = currentSkip + 1;
+    const end = currentSkip + count;
+    pageInfo.textContent = `${start}-${end}`;
+
+    const prevBtn = document.getElementById('prev-btn') as HTMLButtonElement;
+    const nextBtn = document.getElementById('next-btn') as HTMLButtonElement;
+    
+    prevBtn.disabled = currentSkip === 0;
+    nextBtn.disabled = count < limit;
+  }
+
+  function setupEventListeners() {
+    // Search with debounce
+    let searchTimeout: any;
+    document.getElementById('search-input')!.addEventListener('input', () => {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        currentSkip = 0;
+        loadTools();
+      }, 500);
+    });
+
+    // Filter changes
+    document.getElementById('category-filter')!.addEventListener('change', () => {
+      currentSkip = 0;
+      loadTools();
+    });
+    document.getElementById('status-filter')!.addEventListener('change', () => {
+      currentSkip = 0;
+      loadTools();
+    });
+
+    // Reset filters
+    document.getElementById('reset-filters-btn')!.addEventListener('click', () => {
+      (document.getElementById('search-input') as HTMLInputElement).value = '';
+      (document.getElementById('category-filter') as HTMLSelectElement).value = '';
+      (document.getElementById('status-filter') as HTMLSelectElement).value = '';
+      currentSkip = 0;
+      loadTools();
+    });
+
+    // Pagination
+    document.getElementById('prev-btn')!.addEventListener('click', () => {
+      if (currentSkip > 0) {
+        currentSkip -= limit;
+        loadTools();
+      }
+    });
+    document.getElementById('next-btn')!.addEventListener('click', () => {
+      currentSkip += limit;
+      loadTools();
+    });
+
+    // Create tool button
+    document.getElementById('create-tool-btn')!.addEventListener('click', () => {
+      openToolModal();
+    });
+
+    // Modal close buttons
+    document.getElementById('close-modal')!.addEventListener('click', closeToolModal);
+    document.getElementById('cancel-btn')!.addEventListener('click', closeToolModal);
+
+    // Tool form submit
+    document.getElementById('tool-form')!.addEventListener('submit', handleToolSubmit);
+  }
+
+  function openToolModal(tool?: any) {
+    const modal = document.getElementById('tool-modal')!;
+    const modalTitle = document.getElementById('modal-title')!;
+    const form = document.getElementById('tool-form') as HTMLFormElement;
+    
+    form.reset();
+    editingToolId = tool?.id || null;
+    modalTitle.textContent = tool ? 'Edit Tool' : 'Add New Tool';
+
+    if (tool) {
+      (document.getElementById('tool-id') as HTMLInputElement).value = tool.id;
+      (document.getElementById('tool-name') as HTMLInputElement).value = tool.name;
+      (document.getElementById('tool-url') as HTMLInputElement).value = tool.url || '';
+      (document.getElementById('tool-pricing') as HTMLSelectElement).value = tool.pricing_type;
+      (document.getElementById('tool-short-desc') as HTMLInputElement).value = tool.short_description || '';
+      (document.getElementById('tool-description') as HTMLTextAreaElement).value = tool.description;
+      (document.getElementById('tool-logo') as HTMLInputElement).value = tool.logo_url || '';
+      (document.getElementById('tool-screenshot') as HTMLInputElement).value = tool.screenshot_url || '';
+      (document.getElementById('tool-active') as HTMLInputElement).checked = tool.is_active;
+      (document.getElementById('tool-featured') as HTMLInputElement).checked = tool.is_featured;
+
+      // Select categories
+      const categoriesSelect = document.getElementById('tool-categories') as HTMLSelectElement;
+      Array.from(categoriesSelect.options).forEach(option => {
+        option.selected = tool.categories?.some((cat: any) => cat.id === option.value);
+      });
+    }
+
+    modal.classList.remove('hidden');
+  }
+
+  function closeToolModal() {
+    document.getElementById('tool-modal')!.classList.add('hidden');
+    editingToolId = null;
+  }
+
+  async function handleToolSubmit(e: Event) {
+    e.preventDefault();
+    
+    const submitBtn = (e.target as HTMLFormElement).querySelector('button[type="submit"]') as HTMLButtonElement;
+    const originalText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Saving...';
+
+    try {
+      const categoriesSelect = document.getElementById('tool-categories') as HTMLSelectElement;
+      const selectedCategories = Array.from(categoriesSelect.selectedOptions).map(opt => opt.value);
+
+      const toolData = {
+        name: (document.getElementById('tool-name') as HTMLInputElement).value,
+        url: (document.getElementById('tool-url') as HTMLInputElement).value,
+        pricing_type: (document.getElementById('tool-pricing') as HTMLSelectElement).value,
+        short_description: (document.getElementById('tool-short-desc') as HTMLInputElement).value,
+        description: (document.getElementById('tool-description') as HTMLTextAreaElement).value,
+        logo_url: (document.getElementById('tool-logo') as HTMLInputElement).value,
+        screenshot_url: (document.getElementById('tool-screenshot') as HTMLInputElement).value,
+        is_active: (document.getElementById('tool-active') as HTMLInputElement).checked,
+        is_featured: (document.getElementById('tool-featured') as HTMLInputElement).checked,
+        category_ids: selectedCategories,
+        features: [],
+        pros: [],
+        cons: []
+      };
+
+      if (editingToolId) {
+        await superAdminApi.tools.update(editingToolId, toolData);
+      } else {
+        await superAdminApi.tools.create(toolData);
+      }
+
+      closeToolModal();
+      loadTools();
+      alert(editingToolId ? 'Tool updated successfully!' : 'Tool created successfully!');
+    } catch (error: any) {
+      console.error('Error saving tool:', error);
+      alert('Failed to save tool: ' + (error.message || 'Unknown error'));
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalText;
+    }
+  }
+
+  // Global functions for inline event handlers
+  (window as any).editTool = async function(toolId: string) {
+    try {
+      const tool = await superAdminApi.tools.getAll({ skip: 0, limit: 1000 })
+        .then(tools => tools.find((t: any) => t.id === toolId));
+      if (tool) {
+        openToolModal(tool);
+      }
+    } catch (error) {
+      console.error('Error loading tool:', error);
+    }
+  };
+
+  (window as any).deleteTool = async function(toolId: string, toolName: string) {
+    if (!confirm(`Are you sure you want to delete "${toolName}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      await superAdminApi.tools.delete(toolId);
+      alert('Tool deleted successfully!');
+      loadTools();
+    } catch (error: any) {
+      console.error('Error deleting tool:', error);
+      alert('Failed to delete tool: ' + (error.message || 'Unknown error'));
+    }
+  };
+
+  // Initialize on page load
+  init();
+</script>
