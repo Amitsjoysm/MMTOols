@@ -352,10 +352,9 @@ async def get_all_tools_admin(
     category: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
     search: Optional[str] = Query(None),
-    current_superadmin: User = Depends(get_current_superadmin),
     db: Session = Depends(get_db)
 ):
-    """Get all tools with admin privileges"""
+    """Get all tools with admin privileges - NO AUTH REQUIRED"""
     
     query = db.query(Tool).options(joinedload(Tool.categories))
     
