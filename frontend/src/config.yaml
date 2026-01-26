@@ -1,6 +1,6 @@
 site:
-  name: TechResona
-  site: 'https://techresona.com'
+  name: MarketMindAI
+  site: 'https://marketmindai.com'
   base: '/'
   trailingSlash: false
 
@@ -9,22 +9,22 @@ site:
 # Default SEO metadata
 metadata:
   title:
-    default: TechResona - Cloud Solutions, Web Development & AI Automation Services
-    template: '%s | TechResona'
-  description: "TechResona provides expert cloud solutions (Azure, AWS), web development, SEO services, AI automation, and Microsoft 365/G Suite licenses in Pune, India. Transform your business with cutting-edge technology."
+    default: MarketMindAI - Discover & Compare AI Tools & Business Solutions
+    template: '%s | MarketMindAI'
+  description: "MarketMindAI is your ultimate directory for discovering, comparing, and reviewing AI tools and business solutions. Find the perfect tools for your business needs with expert insights and user reviews."
   robots:
     index: true
     follow: true
   openGraph:
-    site_name: TechResona
+    site_name: MarketMindAI
     images:
       - url: '~/assets/images/default.png'
         width: 1200
         height: 628
     type: website
   twitter:
-    handle: '@techresona'
-    site: '@techresona'
+    handle: '@marketmindai'
+    site: '@marketmindai'
     cardType: summary_large_image
 
 i18n:
@@ -34,7 +34,7 @@ i18n:
 apps:
   blog:
     isEnabled: true
-    postsPerPage: 6
+    postsPerPage: 12
 
     post:
       isEnabled: true
