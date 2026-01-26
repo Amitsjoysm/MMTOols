@@ -71,3 +71,22 @@ export function logout(): void {
     window.location.href = '/auth/login';
   }
 }
+
+// Server-side auth checks for Astro pages
+export async function requireAuth(request?: Request): Promise<User | null> {
+  // This is a placeholder for server-side auth check
+  // In practice, this should verify the token server-side
+  return null;
+}
+
+export async function requireAdmin(request?: Request): Promise<User | null> {
+  // This is a placeholder for server-side admin check
+  // In practice, this should verify the token and role server-side
+  return null;
+}
+
+export async function requireSuperAdmin(request?: Request): Promise<User | null> {
+  // This is a placeholder for server-side superadmin check
+  // In practice, this should verify the token and role server-side
+  return null;
+}
