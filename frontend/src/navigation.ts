@@ -3,37 +3,33 @@ import { getPermalink, getBlogPermalink } from './utils/permalinks';
 export const headerData = {
   links: [
     {
-      text: 'Services',
+      text: 'Home',
+      href: getPermalink('/'),
+    },
+    {
+      text: 'Tools',
       links: [
         {
-          text: 'Cloud Solutions & Migration',
-          href: getPermalink('/cloud-solutions'),
+          text: 'Browse All Tools',
+          href: getPermalink('/tools'),
         },
         {
-          text: 'Web Development & SEO',
-          href: getPermalink('/web-development'),
+          text: 'Compare Tools',
+          href: getPermalink('/tools/compare'),
         },
         {
-          text: 'AI & Business Automation',
-          href: getPermalink('/ai-automation'),
-        },
-        {
-          text: 'Microsoft 365 / G Suite Licenses',
-          href: getPermalink('/microsoft-365-licenses'),
-        },
-        {
-          text: 'SEO Services',
-          href: getPermalink('/seo-services'),
+          text: 'Featured Tools',
+          href: getPermalink('/tools?featured=true'),
         },
       ],
     },
     {
-      text: 'About',
-      href: getPermalink('/about'),
-    },
-    {
       text: 'Blog',
       href: getBlogPermalink(),
+    },
+    {
+      text: 'About',
+      href: getPermalink('/about'),
     },
     {
       text: 'Contact',
@@ -42,7 +38,12 @@ export const headerData = {
   ],
   actions: [
     { 
-      text: 'Get Started', 
+      text: 'Admin Dashboard', 
+      href: getPermalink('/admin'),
+      variant: 'secondary'
+    },
+    { 
+      text: 'Submit Tool', 
       href: getPermalink('/contact'),
       variant: 'primary'
     }
@@ -52,36 +53,37 @@ export const headerData = {
 export const footerData = {
   links: [
     {
-      title: 'Services',
+      title: 'Explore',
       links: [
-        { text: 'Cloud Solutions', href: getPermalink('/cloud-solutions') },
-        { text: 'Web Development', href: getPermalink('/web-development') },
-        { text: 'AI Automation', href: getPermalink('/ai-automation') },
-        { text: 'Microsoft 365', href: getPermalink('/microsoft-365-licenses') },
-        { text: 'SEO Services', href: getPermalink('/seo-services') },
+        { text: 'All Tools', href: getPermalink('/tools') },
+        { text: 'Compare Tools', href: getPermalink('/tools/compare') },
+        { text: 'Blog', href: getBlogPermalink() },
+        { text: 'About Us', href: getPermalink('/about') },
       ],
     },
     {
-      title: 'Company',
+      title: 'Categories',
       links: [
-        { text: 'About Us', href: getPermalink('/about') },
-        { text: 'Blog', href: getBlogPermalink() },
-        { text: 'Contact', href: getPermalink('/contact') },
+        { text: 'AI Tools', href: getPermalink('/tools?category=ai') },
+        { text: 'Productivity', href: getPermalink('/tools?category=productivity') },
+        { text: 'Marketing', href: getPermalink('/tools?category=marketing') },
+        { text: 'Development', href: getPermalink('/tools?category=development') },
       ],
     },
     {
       title: 'Resources',
       links: [
+        { text: 'Submit a Tool', href: getPermalink('/contact') },
         { text: 'Privacy Policy', href: getPermalink('/privacy') },
         { text: 'Terms of Service', href: getPermalink('/terms') },
       ],
     },
     {
-      title: 'Contact',
+      title: 'Connect',
       links: [
-        { text: 'Email: info@techresona.com', href: 'mailto:info@techresona.com' },
-        { text: 'Phone: +91 7517402788', href: 'tel:+917517402788' },
-        { text: 'Kharadi, Pune 411047', href: '#' },
+        { text: 'Contact Us', href: getPermalink('/contact') },
+        { text: 'LinkedIn', href: 'https://www.linkedin.com/company/marketmindai/' },
+        { text: 'Twitter', href: 'https://twitter.com/marketmindai' },
       ],
     },
   ],
@@ -90,12 +92,12 @@ export const footerData = {
     { text: 'Privacy Policy', href: getPermalink('/privacy') },
   ],
   socialLinks: [
-    { ariaLabel: 'LinkedIn', icon: 'tabler:brand-linkedin', href: 'https://www.linkedin.com/company/techresona-services/' },
-    { ariaLabel: 'Twitter', icon: 'tabler:brand-x', href: '#' },
-    { ariaLabel: 'Facebook', icon: 'tabler:brand-facebook', href: '#' },
+    { ariaLabel: 'LinkedIn', icon: 'tabler:brand-linkedin', href: 'https://www.linkedin.com/company/marketmindai/' },
+    { ariaLabel: 'Twitter', icon: 'tabler:brand-x', href: 'https://twitter.com/marketmindai' },
+    { ariaLabel: 'Facebook', icon: 'tabler:brand-facebook', href: 'https://facebook.com/marketmindai' },
   ],
   footNote: `
     <span class="w-5 h-5 md:w-6 md:h-6 md:-mt-0.5 bg-cover mr-1.5 rtl:mr-0 rtl:ml-1.5 float-left rtl:float-right rounded-sm"></span>
-    © ${new Date().getFullYear()} <a class="text-blue-600 underline dark:text-muted" href="https://techresona.com">TechResona Pvt Ltd</a>. All rights reserved.
+    © ${new Date().getFullYear()} <a class="text-blue-600 underline dark:text-muted" href="https://marketmindai.com">MarketMindAI</a>. All rights reserved.
   `,
 };
