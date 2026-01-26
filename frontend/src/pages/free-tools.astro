@@ -56,8 +56,14 @@ try {
             target="_blank" 
             rel="noopener noreferrer"
             class="block bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-xl transition-shadow p-6"
+            data-testid="free-tool-card"
           >
-            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">{tool.name}</h3>
+            <div class="flex items-start justify-between mb-4">
+              <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">{tool.name}</h3>
+              <span class="px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs font-semibold rounded-full">
+                FREE
+              </span>
+            </div>
             {tool.description && (
               <p class="text-gray-600 dark:text-gray-300 mb-4">{tool.description}</p>
             )}
@@ -73,63 +79,3 @@ try {
     )}
   </section>
 </Layout>
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/free-tools`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch tools');
-      }
-
-      const tools = await response.json();
-      
-      loadingDiv?.classList.add('hidden');
-
-      if (tools.length === 0) {
-        noToolsDiv?.classList.remove('hidden');
-        return;
-      }
-
-      gridDiv.innerHTML = tools.map((tool: any) => `
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-shadow p-6" data-testid="free-tool-card">
-          <div class="flex items-start justify-between mb-4">
-            <h3 class="text-xl font-bold text-gray-900 dark:text-white">
-              ${tool.name}
-            </h3>
-            <span class="px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs font-semibold rounded-full">
-              FREE
-            </span>
-          </div>
-          
-          ${tool.description ? `
-            <p class="text-gray-600 dark:text-gray-400 mb-4">
-              ${tool.description}
-            </p>
-          ` : ''}
-          
-          <a 
-            href="${tool.link}" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            class="inline-flex items-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium w-full justify-center"
-            data-testid="try-tool-btn"
-          >
-            <span>Try Tool</span>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-            </svg>
-          </a>
-        </div>
-      `).join('');
-
-      gridDiv?.classList.remove('hidden');
-    } catch (error) {
-      console.error('Error loading free tools:', error);
-      loadingDiv?.classList.add('hidden');
-      errorDiv?.classList.remove('hidden');
-    }
-  }
-
-  // Load tools on page load
-  loadFreeTools();
-</script>
