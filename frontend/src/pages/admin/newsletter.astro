@@ -1,0 +1,214 @@
+---
+import AdminLayout from '~/layouts/AdminLayout.astro';
+
+const metadata = {
+  title: 'Newsletter Subscriptions - Admin',
+};
+---
+
+<AdminLayout metadata={metadata}>
+  <div id="newsletter-container">
+    <!-- Loading State -->
+    <div id="loading" class="text-center py-12">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <p class="mt-4 text-gray-600 dark:text-gray-400">Loading newsletter data...</p>
+    </div>
+
+    <!-- Newsletter Content -->
+    <div id="newsletter-content" class="hidden space-y-6">
+      <!-- Stats Cards -->
+      <div id="stats-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Stats will be rendered here -->
+      </div>
+
+      <!-- Filters -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <div class="flex flex-wrap items-center gap-4">
+          <div>
+            <label for="status-filter" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Status Filter
+            </label>
+            <select
+              id="status-filter"
+              class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+              data-testid="status-filter"
+            >
+              <option value="">All Statuses</option>
+              <option value="active">Active</option>
+              <option value="unsubscribed">Unsubscribed</option>
+            </select>
+          </div>
+          <div class="flex-1"></div>
+          <div>
+            <button
+              id="refresh-btn"
+              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              data-testid="refresh-btn"
+            >
+              🔄 Refresh
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Subscriptions List -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-900">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Email</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Source</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Subscribed Date</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Unsubscribed Date</th>
+              </tr>
+            </thead>
+            <tbody id="subscriptions-table" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+              <!-- Subscriptions will be rendered here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="no-subscriptions" class="hidden text-center py-12">
+        <p class="text-gray-600 dark:text-gray-400">No newsletter subscriptions found.</p>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div id="error" class="hidden text-center py-12">
+      <p class="text-xl text-red-600 dark:text-red-400">Error loading newsletter data.</p>
+      <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+        Retry
+      </button>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  import { adminApi } from '~/utils/api';
+
+  async function loadNewsletterData(statusFilter = '') {
+    const loading = document.getElementById('loading')!;
+    const content = document.getElementById('newsletter-content')!;
+    const error = document.getElementById('error')!;
+    const noSubscriptions = document.getElementById('no-subscriptions')!;
+
+    try {
+      loading.classList.remove('hidden');
+      content.classList.add('hidden');
+      error.classList.add('hidden');
+
+      // Load stats
+      const stats = await adminApi.getNewsletterStats();
+      renderStats(stats);
+
+      // Load subscriptions
+      const params: any = { limit: 100 };
+      if (statusFilter) params.status_filter = statusFilter;
+      
+      const subscriptions = await adminApi.getNewsletterSubscriptions(params);
+      
+      loading.classList.add('hidden');
+      
+      if (subscriptions.length === 0) {
+        noSubscriptions.classList.remove('hidden');
+      } else {
+        content.classList.remove('hidden');
+        renderSubscriptions(subscriptions);
+      }
+    } catch (err) {
+      console.error('Error loading newsletter data:', err);
+      loading.classList.add('hidden');
+      error.classList.remove('hidden');
+    }
+  }
+
+  function renderStats(stats: any) {
+    const statsGrid = document.getElementById('stats-grid')!;
+    
+    const statsData = [
+      {
+        title: 'Total Subscriptions',
+        value: stats.total_subscriptions.toLocaleString(),
+        icon: '📧',
+        color: 'blue'
+      },
+      {
+        title: 'Active Subscribers',
+        value: stats.active_subscriptions.toLocaleString(),
+        icon: '✅',
+        color: 'green'
+      },
+      {
+        title: 'Unsubscribed',
+        value: stats.unsubscribed.toLocaleString(),
+        icon: '❌',
+        color: 'red'
+      },
+      {
+        title: 'Subscription Rate',
+        value: `${stats.subscription_rate}%`,
+        icon: '📈',
+        color: 'purple'
+      }
+    ];
+
+    statsGrid.innerHTML = statsData.map(stat => `
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6" data-testid="stat-card-${stat.title.toLowerCase().replace(' ', '-')}">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-2xl">${stat.icon}</span>
+        </div>
+        <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">${stat.value}</h3>
+        <p class="text-sm text-gray-600 dark:text-gray-400">${stat.title}</p>
+      </div>
+    `).join('');
+  }
+
+  function renderSubscriptions(subscriptions: any[]) {
+    const tableBody = document.getElementById('subscriptions-table')!;
+    
+    tableBody.innerHTML = subscriptions.map(sub => {
+      const statusColors: any = {
+        active: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+        unsubscribed: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+      };
+
+      return `
+        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700" data-testid="subscription-row">
+          <td class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
+            ${sub.email}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
+            ${sub.source}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <span class="px-2 py-1 text-xs font-semibold rounded-full ${statusColors[sub.status] || statusColors.active}">
+              ${sub.status}
+            </span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
+            ${new Date(sub.subscribed_at).toLocaleDateString()}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
+            ${sub.unsubscribed_at ? new Date(sub.unsubscribed_at).toLocaleDateString() : '-'}
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  // Status filter
+  document.getElementById('status-filter')?.addEventListener('change', (e) => {
+    loadNewsletterData((e.target as HTMLSelectElement).value);
+  });
+
+  // Refresh button
+  document.getElementById('refresh-btn')?.addEventListener('click', () => {
+    loadNewsletterData((document.getElementById('status-filter') as HTMLSelectElement).value);
+  });
+
+  // Load data on page load
+  loadNewsletterData();
+</script>
