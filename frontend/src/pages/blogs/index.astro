@@ -1,0 +1,241 @@
+---
+import Layout from '~/layouts/PageLayout.astro';
+
+const metadata = {
+  title: 'Blog - MarketMindAI',
+  description: 'Read the latest insights, tips, and news about AI tools, productivity, and business solutions.',
+};
+---
+
+<Layout metadata={metadata}>
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Header -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
+        Latest from Our Blog
+      </h1>
+      <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+        Insights, tips, and best practices about AI tools, productivity, and business growth.
+      </p>
+    </div>
+
+    <!-- Filters -->
+    <div class="mb-8 flex flex-wrap gap-4 items-center justify-center">
+      <!-- Search -->
+      <input
+        type="text"
+        id="search-input"
+        placeholder="Search blogs..."
+        class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 min-w-[300px]"
+      />
+
+      <!-- Sort Filter -->
+      <select
+        id="sort-filter"
+        class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+      >
+        <option value="newest">Newest First</option>
+        <option value="oldest">Oldest First</option>
+        <option value="most_viewed">Most Viewed</option>
+        <option value="trending">Trending</option>
+      </select>
+
+      <!-- AI Generated Filter -->
+      <select
+        id="ai-filter"
+        class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+      >
+        <option value="">All Blogs</option>
+        <option value="false">Human Written</option>
+        <option value="true">AI Generated</option>
+      </select>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading" class="text-center py-12">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <p class="mt-4 text-gray-600 dark:text-gray-400">Loading blogs...</p>
+    </div>
+
+    <!-- Blogs Grid -->
+    <div id="blogs-grid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <!-- Blogs will be rendered here -->
+    </div>
+
+    <!-- No Results -->
+    <div id="no-results" class="hidden text-center py-12">
+      <p class="text-xl text-gray-600 dark:text-gray-400">No blogs found matching your criteria.</p>
+    </div>
+
+    <!-- Load More -->
+    <div class="text-center mt-8">
+      <button
+        id="load-more"
+        class="hidden px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+      >
+        Load More Blogs
+      </button>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  import { blogsApi } from '~/utils/api';
+
+  let currentSkip = 0;
+  const limit = 12;
+  let allBlogs: any[] = [];
+
+  async function loadBlogs(append = false) {
+    const loading = document.getElementById('loading')!;
+    const blogsGrid = document.getElementById('blogs-grid')!;
+    const noResults = document.getElementById('no-results')!;
+    const loadMoreBtn = document.getElementById('load-more')!;
+
+    loading.classList.remove('hidden');
+
+    try {
+      const searchInput = document.getElementById('search-input') as HTMLInputElement;
+      const sortFilter = document.getElementById('sort-filter') as HTMLSelectElement;
+      const aiFilter = document.getElementById('ai-filter') as HTMLSelectElement;
+
+      const params: any = {
+        skip: currentSkip,
+        limit: limit,
+        status: 'published',
+      };
+
+      if (searchInput.value) params.search = searchInput.value;
+      if (sortFilter.value) params.sort = sortFilter.value;
+      if (aiFilter.value) params.featured = aiFilter.value === 'true';
+
+      const blogs = await blogsApi.getAll(params);
+
+      if (append) {
+        allBlogs = [...allBlogs, ...blogs];
+      } else {
+        allBlogs = blogs;
+      }
+
+      renderBlogs(allBlogs);
+
+      loading.classList.add('hidden');
+      
+      if (blogs.length === 0 && !append) {
+        blogsGrid.classList.add('hidden');
+        noResults.classList.remove('hidden');
+        loadMoreBtn.classList.add('hidden');
+      } else {
+        blogsGrid.classList.remove('hidden');
+        noResults.classList.add('hidden');
+        loadMoreBtn.classList.toggle('hidden', blogs.length < limit);
+      }
+    } catch (error) {
+      console.error('Error loading blogs:', error);
+      loading.classList.add('hidden');
+      noResults.classList.remove('hidden');
+    }
+  }
+
+  function renderBlogs(blogs: any[]) {
+    const blogsGrid = document.getElementById('blogs-grid')!;
+    blogsGrid.innerHTML = blogs.map(blog => `
+      <a href="/blogs/${blog.slug}" class="block group" data-testid="blog-card-${blog.slug}">
+        <article class="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-xl transition-shadow overflow-hidden h-full flex flex-col">
+          <!-- Featured Image -->
+          ${blog.featured_image ? `
+            <div class="aspect-video bg-gray-200 dark:bg-gray-700 overflow-hidden">
+              <img src="${blog.featured_image}" alt="${blog.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+            </div>
+          ` : `
+            <div class="aspect-video bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+              <span class="text-white text-4xl">📝</span>
+            </div>
+          `}
+
+          <div class="p-6 flex-1 flex flex-col">
+            <!-- Tags -->
+            ${blog.tags && blog.tags.length > 0 ? `
+              <div class="flex flex-wrap gap-2 mb-3">
+                ${blog.tags.slice(0, 3).map((tag: string) => `
+                  <span class="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded">
+                    ${tag}
+                  </span>
+                `).join('')}
+              </div>
+            ` : ''}
+
+            <!-- Title -->
+            <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 line-clamp-2">
+              ${blog.title}
+            </h2>
+
+            <!-- Excerpt -->
+            <p class="text-gray-600 dark:text-gray-300 mb-4 line-clamp-3 flex-1">
+              ${blog.excerpt || blog.content.substring(0, 150) + '...'}
+            </p>
+
+            <!-- Meta Info -->
+            <div class="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <div class="flex items-center space-x-4">
+                <span class="flex items-center">
+                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  ${blog.view_count}
+                </span>
+                <span class="flex items-center">
+                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  ${blog.reading_time} min
+                </span>
+              </div>
+              ${blog.is_ai_generated ? `
+                <span class="px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded text-xs font-medium">
+                  AI
+                </span>
+              ` : ''}
+            </div>
+          </div>
+        </article>
+      </a>
+    `).join('');
+  }
+
+  function setupEventListeners() {
+    const searchInput = document.getElementById('search-input') as HTMLInputElement;
+    const sortFilter = document.getElementById('sort-filter') as HTMLSelectElement;
+    const aiFilter = document.getElementById('ai-filter') as HTMLSelectElement;
+    const loadMoreBtn = document.getElementById('load-more') as HTMLButtonElement;
+
+    // Search with debounce
+    let searchTimeout: any;
+    searchInput.addEventListener('input', () => {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        currentSkip = 0;
+        loadBlogs();
+      }, 500);
+    });
+
+    // Filter changes
+    [sortFilter, aiFilter].forEach(filter => {
+      filter.addEventListener('change', () => {
+        currentSkip = 0;
+        loadBlogs();
+      });
+    });
+
+    // Load more
+    loadMoreBtn.addEventListener('click', () => {
+      currentSkip += limit;
+      loadBlogs(true);
+    });
+  }
+
+  // Initialize
+  loadBlogs();
+  setupEventListeners();
+</script>
