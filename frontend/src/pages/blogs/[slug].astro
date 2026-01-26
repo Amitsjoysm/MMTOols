@@ -1,48 +1,185 @@
 ---
 import Layout from '~/layouts/PageLayout.astro';
+import { ssrBlogsApi } from '~/utils/ssr-api';
+
+// Generate static paths for all blogs at build time
+export async function getStaticPaths() {
+  try {
+    const blogs = await ssrBlogsApi.getAll({ limit: 1000, status: 'published' });
+    
+    return blogs.map((blog: any) => ({
+      params: { slug: blog.slug },
+      props: { blog },
+    }));
+  } catch (error) {
+    console.error('Error generating static paths for blogs:', error);
+    return [];
+  }
+}
 
 const { slug } = Astro.params;
+const { blog } = Astro.props;
 
+// Generate metadata for SEO
 const metadata = {
-  title: 'Blog Post - MarketMindAI',
-  description: 'Read our latest blog post about AI tools and productivity.',
+  title: blog.seo_title || `${blog.title} | MarketMindAI Blog`,
+  description: blog.seo_description || blog.excerpt || blog.content.substring(0, 160),
+  keywords: blog.seo_keywords || (blog.tags ? blog.tags.join(', ') : ''),
+  openGraph: {
+    title: blog.title,
+    description: blog.excerpt || blog.content.substring(0, 200),
+    image: blog.featured_image,
+    type: 'article',
+    article: {
+      publishedTime: blog.published_at,
+      author: blog.author_name,
+      tags: blog.tags || [],
+    }
+  },
 };
+
+const publishedDate = new Date(blog.published_at).toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric'
+});
+
+// Process content (convert markdown-style newlines to HTML)
+const processedContent = blog.content.split('\n').map((line: string) => {
+  // Handle headers
+  if (line.startsWith('# ')) {
+    return `<h1 class="text-3xl font-bold mb-4 mt-8">${line.substring(2)}</h1>`;
+  } else if (line.startsWith('## ')) {
+    return `<h2 class="text-2xl font-bold mb-3 mt-6">${line.substring(3)}</h2>`;
+  } else if (line.startsWith('### ')) {
+    return `<h3 class="text-xl font-bold mb-2 mt-4">${line.substring(4)}</h3>`;
+  } else if (line.startsWith('**') && line.endsWith('**')) {
+    return `<p class="font-bold mb-2">${line.replace(/\*\*/g, '')}</p>`;
+  } else if (line.trim() === '') {
+    return '<br />';
+  } else {
+    return `<p class="mb-4">${line}</p>`;
+  }
+}).join('\n');
 ---
 
 <Layout metadata={metadata}>
   <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-12">
-    <!-- Loading State -->
-    <div id="loading" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      <p class="mt-4 text-gray-600 dark:text-gray-400">Loading blog post...</p>
-    </div>
-
     <!-- Blog Content -->
-    <article id="blog-content" class="hidden prose prose-lg dark:prose-invert max-w-none">
-      <!-- Content will be rendered here -->
+    <article class="prose prose-lg dark:prose-invert max-w-none">
+      <!-- Header -->
+      <header class="mb-8 not-prose">
+        <!-- Tags -->
+        {blog.tags && blog.tags.length > 0 && (
+          <div class="flex flex-wrap gap-2 mb-4">
+            {blog.tags.map((tag: string) => (
+              <span class="text-sm px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full">
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <!-- Title -->
+        <h1 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
+          {blog.title}
+        </h1>
+
+        <!-- Meta -->
+        <div class="flex items-center space-x-6 text-gray-600 dark:text-gray-400">
+          <div class="flex items-center space-x-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            <span>{blog.author_name}</span>
+          </div>
+          <div class="flex items-center space-x-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span>{publishedDate}</span>
+          </div>
+          <div class="flex items-center space-x-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>{blog.reading_time} min read</span>
+          </div>
+        </div>
+
+        {blog.is_ai_generated && (
+          <div class="mt-4 inline-flex items-center space-x-2 px-4 py-2 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded-lg">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M13 7H7v6h6V7z" />
+              <path fill-rule="evenodd" d="M7 2a1 1 0 012 0v1h2V2a1 1 0 112 0v1h2a2 2 0 012 2v2h1a1 1 0 110 2h-1v2h1a1 1 0 110 2h-1v2a2 2 0 01-2 2h-2v1a1 1 0 11-2 0v-1H9v1a1 1 0 11-2 0v-1H5a2 2 0 01-2-2v-2H2a1 1 0 110-2h1V9H2a1 1 0 010-2h1V5a2 2 0 012-2h2V2zM5 5h10v10H5V5z" clip-rule="evenodd" />
+            </svg>
+            <span class="text-sm font-medium">AI Generated Content</span>
+          </div>
+        )}
+      </header>
+
+      <!-- Featured Image -->
+      {blog.featured_image && (
+        <div class="mb-8 rounded-lg overflow-hidden">
+          <img src={blog.featured_image} alt={blog.title} class="w-full h-auto" loading="eager" />
+        </div>
+      )}
+
+      <!-- Content -->
+      <div class="prose-content text-gray-700 dark:text-gray-300" set:html={processedContent} />
+
+      <!-- Stats -->
+      <div class="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between text-gray-600 dark:text-gray-400 not-prose">
+        <div class="flex items-center space-x-6">
+          <span class="flex items-center space-x-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            <span id="view-count">{blog.view_count} views</span>
+          </span>
+          <span class="flex items-center space-x-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+            <span id="blog-likes">{blog.like_count} likes</span>
+          </span>
+        </div>
+        <a href="/blogs" class="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+          ← Back to Blogs
+        </a>
+      </div>
     </article>
 
-    <!-- Error State -->
-    <div id="error" class="hidden text-center py-12">
-      <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Blog post not found</h2>
-      <p class="text-gray-600 dark:text-gray-400 mb-6">The blog post you're looking for doesn't exist or has been removed.</p>
-      <a href="/blogs" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-block">
-        Back to Blogs
-      </a>
+    <!-- Like Button -->
+    <div class="mt-8 text-center">
+      <button
+        id="like-button"
+        data-blog-slug={blog.slug}
+        data-like-count={blog.like_count}
+        class="inline-flex items-center space-x-2 px-6 py-3 rounded-lg border-2 border-gray-300 text-gray-600 hover:border-red-500 hover:text-red-600 dark:border-gray-600 dark:text-gray-400 dark:hover:border-red-500 dark:hover:text-red-400 transition-colors"
+        data-testid="like-blog-btn"
+      >
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        </svg>
+        <span id="like-text">Like</span>
+        <span id="like-count" class="font-bold">{blog.like_count}</span>
+      </button>
     </div>
 
     <!-- Comments Section -->
-    <div id="comments-section" class="hidden mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
+    <div class="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
       <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Comments</h3>
       
-      <!-- Auth required message -->
+      <!-- Auth required message (client-side) -->
       <div id="auth-required" class="hidden bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
         <p class="text-blue-800 dark:text-blue-200">
           Please <a href="/auth/login" class="font-medium underline">login</a> to leave a comment.
         </p>
       </div>
 
-      <!-- Comment Form -->
+      <!-- Comment Form (client-side) -->
       <form id="comment-form" class="hidden mb-8">
         <textarea
           id="comment-content"
@@ -62,199 +199,38 @@ const metadata = {
 
       <!-- Comments List -->
       <div id="comments-list" class="space-y-6">
-        <!-- Comments will be rendered here -->
+        <p class="text-gray-500 dark:text-gray-400 text-center py-4">Loading comments...</p>
       </div>
-    </div>
-
-    <!-- Like Button -->
-    <div id="like-section" class="hidden mt-8 text-center">
-      <button
-        id="like-button"
-        class="inline-flex items-center space-x-2 px-6 py-3 rounded-lg border-2 transition-colors"
-        data-testid="like-blog-btn"
-      >
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-        </svg>
-        <span id="like-text">Like</span>
-        <span id="like-count" class="font-bold">0</span>
-      </button>
     </div>
   </div>
 </Layout>
 
-<script define:vars={{ slug }}>
+<script define:vars={{ slug, blogId: blog.id }}>
   import { blogsApi } from '~/utils/api';
 
-  let currentBlog: any = null;
-
-  async function loadBlog() {
-    const loading = document.getElementById('loading')!;
-    const content = document.getElementById('blog-content')!;
-    const error = document.getElementById('error')!;
-    const commentsSection = document.getElementById('comments-section')!;
-    const likeSection = document.getElementById('like-section')!;
-
+  async function init() {
+    // Increment view count (client-side action)
     try {
-      currentBlog = await blogsApi.getBySlug(slug);
-      
-      // Increment view count
       await blogsApi.incrementView(slug);
-
-      loading.classList.add('hidden');
-      content.classList.remove('hidden');
-      commentsSection.classList.remove('hidden');
-      likeSection.classList.remove('hidden');
-
-      renderBlog(currentBlog);
-      setupLikeButton(currentBlog);
-      loadComments();
-      checkAuth();
-    } catch (err) {
-      console.error('Error loading blog:', err);
-      loading.classList.add('hidden');
-      error.classList.remove('hidden');
+      console.log('View count incremented');
+    } catch (error) {
+      console.error('Error incrementing view:', error);
     }
-  }
 
-  function renderBlog(blog: any) {
-    const content = document.getElementById('blog-content')!;
-    
-    const publishedDate = new Date(blog.published_at).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-
-    content.innerHTML = `
-      <!-- Header -->
-      <header class="mb-8 not-prose">
-        <!-- Tags -->
-        ${blog.tags && blog.tags.length > 0 ? `
-          <div class="flex flex-wrap gap-2 mb-4">
-            ${blog.tags.map((tag: string) => `
-              <span class="text-sm px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full">
-                ${tag}
-              </span>
-            `).join('')}
-          </div>
-        ` : ''}
-
-        <!-- Title -->
-        <h1 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-          ${blog.title}
-        </h1>
-
-        <!-- Meta -->
-        <div class="flex items-center space-x-6 text-gray-600 dark:text-gray-400">
-          <div class="flex items-center space-x-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-            <span>${blog.author_name}</span>
-          </div>
-          <div class="flex items-center space-x-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <span>${publishedDate}</span>
-          </div>
-          <div class="flex items-center space-x-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>${blog.reading_time} min read</span>
-          </div>
-        </div>
-
-        ${blog.is_ai_generated ? `
-          <div class="mt-4 inline-flex items-center space-x-2 px-4 py-2 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded-lg">
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M13 7H7v6h6V7z" />
-              <path fill-rule="evenodd" d="M7 2a1 1 0 012 0v1h2V2a1 1 0 112 0v1h2a2 2 0 012 2v2h1a1 1 0 110 2h-1v2h1a1 1 0 110 2h-1v2a2 2 0 01-2 2h-2v1a1 1 0 11-2 0v-1H9v1a1 1 0 11-2 0v-1H5a2 2 0 01-2-2v-2H2a1 1 0 110-2h1V9H2a1 1 0 010-2h1V5a2 2 0 012-2h2V2zM5 5h10v10H5V5z" clip-rule="evenodd" />
-            </svg>
-            <span class="text-sm font-medium">AI Generated Content</span>
-          </div>
-        ` : ''}
-      </header>
-
-      <!-- Featured Image -->
-      ${blog.featured_image ? `
-        <div class="mb-8 rounded-lg overflow-hidden">
-          <img src="${blog.featured_image}" alt="${blog.title}" class="w-full h-auto" />
-        </div>
-      ` : ''}
-
-      <!-- Content -->
-      <div class="prose-content">
-        ${blog.content.replace(/\n/g, '<br>')}
-      </div>
-
-      <!-- Stats -->
-      <div class="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between text-gray-600 dark:text-gray-400 not-prose">
-        <div class="flex items-center space-x-6">
-          <span class="flex items-center space-x-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-            <span>${blog.view_count} views</span>
-          </span>
-          <span class="flex items-center space-x-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-            </svg>
-            <span id="blog-likes">${blog.like_count} likes</span>
-          </span>
-        </div>
-        <a href="/blogs" class="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
-          ← Back to Blogs
-        </a>
-      </div>
-    `;
-  }
-
-  function setupLikeButton(blog: any) {
-    const likeButton = document.getElementById('like-button')!;
-    const likeText = document.getElementById('like-text')!;
-    const likeCount = document.getElementById('like-count')!;
-    
-    likeCount.textContent = blog.like_count.toString();
-
-    likeButton.addEventListener('click', async () => {
-      const token = localStorage.getItem('auth_token');
-      if (!token) {
-        window.location.href = '/auth/login?redirect=/blogs/' + slug;
-        return;
-      }
-
-      try {
-        const result = await blogsApi.toggleLike(slug);
-        likeCount.textContent = result.like_count.toString();
-        likeText.textContent = result.liked ? 'Unlike' : 'Like';
-        
-        if (result.liked) {
-          likeButton.classList.add('bg-red-50', 'border-red-500', 'text-red-600');
-          likeButton.classList.remove('border-gray-300', 'text-gray-600');
-        } else {
-          likeButton.classList.remove('bg-red-50', 'border-red-500', 'text-red-600');
-          likeButton.classList.add('border-gray-300', 'text-gray-600');
-        }
-      } catch (error) {
-        console.error('Error toggling like:', error);
-        alert('Failed to update like. Please try again.');
-      }
-    });
+    loadComments();
+    setupLikeButton();
+    checkAuth();
   }
 
   async function loadComments() {
-    const commentsList = document.getElementById('comments-list')!;
+    const commentsList = document.getElementById('comments-list');
+    if (!commentsList) return;
 
     try {
       const comments = await blogsApi.getComments(slug);
       
       if (comments.length === 0) {
-        commentsList.innerHTML = '<p class="text-gray-500 dark:text-gray-400">No comments yet. Be the first to comment!</p>';
+        commentsList.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center">No comments yet. Be the first to comment!</p>';
         return;
       }
 
@@ -271,18 +247,55 @@ const metadata = {
       `).join('');
     } catch (error) {
       console.error('Error loading comments:', error);
+      commentsList.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center">Failed to load comments.</p>';
     }
+  }
+
+  function setupLikeButton() {
+    const likeButton = document.getElementById('like-button');
+    const likeText = document.getElementById('like-text');
+    const likeCount = document.getElementById('like-count');
+    const blogLikes = document.getElementById('blog-likes');
+    
+    if (!likeButton) return;
+
+    likeButton.addEventListener('click', async () => {
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        window.location.href = '/auth/login?redirect=/blogs/' + slug;
+        return;
+      }
+
+      try {
+        const result = await blogsApi.toggleLike(slug);
+        
+        if (likeCount) likeCount.textContent = result.like_count.toString();
+        if (blogLikes) blogLikes.textContent = result.like_count + ' likes';
+        if (likeText) likeText.textContent = result.liked ? 'Unlike' : 'Like';
+        
+        if (result.liked) {
+          likeButton.classList.add('bg-red-50', 'border-red-500', 'text-red-600', 'dark:bg-red-900/20');
+          likeButton.classList.remove('border-gray-300', 'text-gray-600');
+        } else {
+          likeButton.classList.remove('bg-red-50', 'border-red-500', 'text-red-600', 'dark:bg-red-900/20');
+          likeButton.classList.add('border-gray-300', 'text-gray-600');
+        }
+      } catch (error) {
+        console.error('Error toggling like:', error);
+        alert('Failed to update like. Please try again.');
+      }
+    });
   }
 
   function checkAuth() {
     const token = localStorage.getItem('auth_token');
-    const authRequired = document.getElementById('auth-required')!;
-    const commentForm = document.getElementById('comment-form')!;
+    const authRequired = document.getElementById('auth-required');
+    const commentForm = document.getElementById('comment-form');
 
-    if (token) {
+    if (token && commentForm) {
       commentForm.classList.remove('hidden');
       setupCommentForm();
-    } else {
+    } else if (authRequired) {
       authRequired.classList.remove('hidden');
     }
   }
@@ -290,6 +303,8 @@ const metadata = {
   function setupCommentForm() {
     const form = document.getElementById('comment-form') as HTMLFormElement;
     const textarea = document.getElementById('comment-content') as HTMLTextAreaElement;
+
+    if (!form || !textarea) return;
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -310,5 +325,9 @@ const metadata = {
   }
 
   // Initialize
-  loadBlog();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 </script>
