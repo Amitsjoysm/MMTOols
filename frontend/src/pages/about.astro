@@ -1,205 +1,131 @@
 ---
-import Features2 from '~/components/widgets/Features2.astro';
-import Features3 from '~/components/widgets/Features3.astro';
-import Hero from '~/components/widgets/Hero.astro';
-import Stats from '~/components/widgets/Stats.astro';
-import Steps2 from '~/components/widgets/Steps2.astro';
 import Layout from '~/layouts/PageLayout.astro';
+import Content from '~/components/widgets/Content.astro';
+import CallToAction from '~/components/widgets/CallToAction.astro';
 
 const metadata = {
-  title: 'About TechResona - Leading IT Solutions Provider in Pune',
-  description: 'Learn about TechResona Pvt Ltd - your trusted technology partner for cloud solutions, web development, AI automation, and IT services in Pune, India.',
+  title: 'About MarketMindAI',
+  description: 'Learn about MarketMindAI - your trusted directory for discovering and comparing AI tools and business solutions.',
 };
 ---
 
 <Layout metadata={metadata}>
-  <!-- Hero Widget ******************* -->
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Header -->
+    <div class="text-center mb-16">
+      <h1 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
+        About MarketMindAI
+      </h1>
+      <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+        Your comprehensive directory for discovering, comparing, and reviewing AI tools and business solutions.
+      </p>
+    </div>
 
-  <Hero
-    tagline="About TechResona"
+    <!-- Mission Section -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 md:p-12 mb-12">
+      <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-6">Our Mission</h2>
+      <p class="text-lg text-gray-700 dark:text-gray-300 mb-4">
+        At MarketMindAI, we believe that finding the right tools shouldn't be overwhelming. Our mission is to simplify the process of discovering, evaluating, and choosing AI tools and business solutions.
+      </p>
+      <p class="text-lg text-gray-700 dark:text-gray-300">
+        We provide comprehensive, unbiased information to help businesses and individuals make informed decisions about the tools they use every day.
+      </p>
+    </div>
+
+    <!-- What We Offer -->
+    <div class="mb-16">
+      <h2 class="text-3xl font-bold text-gray-900 dark:text-white text-center mb-10">What We Offer</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <div class="text-blue-600 dark:text-blue-400 mb-4">
+            <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Comprehensive Directory</h3>
+          <p class="text-gray-700 dark:text-gray-300">
+            Access hundreds of carefully curated tools across multiple categories, all in one place.
+          </p>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <div class="text-blue-600 dark:text-blue-400 mb-4">
+            <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Detailed Comparisons</h3>
+          <p class="text-gray-700 dark:text-gray-300">
+            Compare tools side by side with detailed feature breakdowns, pricing, and user reviews.
+          </p>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <div class="text-blue-600 dark:text-blue-400 mb-4">
+            <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Expert Insights</h3>
+          <p class="text-gray-700 dark:text-gray-300">
+            Get expert analysis, real user reviews, and practical recommendations for each tool.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Our Values -->
+    <div class="bg-blue-50 dark:bg-gray-900 rounded-lg p-8 md:p-12 mb-12">
+      <h2 class="text-3xl font-bold text-gray-900 dark:text-white text-center mb-10">Our Values</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div>
+          <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">🎯 Transparency</h3>
+          <p class="text-gray-700 dark:text-gray-300">
+            We provide honest, unbiased reviews and comparisons. No hidden agendas, just facts.
+          </p>
+        </div>
+        <div>
+          <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">🔍 Quality</h3>
+          <p class="text-gray-700 dark:text-gray-300">
+            Every tool in our directory is carefully vetted to ensure we only list quality solutions.
+          </p>
+        </div>
+        <div>
+          <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">🤝 Community</h3>
+          <p class="text-gray-700 dark:text-gray-300">
+            We value user feedback and build our platform based on what our community needs.
+          </p>
+        </div>
+        <div>
+          <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">📈 Innovation</h3>
+          <p class="text-gray-700 dark:text-gray-300">
+            We constantly evolve our platform to provide the best tool discovery experience.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Call to Action -->
+  <CallToAction
+    actions={[
+      {
+        variant: 'primary',
+        text: 'Browse Tools',
+        href: '/tools',
+      },
+      {
+        text: 'Contact Us',
+        href: '/contact',
+      },
+    ]}
   >
     <Fragment slot="title">
-      Empowering Businesses with <br />
-      <span class="text-accent dark:text-white">Innovative Technology Solutions</span>
+      Join Our Growing Community
     </Fragment>
 
     <Fragment slot="subtitle">
-      TechResona Pvt Ltd is a leading technology solutions provider based in Pune, India. Since our inception, 
-      we've been dedicated to helping businesses transform digitally with cutting-edge cloud solutions, 
-      web development, AI automation, and comprehensive IT services.
+      Discover the tools that will transform your business. Start exploring today!
     </Fragment>
-  </Hero>
-
-  <!-- Stats Widget ****************** -->
-
-  <Stats
-    title="Our Impact in Numbers"
-    stats={[
-      { title: 'Years in Business', amount: '10+' },
-      { title: 'Happy Clients', amount: '200+' },
-      { title: 'Projects Completed', amount: '500+' },
-      { title: 'Team Members', amount: '25+' },
-    ]}
-  />
-
-  <!-- Features3 Widget ************** -->
-
-  <Features3
-    title="Our Core Services"
-    subtitle="Comprehensive technology solutions designed to accelerate your business growth and digital transformation."
-    columns={3}
-    isBeforeContent={true}
-    items={[
-      {
-        title: 'Cloud Solutions',
-        description:
-          'Expert Azure and AWS migration, cloud modernization, hybrid cloud setup, and 24/7 managed cloud services.',
-        icon: 'tabler:cloud',
-      },
-      {
-        title: 'Web Development',
-        description:
-          'Responsive websites, eCommerce platforms, Progressive Web Apps, and custom web applications built with modern technologies.',
-        icon: 'tabler:world-www',
-      },
-      {
-        title: 'AI & Automation',
-        description:
-          'Robotic Process Automation (RPA), workflow automation, and custom AI integrations to streamline business operations.',
-        icon: 'tabler:robot',
-      },
-      {
-        title: 'SEO Services',
-        description:
-          'Comprehensive SEO strategies including local SEO, technical audits, content marketing, and link building campaigns.',
-        icon: 'tabler:seo',
-      },
-      {
-        title: 'Microsoft 365 & G Suite',
-        description:
-          'Authorized reseller offering competitive licensing, complete deployment, migration services, and ongoing support.',
-        icon: 'tabler:brand-office',
-      },
-      {
-        title: 'IT Consulting',
-        description:
-          'Strategic technology consulting, digital transformation roadmaps, and IT infrastructure planning and optimization.',
-        icon: 'tabler:bulb',
-      },
-    ]}
-  />
-
-  <!-- Steps2 Widget ****************** -->
-
-  <Steps2
-    title="Our Core Values"
-    subtitle="The principles that guide every project we undertake and every relationship we build."
-    items={[
-      {
-        title: 'Client Success First',
-        description:
-          'Your success is our primary goal. We measure our achievements by the value we create for your business.',
-      },
-      {
-        title: 'Innovation & Excellence',
-        description:
-          'Continuously adopting the latest technologies and best practices to deliver solutions that give you a competitive edge.',
-      },
-      {
-        title: 'Transparency & Trust',
-        description:
-          'Open communication, clear pricing, and honest advice. We build long-term partnerships based on trust and mutual respect.',
-      },
-      {
-        title: 'Continuous Learning',
-        description:
-          'Staying ahead of technology trends through continuous learning, certifications, and professional development.',
-      },
-    ]}
-  />
-
-  <!-- Steps2 Widget ****************** -->
-
-  <Steps2
-    title="Why Businesses Choose TechResona"
-    subtitle="What sets us apart from other IT service providers."
-    isReversed={true}
-    items={[
-      {
-        title: 'Proven Expertise',
-        description: 'Microsoft, AWS, and Google certified professionals with 10+ years of combined experience in enterprise IT.',
-        icon: 'tabler:award',
-      },
-      {
-        title: 'End-to-End Solutions',
-        description:
-          'From consultation to implementation and ongoing support, we handle everything so you can focus on your core business.',
-        icon: 'tabler:checkup-list',
-      },
-      {
-        title: 'Customer Satisfaction',
-        description:
-          '94% client retention rate and 200+ successful projects across various industries including finance, healthcare, education, and manufacturing.',
-        icon: 'tabler:message-star',
-      },
-      {
-        title: 'Local Presence, Global Standards',
-        description:
-          'Based in Pune with deep understanding of local market needs, while following international best practices and standards.',
-        icon: 'tabler:world',
-      },
-    ]}
-  />
-
-  <!-- Features2 Widget ************** -->
-
-  <Features2
-    title="Our Technology Partnerships"
-    tagline="Certified Partners"
-    columns={4}
-    items={[
-      {
-        title: 'Microsoft',
-        description: 'Certified Partner',
-        icon: 'tabler:brand-windows',
-      },
-      {
-        title: 'Amazon AWS',
-        description: 'Cloud Partner',
-        icon: 'tabler:brand-aws',
-      },
-      {
-        title: 'Google Cloud',
-        description: 'Workspace Reseller',
-        icon: 'tabler:brand-google',
-      },
-      {
-        title: 'WordPress',
-        description: 'Expert Developer',
-        icon: 'tabler:brand-wordpress',
-      },
-    ]}
-  />
-
-  <!-- Features2 Widget ************** -->
-
-  <Features2
-    title="Visit Our Office"
-    tagline="Get in Touch"
-    columns={2}
-    items={[
-      {
-        title: 'Address',
-        description:
-          'TechResona Pvt Ltd<br>Kharadi, Pune 411047<br>Maharashtra, India',
-        icon: 'tabler:map-pin',
-      },
-      {
-        title: 'Contact Information',
-        description:
-          'Email: info@techresona.com<br>Phone: +91 7517402788<br>LinkedIn: <a href="https://www.linkedin.com/company/techresona-services/" target="_blank" class="text-blue-600 underline">techresona-services</a>',
-        icon: 'tabler:phone',
-      },
-    ]}
-  />
+  </CallToAction>
 </Layout>

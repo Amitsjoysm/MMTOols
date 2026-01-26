@@ -1,0 +1,297 @@
+---
+import Layout from '~/layouts/PageLayout.astro';
+
+const metadata = {
+  title: 'Compare Tools - Side by Side Comparison',
+  description: 'Compare multiple AI tools and business solutions side by side. Analyze features, pricing, pros, and cons to make the best decision.',
+};
+---
+
+<Layout metadata={metadata}>
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Header -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
+        Compare Tools Side by Side
+      </h1>
+      <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+        Select up to 5 tools to compare features, pricing, and reviews in one place.
+      </p>
+    </div>
+
+    <!-- Tool Selector -->
+    <div class="mb-8 max-w-4xl mx-auto">
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Select Tools to Compare</h2>
+        <div class="space-y-4">
+          <input
+            type="text"
+            id="tool-search"
+            placeholder="Search for tools to add..."
+            class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+          />
+          <div id="search-results" class="space-y-2 max-h-60 overflow-y-auto">
+            <!-- Search results will appear here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Selected Tools for Comparison -->
+    <div id="selected-tools-container" class="mb-8 hidden">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Selected Tools (<span id="selected-count">0</span>/5)</h2>
+        <button
+          id="compare-btn"
+          class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          data-testid="compare-button"
+        >
+          Compare Now
+        </button>
+      </div>
+      <div id="selected-tools" class="flex flex-wrap gap-3">
+        <!-- Selected tools chips will appear here -->
+      </div>
+    </div>
+
+    <!-- Comparison Table -->
+    <div id="comparison-container" class="hidden">
+      <div class="overflow-x-auto">
+        <div id="comparison-table">
+          <!-- Comparison table will be rendered here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div id="empty-state" class="text-center py-12">
+      <svg class="mx-auto h-24 w-24 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+      </svg>
+      <h3 class="mt-4 text-xl font-medium text-gray-900 dark:text-white">No tools selected</h3>
+      <p class="mt-2 text-gray-600 dark:text-gray-400">Search and select tools above to start comparing</p>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  import { toolsApi } from '~/utils/api';
+
+  let selectedTools: any[] = [];
+  let searchTimeout: any;
+
+  const searchInput = document.getElementById('tool-search') as HTMLInputElement;
+  const searchResults = document.getElementById('search-results')!;
+  const selectedToolsContainer = document.getElementById('selected-tools-container')!;
+  const selectedToolsDiv = document.getElementById('selected-tools')!;
+  const selectedCount = document.getElementById('selected-count')!;
+  const compareBtn = document.getElementById('compare-btn')!;
+  const comparisonContainer = document.getElementById('comparison-container')!;
+  const emptyState = document.getElementById('empty-state')!;
+
+  // Search for tools
+  searchInput.addEventListener('input', async (e) => {
+    const query = (e.target as HTMLInputElement).value;
+    
+    clearTimeout(searchTimeout);
+    
+    if (query.length < 2) {
+      searchResults.innerHTML = '';
+      return;
+    }
+
+    searchTimeout = setTimeout(async () => {
+      try {
+        const tools = await toolsApi.getAll({ search: query, limit: 10 });
+        renderSearchResults(tools);
+      } catch (error) {
+        console.error('Search error:', error);
+      }
+    }, 300);
+  });
+
+  function renderSearchResults(tools: any[]) {
+    if (tools.length === 0) {
+      searchResults.innerHTML = '<p class="text-gray-500 dark:text-gray-400 p-4">No tools found</p>';
+      return;
+    }
+
+    searchResults.innerHTML = tools.map(tool => `
+      <button
+        onclick="window.addToolToComparison('${tool.id}')"
+        class="w-full text-left p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center space-x-3 ${
+          selectedTools.some(t => t.id === tool.id) ? 'opacity-50 cursor-not-allowed' : ''
+        }"
+        ${selectedTools.some(t => t.id === tool.id) ? 'disabled' : ''}
+      >
+        ${tool.logo_url ? `<img src="${tool.logo_url}" alt="${tool.name}" class="h-10 w-10 object-contain" />` : ''}
+        <div class="flex-1">
+          <div class="font-medium text-gray-900 dark:text-white">${tool.name}</div>
+          <div class="text-sm text-gray-500 dark:text-gray-400">${tool.short_description || ''}</div>
+        </div>
+        ${selectedTools.some(t => t.id === tool.id) ? '<span class="text-green-600">✓ Added</span>' : ''}
+      </button>
+    `).join('');
+  }
+
+  // Add tool to comparison
+  (window as any).addToolToComparison = async function(toolId: string) {
+    if (selectedTools.length >= 5) {
+      alert('Maximum 5 tools can be compared at once');
+      return;
+    }
+
+    if (selectedTools.some(t => t.id === toolId)) {
+      return;
+    }
+
+    try {
+      const tool = await toolsApi.getById(toolId);
+      selectedTools.push(tool);
+      updateSelectedTools();
+    } catch (error) {
+      console.error('Error adding tool:', error);
+    }
+  };
+
+  function updateSelectedTools() {
+    selectedCount.textContent = selectedTools.length.toString();
+    
+    if (selectedTools.length > 0) {
+      selectedToolsContainer.classList.remove('hidden');
+      emptyState.classList.add('hidden');
+    } else {
+      selectedToolsContainer.classList.add('hidden');
+      emptyState.classList.remove('hidden');
+      comparisonContainer.classList.add('hidden');
+    }
+
+    selectedToolsDiv.innerHTML = selectedTools.map(tool => `
+      <div class="flex items-center space-x-2 px-4 py-2 bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100 rounded-full">
+        ${tool.logo_url ? `<img src="${tool.logo_url}" alt="${tool.name}" class="h-6 w-6 object-contain" />` : ''}
+        <span class="font-medium">${tool.name}</span>
+        <button
+          onclick="window.removeToolFromComparison('${tool.id}')"
+          class="ml-2 text-blue-900 dark:text-blue-100 hover:text-red-600 dark:hover:text-red-400"
+        >
+          ×
+        </button>
+      </div>
+    `).join('');
+  }
+
+  (window as any).removeToolFromComparison = function(toolId: string) {
+    selectedTools = selectedTools.filter(t => t.id !== toolId);
+    updateSelectedTools();
+  };
+
+  // Compare tools
+  compareBtn.addEventListener('click', () => {
+    if (selectedTools.length < 2) {
+      alert('Please select at least 2 tools to compare');
+      return;
+    }
+
+    renderComparison();
+  });
+
+  function renderComparison() {
+    comparisonContainer.classList.remove('hidden');
+    
+    const comparisonTable = document.getElementById('comparison-table')!;
+    comparisonTable.innerHTML = `
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead class="bg-gray-50 dark:bg-gray-900">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-48">
+                Feature
+              </th>
+              ${selectedTools.map(tool => `
+                <th class="px-6 py-3 text-center">
+                  <div class="flex flex-col items-center space-y-2">
+                    ${tool.logo_url ? `<img src="${tool.logo_url}" alt="${tool.name}" class="h-12 w-12 object-contain" />` : ''}
+                    <div class="font-bold text-gray-900 dark:text-white">${tool.name}</div>
+                  </div>
+                </th>
+              `).join('')}
+            </tr>
+          </thead>
+          <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+            <!-- Rating -->
+            <tr>
+              <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">Rating</td>
+              ${selectedTools.map(tool => `
+                <td class="px-6 py-4 text-center">
+                  <div class="flex items-center justify-center">
+                    <span class="text-yellow-500 text-xl">★</span>
+                    <span class="ml-1 font-bold">${tool.rating.toFixed(1)}</span>
+                    <span class="ml-1 text-gray-500 dark:text-gray-400 text-sm">(${tool.review_count})</span>
+                  </div>
+                </td>
+              `).join('')}
+            </tr>
+            <!-- Pricing -->
+            <tr>
+              <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">Pricing</td>
+              ${selectedTools.map(tool => `
+                <td class="px-6 py-4 text-center">
+                  <span class="px-3 py-1 rounded-full text-sm font-medium inline-block ${
+                    tool.pricing_type === 'free' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                    tool.pricing_type === 'freemium' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
+                    'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
+                  }">
+                    ${tool.pricing_type.charAt(0).toUpperCase() + tool.pricing_type.slice(1)}
+                  </span>
+                </td>
+              `).join('')}
+            </tr>
+            <!-- Description -->
+            <tr>
+              <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">Description</td>
+              ${selectedTools.map(tool => `
+                <td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                  ${tool.short_description || tool.description.substring(0, 100) + '...'}
+                </td>
+              `).join('')}
+            </tr>
+            <!-- Key Features -->
+            <tr>
+              <td class="px-6 py-4 font-medium text-gray-900 dark:text-white align-top">Key Features</td>
+              ${selectedTools.map(tool => `
+                <td class="px-6 py-4 text-sm">
+                  ${tool.features && tool.features.length > 0 ? `
+                    <ul class="space-y-1 text-left">
+                      ${tool.features.slice(0, 5).map((feature: string) => `
+                        <li class="flex items-start">
+                          <span class="text-green-500 mr-2">✓</span>
+                          <span class="text-gray-700 dark:text-gray-300">${feature}</span>
+                        </li>
+                      `).join('')}
+                    </ul>
+                  ` : '<span class="text-gray-500">-</span>'}
+                </td>
+              `).join('')}
+            </tr>
+            <!-- Website -->
+            <tr>
+              <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">Website</td>
+              ${selectedTools.map(tool => `
+                <td class="px-6 py-4 text-center">
+                  ${tool.url ? `
+                    <a href="${tool.url}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+                      Visit →
+                    </a>
+                  ` : '<span class="text-gray-500">-</span>'}
+                </td>
+              `).join('')}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    // Scroll to comparison
+    comparisonContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+</script>
