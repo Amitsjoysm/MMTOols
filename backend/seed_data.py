@@ -750,4 +750,5 @@ Automation doesn't have to be expensive or complicated. Start with simple workfl
         db.close()
 
 if __name__ == "__main__":
-    create_seed_data()
+    force = "--force" in sys.argv or "-f" in sys.argv
+    create_seed_data(force_reseed=force)
