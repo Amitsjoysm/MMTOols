@@ -1,0 +1,332 @@
+---
+import AdminLayout from '~/layouts/AdminLayout.astro';
+
+const metadata = {
+  title: 'Free Tools Management - Admin',
+};
+---
+
+<AdminLayout metadata={metadata}>
+  <div id="free-tools-container">
+    <!-- Loading State -->
+    <div id="loading" class="text-center py-12">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <p class="mt-4 text-gray-600 dark:text-gray-400">Loading free tools...</p>
+    </div>
+
+    <!-- Free Tools Content -->
+    <div id="tools-content" class="hidden space-y-6">
+      <!-- Header with Add Button -->
+      <div class="flex justify-between items-center">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Free Tools</h2>
+          <p class="text-gray-600 dark:text-gray-400 mt-1">Manage your free tools directory</p>
+        </div>
+        <button
+          id="add-tool-btn"
+          class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          data-testid="add-tool-btn"
+        >
+          + Add Free Tool
+        </button>
+      </div>
+
+      <!-- Search -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <div class="flex gap-4">
+          <input
+            type="text"
+            id="search-input"
+            placeholder="Search tools..."
+            class="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+            data-testid="search-input"
+          />
+          <button
+            id="search-btn"
+            class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            data-testid="search-btn"
+          >
+            Search
+          </button>
+        </div>
+      </div>
+
+      <!-- Tools Grid -->
+      <div id="tools-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Tools will be rendered here -->
+      </div>
+
+      <div id="no-tools" class="hidden text-center py-12">
+        <p class="text-gray-600 dark:text-gray-400">No free tools found.</p>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div id="error" class="hidden text-center py-12">
+      <p class="text-xl text-red-600 dark:text-red-400">Error loading free tools.</p>
+      <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+        Retry
+      </button>
+    </div>
+  </div>
+
+  <!-- Add/Edit Tool Modal -->
+  <div id="tool-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white dark:bg-gray-800 rounded-lg p-8 max-w-2xl w-full mx-4">
+      <div class="flex items-center justify-between mb-6">
+        <h2 id="modal-title" class="text-2xl font-bold text-gray-900 dark:text-white">Add Free Tool</h2>
+        <button id="close-modal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      
+      <form id="tool-form" class="space-y-4">
+        <div>
+          <label for="tool-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Name *</label>
+          <input
+            type="text"
+            id="tool-name"
+            required
+            class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+            placeholder="Tool name"
+          />
+        </div>
+        
+        <div>
+          <label for="tool-link" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Link *</label>
+          <input
+            type="url"
+            id="tool-link"
+            required
+            class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+            placeholder="https://example.com"
+          />
+        </div>
+        
+        <div>
+          <label for="tool-description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
+          <textarea
+            id="tool-description"
+            rows="4"
+            class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+            placeholder="Brief description of the tool"
+          ></textarea>
+        </div>
+        
+        <div class="flex justify-end space-x-3 pt-4">
+          <button
+            type="button"
+            id="cancel-btn"
+            class="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            data-testid="save-tool-btn"
+          >
+            Save Tool
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  import { superAdminApi } from '~/utils/api';
+
+  let currentEditId: string | null = null;
+
+  async function loadTools(search = '') {
+    const loading = document.getElementById('loading')!;
+    const content = document.getElementById('tools-content')!;
+    const error = document.getElementById('error')!;
+    const noTools = document.getElementById('no-tools')!;
+    const toolsGrid = document.getElementById('tools-grid')!;
+
+    try {
+      loading.classList.remove('hidden');
+      content.classList.add('hidden');
+      error.classList.add('hidden');
+
+      const params: any = { limit: 200 };
+      if (search) params.search = search;
+
+      const response = await superAdminApi.freeTools.getAll(params);
+      const tools = response.tools || [];
+      
+      loading.classList.add('hidden');
+      content.classList.remove('hidden');
+      
+      if (tools.length === 0) {
+        noTools.classList.remove('hidden');
+        toolsGrid.classList.add('hidden');
+      } else {
+        noTools.classList.add('hidden');
+        toolsGrid.classList.remove('hidden');
+        renderTools(tools);
+      }
+    } catch (err) {
+      console.error('Error loading tools:', err);
+      loading.classList.add('hidden');
+      error.classList.remove('hidden');
+    }
+  }
+
+  function renderTools(tools: any[]) {
+    const toolsGrid = document.getElementById('tools-grid')!;
+    
+    toolsGrid.innerHTML = tools.map(tool => `
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6" data-testid="free-tool-card">
+        <div class="flex items-start justify-between mb-3">
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white">${tool.name}</h3>
+          <span class="px-2 py-1 text-xs font-semibold rounded-full ${
+            tool.is_active 
+              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+              : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+          }">
+            ${tool.is_active ? 'Active' : 'Inactive'}
+          </span>
+        </div>
+        
+        ${tool.description ? `
+          <p class="text-gray-600 dark:text-gray-400 text-sm mb-4">${tool.description}</p>
+        ` : ''}
+        
+        <div class="mb-4">
+          <a href="${tool.link}" target="_blank" rel="noopener noreferrer" class="text-blue-600 dark:text-blue-400 hover:underline text-sm break-all">
+            ${tool.link}
+          </a>
+        </div>
+        
+        <div class="flex gap-2">
+          <button
+            onclick="editTool('${tool.id}')"
+            class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+            data-testid="edit-tool-btn"
+          >
+            Edit
+          </button>
+          <button
+            onclick="toggleToolStatus('${tool.id}', ${!tool.is_active})"
+            class="flex-1 px-4 py-2 ${
+              tool.is_active 
+                ? 'bg-yellow-600 hover:bg-yellow-700' 
+                : 'bg-green-600 hover:bg-green-700'
+            } text-white rounded-lg transition-colors text-sm"
+            data-testid="toggle-status-btn"
+          >
+            ${tool.is_active ? 'Deactivate' : 'Activate'}
+          </button>
+          <button
+            onclick="deleteTool('${tool.id}')"
+            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
+            data-testid="delete-tool-btn"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Add tool button
+  document.getElementById('add-tool-btn')?.addEventListener('click', () => {
+    currentEditId = null;
+    document.getElementById('modal-title')!.textContent = 'Add Free Tool';
+    (document.getElementById('tool-form') as HTMLFormElement).reset();
+    document.getElementById('tool-modal')!.classList.remove('hidden');
+  });
+
+  // Close modal
+  document.getElementById('close-modal')?.addEventListener('click', () => {
+    document.getElementById('tool-modal')!.classList.add('hidden');
+  });
+
+  document.getElementById('cancel-btn')?.addEventListener('click', () => {
+    document.getElementById('tool-modal')!.classList.add('hidden');
+  });
+
+  // Form submission
+  document.getElementById('tool-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const name = (document.getElementById('tool-name') as HTMLInputElement).value;
+    const link = (document.getElementById('tool-link') as HTMLInputElement).value;
+    const description = (document.getElementById('tool-description') as HTMLTextAreaElement).value;
+
+    try {
+      if (currentEditId) {
+        await superAdminApi.freeTools.update(currentEditId, { name, link, description });
+      } else {
+        await superAdminApi.freeTools.create({ name, link, description });
+      }
+      
+      document.getElementById('tool-modal')!.classList.add('hidden');
+      loadTools((document.getElementById('search-input') as HTMLInputElement).value);
+    } catch (err) {
+      console.error('Error saving tool:', err);
+      alert('Failed to save tool. Please try again.');
+    }
+  });
+
+  // Edit tool
+  (window as any).editTool = async (toolId: string) => {
+    try {
+      const tool = await superAdminApi.freeTools.get(toolId);
+      currentEditId = toolId;
+      
+      document.getElementById('modal-title')!.textContent = 'Edit Free Tool';
+      (document.getElementById('tool-name') as HTMLInputElement).value = tool.name;
+      (document.getElementById('tool-link') as HTMLInputElement).value = tool.link;
+      (document.getElementById('tool-description') as HTMLTextAreaElement).value = tool.description || '';
+      
+      document.getElementById('tool-modal')!.classList.remove('hidden');
+    } catch (err) {
+      console.error('Error loading tool:', err);
+      alert('Failed to load tool details.');
+    }
+  };
+
+  // Toggle tool status
+  (window as any).toggleToolStatus = async (toolId: string, isActive: boolean) => {
+    try {
+      await superAdminApi.freeTools.update(toolId, { is_active: isActive });
+      loadTools((document.getElementById('search-input') as HTMLInputElement).value);
+    } catch (err) {
+      console.error('Error updating tool status:', err);
+      alert('Failed to update tool status.');
+    }
+  };
+
+  // Delete tool
+  (window as any).deleteTool = async (toolId: string) => {
+    if (!confirm('Are you sure you want to delete this tool?')) return;
+    
+    try {
+      await superAdminApi.freeTools.delete(toolId);
+      loadTools((document.getElementById('search-input') as HTMLInputElement).value);
+    } catch (err) {
+      console.error('Error deleting tool:', err);
+      alert('Failed to delete tool.');
+    }
+  };
+
+  // Search
+  document.getElementById('search-btn')?.addEventListener('click', () => {
+    loadTools((document.getElementById('search-input') as HTMLInputElement).value);
+  });
+
+  document.getElementById('search-input')?.addEventListener('keypress', (e) => {
+    if ((e as KeyboardEvent).key === 'Enter') {
+      loadTools((document.getElementById('search-input') as HTMLInputElement).value);
+    }
+  });
+
+  // Load tools on page load
+  loadTools();
+</script>

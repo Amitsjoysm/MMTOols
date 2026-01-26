@@ -1,0 +1,200 @@
+---
+import AdminLayout from '~/layouts/AdminLayout.astro';
+
+const metadata = {
+  title: 'Reviews Management - Admin',
+};
+---
+
+<AdminLayout metadata={metadata}>
+  <div id="reviews-container">
+    <!-- Loading State -->
+    <div id="loading" class="text-center py-12">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <p class="mt-4 text-gray-600 dark:text-gray-400">Loading reviews...</p>
+    </div>
+
+    <!-- Reviews Content -->
+    <div id="reviews-content" class="hidden space-y-6">
+      <!-- Filters -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <div class="flex flex-wrap items-center gap-4">
+          <div>
+            <label for="verified-filter" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Verification Status
+            </label>
+            <select
+              id="verified-filter"
+              class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+              data-testid="verified-filter"
+            >
+              <option value="">All Reviews</option>
+              <option value="false">Pending Verification</option>
+              <option value="true">Verified</option>
+            </select>
+          </div>
+          <div class="flex-1"></div>
+          <div>
+            <button
+              id="refresh-btn"
+              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              data-testid="refresh-btn"
+            >
+              🔄 Refresh
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reviews List -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-900">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">User</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tool</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Rating</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Title</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Verified</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="reviews-table" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+              <!-- Reviews will be rendered here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="no-reviews" class="hidden text-center py-12">
+        <p class="text-gray-600 dark:text-gray-400">No reviews found.</p>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div id="error" class="hidden text-center py-12">
+      <p class="text-xl text-red-600 dark:text-red-400">Error loading reviews.</p>
+      <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+        Retry
+      </button>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  import { adminApi } from '~/utils/api';
+
+  async function loadReviews(verifiedFilter = '') {
+    const loading = document.getElementById('loading')!;
+    const content = document.getElementById('reviews-content')!;
+    const error = document.getElementById('error')!;
+    const noReviews = document.getElementById('no-reviews')!;
+
+    try {
+      loading.classList.remove('hidden');
+      content.classList.add('hidden');
+      error.classList.add('hidden');
+
+      const params: any = { limit: 100 };
+      if (verifiedFilter !== '') {
+        params.verified = verifiedFilter === 'true';
+      }
+
+      const reviews = await adminApi.getReviews(params);
+      
+      loading.classList.add('hidden');
+      
+      if (reviews.length === 0) {
+        noReviews.classList.remove('hidden');
+      } else {
+        content.classList.remove('hidden');
+        renderReviews(reviews);
+      }
+    } catch (err) {
+      console.error('Error loading reviews:', err);
+      loading.classList.add('hidden');
+      error.classList.remove('hidden');
+    }
+  }
+
+  function renderReviews(reviews: any[]) {
+    const tableBody = document.getElementById('reviews-table')!;
+    
+    tableBody.innerHTML = reviews.map(review => {
+      const stars = '⭐'.repeat(review.rating);
+      
+      return `
+        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700" data-testid="review-row">
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+            ${review.user}
+          </td>
+          <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">
+            ${review.tool}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm">
+            ${stars} (${review.rating})
+          </td>
+          <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
+            ${review.title || 'No title'}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <span class="px-2 py-1 text-xs font-semibold rounded-full ${
+              review.is_verified 
+                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+                : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+            }">
+              ${review.is_verified ? 'Verified' : 'Pending'}
+            </span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
+            ${new Date(review.created_at).toLocaleDateString()}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
+            ${!review.is_verified ? `
+              <button
+                class="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 font-medium"
+                onclick="verifyReview('${review.id}', true)"
+                data-testid="verify-btn"
+              >
+                Verify
+              </button>
+            ` : `
+              <button
+                class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-medium"
+                onclick="verifyReview('${review.id}', false)"
+                data-testid="unverify-btn"
+              >
+                Unverify
+              </button>
+            `}
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  (window as any).verifyReview = async (reviewId: string, verified: boolean) => {
+    try {
+      await adminApi.verifyReview(reviewId, verified);
+      loadReviews((document.getElementById('verified-filter') as HTMLSelectElement).value);
+    } catch (err) {
+      console.error('Error verifying review:', err);
+      alert('Failed to update review status. Please try again.');
+    }
+  };
+
+  // Verified filter
+  document.getElementById('verified-filter')?.addEventListener('change', (e) => {
+    loadReviews((e.target as HTMLSelectElement).value);
+  });
+
+  // Refresh button
+  document.getElementById('refresh-btn')?.addEventListener('click', () => {
+    loadReviews((document.getElementById('verified-filter') as HTMLSelectElement).value);
+  });
+
+  // Load reviews on page load
+  loadReviews();
+</script>
