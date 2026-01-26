@@ -674,6 +674,231 @@ async def download_csv_template(
         "headers": list(template_data[0].keys())
     }
 
+
+# Blog Management for Super Admin
+class BlogCreateAdmin(BaseModel):
+    title: str
+    content: str
+    excerpt: Optional[str] = None
+    featured_image: Optional[str] = None
+    author_id: str
+    status: str = "draft"  # draft, published, archived
+    tags: Optional[List[str]] = []
+    seo_title: Optional[str] = None
+    seo_description: Optional[str] = None
+    seo_keywords: Optional[str] = None
+    json_ld: Optional[dict] = None
+    is_ai_generated: Optional[bool] = False
+
+class BlogUpdateAdmin(BaseModel):
+    title: Optional[str] = None
+    content: Optional[str] = None
+    excerpt: Optional[str] = None
+    featured_image: Optional[str] = None
+    author_id: Optional[str] = None
+    status: Optional[str] = None
+    tags: Optional[List[str]] = None
+    seo_title: Optional[str] = None
+    seo_description: Optional[str] = None
+    seo_keywords: Optional[str] = None
+    json_ld: Optional[dict] = None
+    is_ai_generated: Optional[bool] = None
+
+@router.get("/api/superadmin/blogs")
+async def get_all_blogs_admin(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=200),
+    status: Optional[str] = Query(None),
+    author_id: Optional[str] = Query(None),
+    search: Optional[str] = Query(None),
+    db: Session = Depends(get_db)
+):
+    """Get all blogs with admin privileges - NO AUTH REQUIRED"""
+    
+    query = db.query(Blog).options(joinedload(Blog.author))
+    
+    if status:
+        query = query.filter(Blog.status == status)
+    
+    if author_id:
+        query = query.filter(Blog.author_id == author_id)
+    
+    if search:
+        query = query.filter(
+            or_(
+                Blog.title.contains(search),
+                Blog.content.contains(search),
+                Blog.excerpt.contains(search)
+            )
+        )
+    
+    blogs = query.order_by(desc(Blog.created_at)).offset(skip).limit(limit).all()
+    
+    return [
+        {
+            "id": blog.id,
+            "title": blog.title,
+            "slug": blog.slug,
+            "excerpt": blog.excerpt,
+            "featured_image": blog.featured_image,
+            "author_id": blog.author_id,
+            "author_name": blog.author.full_name or blog.author.username if blog.author else "Unknown",
+            "status": blog.status,
+            "view_count": blog.view_count,
+            "like_count": blog.like_count,
+            "reading_time": blog.reading_time,
+            "tags": blog.tags,
+            "is_ai_generated": blog.is_ai_generated,
+            "created_at": blog.created_at,
+            "updated_at": blog.updated_at,
+            "published_at": blog.published_at,
+            "seo_title": blog.seo_title,
+            "seo_description": blog.seo_description,
+            "seo_keywords": blog.seo_keywords
+        } for blog in blogs
+    ]
+
+@router.post("/api/superadmin/blogs")
+async def create_blog_admin(
+    blog: BlogCreateAdmin,
+    db: Session = Depends(get_db)
+):
+    """Create new blog - NO AUTH REQUIRED"""
+    
+    # Generate slug
+    slug = generate_slug(blog.title)
+    counter = 1
+    while db.query(Blog).filter(Blog.slug == slug).first():
+        slug = f"{generate_slug(blog.title)}-{counter}"
+        counter += 1
+    
+    # Calculate reading time
+    word_count = len(blog.content.split())
+    reading_time = max(1, word_count // 200)
+    
+    db_blog = Blog(
+        id=str(uuid.uuid4()),
+        title=blog.title,
+        slug=slug,
+        content=blog.content,
+        excerpt=blog.excerpt or blog.content[:200] + "...",
+        featured_image=blog.featured_image,
+        author_id=blog.author_id,
+        status=blog.status,
+        reading_time=reading_time,
+        tags=blog.tags,
+        seo_title=blog.seo_title or blog.title,
+        seo_description=blog.seo_description or blog.excerpt,
+        seo_keywords=blog.seo_keywords,
+        json_ld=blog.json_ld,
+        is_ai_generated=blog.is_ai_generated
+    )
+    
+    if blog.status == "published":
+        db_blog.published_at = datetime.utcnow()
+    
+    db.add(db_blog)
+    db.commit()
+    db.refresh(db_blog)
+    
+    return {"message": "Blog created successfully", "blog_id": db_blog.id, "slug": db_blog.slug}
+
+@router.put("/api/superadmin/blogs/{blog_id}")
+async def update_blog_admin(
+    blog_id: str,
+    blog_update: BlogUpdateAdmin,
+    db: Session = Depends(get_db)
+):
+    """Update blog - NO AUTH REQUIRED"""
+    
+    blog = db.query(Blog).filter(Blog.id == blog_id).first()
+    if not blog:
+        raise HTTPException(status_code=404, detail="Blog not found")
+    
+    # Track if status changed to published
+    was_published = blog.status == "published"
+    
+    # Update fields
+    update_data = blog_update.dict(exclude_unset=True)
+    for field, value in update_data.items():
+        if field == "title" and value != blog.title:
+            # Update slug if title changed
+            new_slug = generate_slug(value)
+            counter = 1
+            while db.query(Blog).filter(Blog.slug == new_slug, Blog.id != blog_id).first():
+                new_slug = f"{generate_slug(value)}-{counter}"
+                counter += 1
+            blog.slug = new_slug
+        
+        if field == "content":
+            # Recalculate reading time
+            word_count = len(value.split())
+            blog.reading_time = max(1, word_count // 200)
+        
+        setattr(blog, field, value)
+    
+    # Set published_at if status changed to published
+    if blog.status == "published" and not was_published:
+        blog.published_at = datetime.utcnow()
+    
+    blog.updated_at = datetime.utcnow()
+    db.commit()
+    
+    return {"message": "Blog updated successfully"}
+
+@router.delete("/api/superadmin/blogs/{blog_id}")
+async def delete_blog_admin(
+    blog_id: str,
+    db: Session = Depends(get_db)
+):
+    """Delete blog - NO AUTH REQUIRED"""
+    
+    blog = db.query(Blog).filter(Blog.id == blog_id).first()
+    if not blog:
+        raise HTTPException(status_code=404, detail="Blog not found")
+    
+    db.delete(blog)
+    db.commit()
+    
+    return {"message": "Blog deleted successfully"}
+
+@router.post("/api/superadmin/blogs/{blog_id}/publish")
+async def publish_blog_admin(
+    blog_id: str,
+    db: Session = Depends(get_db)
+):
+    """Publish blog - NO AUTH REQUIRED"""
+    
+    blog = db.query(Blog).filter(Blog.id == blog_id).first()
+    if not blog:
+        raise HTTPException(status_code=404, detail="Blog not found")
+    
+    blog.status = "published"
+    blog.published_at = datetime.utcnow()
+    blog.updated_at = datetime.utcnow()
+    
+    db.commit()
+    
+    return {"message": "Blog published successfully"}
+
+@router.post("/api/superadmin/blogs/{blog_id}/unpublish")
+async def unpublish_blog_admin(
+    blog_id: str,
+    db: Session = Depends(get_db)
+):
+    """Unpublish blog - NO AUTH REQUIRED"""
+    
+    blog = db.query(Blog).filter(Blog.id == blog_id).first()
+    if not blog:
+        raise HTTPException(status_code=404, detail="Blog not found")
+    
+    blog.status = "draft"
+    blog.updated_at = datetime.utcnow()
+    
+    db.commit()
+    
+    return {"message": "Blog unpublished successfully"}
+
 # Super Admin SEO Management Features
 class SeoIssueAnalysis(BaseModel):
     page_id: str
