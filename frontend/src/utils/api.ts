@@ -411,4 +411,34 @@ superAdminApi.freeTools = {
   delete: (toolId: string) => apiFetch<any>(`/api/superadmin/free-tools/${toolId}`, { method: 'DELETE' }),
 };
 
+// AI Blog Generation API
+export const aiBlogApi = {
+  generateBlog: (data: { topic: string; keywords?: string[]; target_length?: string; auto_publish?: boolean }) =>
+    apiFetch<any>('/api/ai/generate-blog', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  
+  getBlogTopics: (category?: string) => {
+    const queryParams = new URLSearchParams();
+    if (category) queryParams.append('category', category);
+    return apiFetch<any>(`/api/ai/blog-topics?${queryParams.toString()}`);
+  },
+  
+  compareTools: (data: { tool_ids: string[]; comparison_criteria?: string[]; create_blog?: boolean; auto_publish?: boolean }) =>
+    apiFetch<any>('/api/ai/compare-tools', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+};
+
+// Contact API (Public)
+export const contactApi = {
+  submit: (data: { name: string; email: string; company?: string; subject: string; message: string; inquiry_type?: string }) =>
+    apiFetch<any>('/api/contact', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+};
+
 export default apiFetch;
