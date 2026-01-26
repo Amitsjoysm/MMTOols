@@ -396,10 +396,9 @@ async def get_all_tools_admin(
 @router.post("/api/superadmin/tools")
 async def create_tool(
     tool: ToolCreate,
-    current_superadmin: User = Depends(get_current_superadmin),
     db: Session = Depends(get_db)
 ):
-    """Create new tool"""
+    """Create new tool - NO AUTH REQUIRED"""
     
     # Validate URL format if provided
     if tool.url and not validate_url_format(tool.url):
