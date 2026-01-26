@@ -59,7 +59,57 @@ export const toolsApi = {
   
   getBySlug: (slug: string) => apiFetch<any>(`/api/tools/by-slug/${slug}`),
   
-  compare: (toolIds: string[]) => apiFetch<any[]>(`/api/tools/compare?tool_ids=${toolIds.join(',')}`);
+  compare: (toolIds: string[]) => apiFetch<any[]>(`/api/tools/compare?tool_ids=${toolIds.join(',')}`),
+  
+  // Reviews
+  getReviews: (toolId: string, params?: { skip?: number; limit?: number }) => {
+    const queryParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          queryParams.append(key, String(value));
+        }
+      });
+    }
+    return apiFetch<any[]>(`/api/tools/${toolId}/reviews?${queryParams.toString()}`);
+  },
+  
+  createReview: (data: { tool_id: string; rating: number; title?: string; content?: string; pros?: string[]; cons?: string[] }) =>
+    apiFetch<any>(`/api/tools/${data.tool_id}/reviews`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  
+  // Comments
+  getComments: (toolSlug: string, params?: { skip?: number; limit?: number }) => {
+    const queryParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          queryParams.append(key, String(value));
+        }
+      });
+    }
+    return apiFetch<any[]>(`/api/tools/${toolSlug}/comments?${queryParams.toString()}`);
+  },
+  
+  createComment: (toolSlug: string, data: { content: string; parent_id?: string }) =>
+    apiFetch<any>(`/api/tools/${toolSlug}/comments`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  
+  // Like
+  toggleLike: (toolSlug: string) =>
+    apiFetch<any>(`/api/tools/${toolSlug}/like`, {
+      method: 'POST',
+    }),
+  
+  // Favorite
+  toggleFavorite: (toolId: string) =>
+    apiFetch<any>(`/api/tools/${toolId}/favorite`, {
+      method: 'POST',
+    }),
 };
 
 // Blogs API
@@ -96,13 +146,42 @@ export const authApi = {
       body: JSON.stringify({ email, password }),
     }),
   
-  register: (data: { email: string; username: string; password: string; full_name?: string }) =>
+  register: (data: { email: string; username: string; password: string; full_name?: string; verification_method?: string }) =>
     apiFetch<any>('/api/auth/register', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
   
-  getCurrentUser: () => apiFetch<any>('/api/users/me'),
+  getCurrentUser: () => apiFetch<any>('/api/auth/me'),
+};
+
+// User API
+export const userApi = {
+  getDashboard: () => apiFetch<any>('/api/user/dashboard'),
+  
+  updateProfile: (data: { full_name?: string; bio?: string }) =>
+    apiFetch<any>('/api/user/profile', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+  
+  uploadAvatar: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return apiFetch<any>('/api/user/upload-avatar', {
+      method: 'POST',
+      body: formData,
+      headers: {}, // Let browser set Content-Type for FormData
+    });
+  },
+  
+  // User's blogs
+  getBlogs: () => apiFetch<any[]>('/api/user/blogs'),
+  getBlog: (blogId: string) => apiFetch<any>(`/api/user/blogs/${blogId}`),
+  createBlog: (data: any) => apiFetch<any>('/api/user/blogs', { method: 'POST', body: JSON.stringify(data) }),
+  updateBlog: (blogId: string, data: any) => apiFetch<any>(`/api/user/blogs/${blogId}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteBlog: (blogId: string) => apiFetch<any>(`/api/user/blogs/${blogId}`, { method: 'DELETE' }),
+  publishBlog: (blogId: string) => apiFetch<any>(`/api/user/blogs/${blogId}/publish`, { method: 'POST' }),
 };
 
 // Super Admin APIs
