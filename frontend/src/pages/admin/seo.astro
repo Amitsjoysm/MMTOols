@@ -8,114 +8,71 @@ const metadata = {
 
 <AdminLayout metadata={metadata}>
   <div id="seo-management" class="space-y-6">
-    <!-- Header -->
-    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">SEO Management</h2>
+    <div class="flex items-center justify-between">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white">SEO Management</h2>
+    </div>
 
-    <!-- SEO Overview Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-bold text-gray-900 dark:text-white">Indexed Pages</h3>
-          <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-        </div>
-        <div class="text-3xl font-bold text-gray-900 dark:text-white" id="indexed-pages">-</div>
-        <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Total pages with SEO data</p>
-      </div>
-
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-bold text-gray-900 dark:text-white">Tools with SEO</h3>
-          <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </div>
-        <div class="text-3xl font-bold text-gray-900 dark:text-white" id="tools-seo">-</div>
-        <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Tools with SEO metadata</p>
-      </div>
-
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-bold text-gray-900 dark:text-white">Blogs with SEO</h3>
-          <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-          </svg>
-        </div>
-        <div class="text-3xl font-bold text-gray-900 dark:text-white" id="blogs-seo">-</div>
-        <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Blogs with SEO metadata</p>
-      </div>
+    <!-- SEO Overview Stats -->
+    <div id="seo-overview" class="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <!-- Stats will be loaded here -->
     </div>
 
     <!-- SEO Actions -->
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-      <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">SEO Actions</h3>
+      <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">SEO Tools</h3>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <button
-          id="generate-tool-seo"
-          class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-left"
+          id="generate-json-ld-btn"
+          class="px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-left"
+          data-testid="generate-json-ld-btn"
         >
-          <div class="flex items-center justify-between">
-            <div>
-              <div class="font-bold">Generate Tool SEO</div>
-              <div class="text-sm opacity-90">Auto-generate SEO metadata for all tools</div>
-            </div>
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </div>
+          <div class="font-bold">Generate JSON-LD for All Content</div>
+          <div class="text-sm opacity-90">Add structured data to tools and blogs</div>
         </button>
-
+        
         <button
-          id="generate-blog-seo"
-          class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-left"
+          id="analyze-issues-btn"
+          class="px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium text-left"
         >
-          <div class="flex items-center justify-between">
-            <div>
-              <div class="font-bold">Generate Blog SEO</div>
-              <div class="text-sm opacity-90">Auto-generate SEO metadata for all blogs</div>
-            </div>
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-            </svg>
-          </div>
-        </button>
-
-        <button
-          id="regenerate-sitemap"
-          class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium text-left"
-        >
-          <div class="flex items-center justify-between">
-            <div>
-              <div class="font-bold">Regenerate Sitemap</div>
-              <div class="text-sm opacity-90">Update XML sitemap with latest content</div>
-            </div>
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
-            </svg>
-          </div>
-        </button>
-
-        <button
-          id="check-seo-issues"
-          class="px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium text-left"
-        >
-          <div class="flex items-center justify-between">
-            <div>
-              <div class="font-bold">Check SEO Issues</div>
-              <div class="text-sm opacity-90">Scan for missing or incomplete SEO data</div>
-            </div>
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-          </div>
+          <div class="font-bold">Analyze SEO Issues</div>
+          <div class="text-sm opacity-90">Find and fix SEO problems</div>
         </button>
       </div>
     </div>
 
-    <!-- SEO Status Messages -->
-    <div id="seo-status" class="hidden">
-      <div id="seo-message" class="p-4 rounded-lg"></div>
+    <!-- SEO Issues Section -->
+    <div id="seo-issues-section" class="hidden">
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white">SEO Issues</h3>
+          <select
+            id="severity-filter"
+            class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">All Severity</option>
+            <option value="critical">Critical</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+        
+        <!-- Issues Summary -->
+        <div id="issues-summary" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <!-- Summary will be rendered here -->
+        </div>
+        
+        <!-- Issues List -->
+        <div id="issues-list" class="space-y-4">
+          <!-- Issues will be rendered here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading" class="hidden text-center py-12">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <p class="mt-4 text-gray-600 dark:text-gray-400">Processing...</p>
     </div>
   </div>
 </AdminLayout>
@@ -126,6 +83,8 @@ const metadata = {
 
   requireAdmin();
 
+  let allIssues: any[] = [];
+
   async function init() {
     await loadSEOOverview();
     setupEventListeners();
@@ -134,94 +93,151 @@ const metadata = {
   async function loadSEOOverview() {
     try {
       const overview = await superAdminApi.seo.getOverview();
-      document.getElementById('indexed-pages')!.textContent = overview.total_pages || '0';
-      document.getElementById('tools-seo')!.textContent = overview.tools_with_seo || '0';
-      document.getElementById('blogs-seo')!.textContent = overview.blogs_with_seo || '0';
+      const overviewDiv = document.getElementById('seo-overview')!;
+      
+      overviewDiv.innerHTML = `
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6" data-testid="seo-health-score">
+          <div class="text-3xl font-bold ${overview.overview.seo_health_score >= 80 ? 'text-green-600 dark:text-green-400' : overview.overview.seo_health_score >= 60 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400'}">
+            ${overview.overview.seo_health_score.toFixed(1)}%
+          </div>
+          <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">SEO Health Score</div>
+        </div>
+        
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <div class="text-3xl font-bold text-blue-600 dark:text-blue-400">${overview.overview.seo_optimized}</div>
+          <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">Pages Optimized</div>
+          <div class="text-xs text-gray-500 mt-1">of ${overview.overview.total_pages} total</div>
+        </div>
+        
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <div class="text-3xl font-bold text-purple-600 dark:text-purple-400">${overview.tools.with_seo}/${overview.tools.total}</div>
+          <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">Tools with SEO</div>
+          <div class="text-xs text-gray-500 mt-1">${overview.tools.completion_rate}% complete</div>
+        </div>
+        
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <div class="text-3xl font-bold text-green-600 dark:text-green-400">${overview.blogs.with_seo}/${overview.blogs.total}</div>
+          <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">Blogs with SEO</div>
+          <div class="text-xs text-gray-500 mt-1">${overview.blogs.completion_rate}% complete</div>
+        </div>
+      `;
     } catch (error) {
       console.error('Error loading SEO overview:', error);
-      // Set default values on error
-      document.getElementById('indexed-pages')!.textContent = '0';
-      document.getElementById('tools-seo')!.textContent = '0';
-      document.getElementById('blogs-seo')!.textContent = '0';
     }
   }
 
-  function showMessage(message: string, type: 'success' | 'error' | 'info') {
-    const status = document.getElementById('seo-status')!;
-    const messageDiv = document.getElementById('seo-message')!;
+  async function generateJsonLd() {
+    const loading = document.getElementById('loading')!;
+    loading.classList.remove('hidden');
+
+    try {
+      await superAdminApi.seo.generateJsonLd('all', 1000);
+      alert('JSON-LD generated successfully for all content!');
+      await loadSEOOverview();
+    } catch (error: any) {
+      console.error('Error generating JSON-LD:', error);
+      alert('Failed to generate JSON-LD: ' + (error.message || 'Unknown error'));
+    } finally {
+      loading.classList.add('hidden');
+    }
+  }
+
+  async function analyzeSEOIssues() {
+    const loading = document.getElementById('loading')!;
+    const issuesSection = document.getElementById('seo-issues-section')!;
     
-    const colorClasses = {
-      success: 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200',
-      error: 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200',
-      info: 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'
-    };
+    loading.classList.remove('hidden');
 
-    messageDiv.className = `p-4 rounded-lg ${colorClasses[type]}`;
-    messageDiv.textContent = message;
-    status.classList.remove('hidden');
+    try {
+      const result = await superAdminApi.seo.getIssues();
+      allIssues = result.issues || [];
+      
+      // Render issues summary
+      const issuesSummary = document.getElementById('issues-summary')!;
+      issuesSummary.innerHTML = `
+        <div class="p-3 bg-red-50 dark:bg-red-900/20 rounded">
+          <div class="text-2xl font-bold text-red-600 dark:text-red-400">${result.summary.critical || 0}</div>
+          <div class="text-xs text-gray-600 dark:text-gray-400">Critical</div>
+        </div>
+        <div class="p-3 bg-orange-50 dark:bg-orange-900/20 rounded">
+          <div class="text-2xl font-bold text-orange-600 dark:text-orange-400">${result.summary.high || 0}</div>
+          <div class="text-xs text-gray-600 dark:text-gray-400">High</div>
+        </div>
+        <div class="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded">
+          <div class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">${result.summary.medium || 0}</div>
+          <div class="text-xs text-gray-600 dark:text-gray-400">Medium</div>
+        </div>
+        <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded">
+          <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">${result.summary.low || 0}</div>
+          <div class="text-xs text-gray-600 dark:text-gray-400">Low</div>
+        </div>
+      `;
+      
+      renderIssues(allIssues);
+      issuesSection.classList.remove('hidden');
+    } catch (error: any) {
+      console.error('Error analyzing SEO issues:', error);
+      alert('Failed to analyze SEO issues: ' + (error.message || 'Unknown error'));
+    } finally {
+      loading.classList.add('hidden');
+    }
+  }
 
-    setTimeout(() => {
-      status.classList.add('hidden');
-    }, 5000);
+  function renderIssues(issues: any[]) {
+    const issuesList = document.getElementById('issues-list')!;
+    
+    if (issues.length === 0) {
+      issuesList.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400 py-8">No issues found! Your SEO is in great shape.</p>';
+      return;
+    }
+    
+    issuesList.innerHTML = issues.map(issue => `
+      <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+        <div class="flex items-start justify-between mb-2">
+          <div class="flex-1">
+            <div class="flex items-center space-x-2 mb-2">
+              <h4 class="font-bold text-gray-900 dark:text-white">${issue.title}</h4>
+              <span class="px-2 py-1 rounded text-xs font-medium ${
+                issue.severity === 'critical' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' :
+                issue.severity === 'high' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' :
+                issue.severity === 'medium' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+                'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+              }">
+                ${issue.severity}
+              </span>
+              <span class="px-2 py-1 rounded text-xs bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                ${issue.page_type}
+              </span>
+            </div>
+            <div class="text-sm text-gray-600 dark:text-gray-400 mb-2">${issue.page_path}</div>
+          </div>
+        </div>
+        
+        <div class="mb-3">
+          <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Issues:</div>
+          <ul class="list-disc list-inside text-sm text-gray-600 dark:text-gray-400">
+            ${issue.issues.map((i: string) => `<li>${i}</li>`).join('')}
+          </ul>
+        </div>
+        
+        <div>
+          <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Recommendations:</div>
+          <ul class="list-disc list-inside text-sm text-green-600 dark:text-green-400">
+            ${issue.recommendations.map((r: string) => `<li>${r}</li>`).join('')}
+          </ul>
+        </div>
+      </div>
+    `).join('');
   }
 
   function setupEventListeners() {
-    document.getElementById('generate-tool-seo')!.addEventListener('click', async () => {
-      if (!confirm('Generate SEO metadata for all tools? This may take a few moments.')) return;
-      
-      try {
-        showMessage('Generating SEO metadata for tools...', 'info');
-        await superAdminApi.seo.generateJsonLd('tools', 1000);
-        showMessage('Successfully generated SEO metadata for tools!', 'success');
-        loadSEOOverview();
-      } catch (error: any) {
-        console.error('Error generating tool SEO:', error);
-        showMessage('Failed to generate SEO metadata: ' + (error.message || 'Unknown error'), 'error');
-      }
-    });
-
-    document.getElementById('generate-blog-seo')!.addEventListener('click', async () => {
-      if (!confirm('Generate SEO metadata for all blogs? This may take a few moments.')) return;
-      
-      try {
-        showMessage('Generating SEO metadata for blogs...', 'info');
-        await superAdminApi.seo.generateJsonLd('blogs', 1000);
-        showMessage('Successfully generated SEO metadata for blogs!', 'success');
-        loadSEOOverview();
-      } catch (error: any) {
-        console.error('Error generating blog SEO:', error);
-        showMessage('Failed to generate SEO metadata: ' + (error.message || 'Unknown error'), 'error');
-      }
-    });
-
-    document.getElementById('regenerate-sitemap')!.addEventListener('click', async () => {
-      if (!confirm('Regenerate XML sitemap with all current content?')) return;
-      
-      try {
-        showMessage('Regenerating sitemap...', 'info');
-        // Assuming there's a sitemap generation endpoint
-        showMessage('Sitemap regenerated successfully!', 'success');
-      } catch (error: any) {
-        console.error('Error regenerating sitemap:', error);
-        showMessage('Failed to regenerate sitemap: ' + (error.message || 'Unknown error'), 'error');
-      }
-    });
-
-    document.getElementById('check-seo-issues')!.addEventListener('click', async () => {
-      try {
-        showMessage('Checking for SEO issues...', 'info');
-        const issues = await superAdminApi.seo.getIssues();
-        
-        if (issues.total_issues === 0) {
-          showMessage('No SEO issues found! All content has proper metadata.', 'success');
-        } else {
-          showMessage(`Found ${issues.total_issues} SEO issues. Check the console for details.`, 'info');
-          console.log('SEO Issues:', issues);
-        }
-      } catch (error: any) {
-        console.error('Error checking SEO issues:', error);
-        showMessage('Failed to check SEO issues: ' + (error.message || 'Unknown error'), 'error');
-      }
+    document.getElementById('generate-json-ld-btn')!.addEventListener('click', generateJsonLd);
+    document.getElementById('analyze-issues-btn')!.addEventListener('click', analyzeSEOIssues);
+    
+    document.getElementById('severity-filter')!.addEventListener('change', (e) => {
+      const severity = (e.target as HTMLSelectElement).value;
+      const filtered = severity ? allIssues.filter(issue => issue.severity === severity) : allIssues;
+      renderIssues(filtered);
     });
   }
 
