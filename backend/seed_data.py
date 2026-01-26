@@ -325,7 +325,8 @@ def create_seed_data():
         tools = []
         for tool_data in tools_data:
             # Find category objects
-            tool_categories_obj = [cat for cat in categories if cat.name in tool_data.pop("categories")]
+            category_names = tool_data.get("categories", [])
+            tool_categories_obj = [cat for cat in categories if cat.name in category_names]
             
             tool = Tool(
                 id=str(uuid.uuid4()),
