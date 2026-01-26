@@ -306,4 +306,109 @@ export const superAdminApi = {
   },
 };
 
+// Admin APIs
+export const adminApi = {
+  // Dashboard
+  getDashboard: () => apiFetch<any>('/api/admin/dashboard'),
+  
+  // Analytics
+  getAnalytics: (days: number = 30) => apiFetch<any>(`/api/admin/analytics?days=${days}`),
+  
+  // Reviews Management
+  getReviews: (params?: { skip?: number; limit?: number; verified?: boolean }) => {
+    const queryParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          queryParams.append(key, String(value));
+        }
+      });
+    }
+    return apiFetch<any[]>(`/api/admin/reviews?${queryParams.toString()}`);
+  },
+  
+  verifyReview: (reviewId: string, verified: boolean) =>
+    apiFetch<any>(`/api/admin/reviews/${reviewId}/verify?verified=${verified}`, { method: 'PUT' }),
+  
+  // Contact Submissions
+  getContacts: (params?: { skip?: number; limit?: number; status_filter?: string }) => {
+    const queryParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          queryParams.append(key, String(value));
+        }
+      });
+    }
+    return apiFetch<any[]>(`/api/admin/contacts?${queryParams.toString()}`);
+  },
+  
+  updateContactStatus: (contactId: string, status: string) =>
+    apiFetch<any>(`/api/admin/contacts/${contactId}/status?new_status=${status}`, { method: 'PUT' }),
+  
+  // Newsletter Management
+  getNewsletterSubscriptions: (params?: { skip?: number; limit?: number; status_filter?: string }) => {
+    const queryParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          queryParams.append(key, String(value));
+        }
+      });
+    }
+    return apiFetch<any[]>(`/api/admin/newsletter/subscriptions?${queryParams.toString()}`);
+  },
+  
+  getNewsletterStats: () => apiFetch<any>('/api/admin/newsletter/stats'),
+};
+
+// Newsletter API (Public)
+export const newsletterApi = {
+  subscribe: (email: string, source: string = 'website') =>
+    apiFetch<any>('/api/newsletter/subscribe', {
+      method: 'POST',
+      body: JSON.stringify({ email, source }),
+    }),
+  
+  unsubscribe: (email: string) =>
+    apiFetch<any>('/api/newsletter/unsubscribe', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    }),
+};
+
+// Free Tools API
+export const freeToolsApi = {
+  getAll: (limit?: number) => {
+    const queryParams = new URLSearchParams();
+    if (limit) queryParams.append('limit', String(limit));
+    return apiFetch<any[]>(`/api/free-tools?${queryParams.toString()}`);
+  },
+};
+
+// Super Admin Free Tools Management
+superAdminApi.freeTools = {
+  getAll: (params?: { skip?: number; limit?: number; search?: string }) => {
+    const queryParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          queryParams.append(key, String(value));
+        }
+      });
+    }
+    return apiFetch<any>(`/api/superadmin/free-tools?${queryParams.toString()}`);
+  },
+  
+  get: (toolId: string) => apiFetch<any>(`/api/superadmin/free-tools/${toolId}`),
+  
+  create: (data: { name: string; link: string; description?: string }) =>
+    apiFetch<any>('/api/superadmin/free-tools', { method: 'POST', body: JSON.stringify(data) }),
+  
+  update: (toolId: string, data: { name?: string; link?: string; description?: string; is_active?: boolean }) =>
+    apiFetch<any>(`/api/superadmin/free-tools/${toolId}`, { method: 'PUT', body: JSON.stringify(data) }),
+  
+  delete: (toolId: string) => apiFetch<any>(`/api/superadmin/free-tools/${toolId}`, { method: 'DELETE' }),
+};
+
 export default apiFetch;
