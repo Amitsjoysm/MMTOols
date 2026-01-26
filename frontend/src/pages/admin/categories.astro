@@ -1,0 +1,215 @@
+---
+import AdminLayout from '~/layouts/AdminLayout.astro';
+
+const metadata = {
+  title: 'Categories Management - Admin',
+};
+---
+
+<AdminLayout metadata={metadata}>
+  <div id="categories-management" class="space-y-6">
+    <!-- Header with Actions -->
+    <div class="flex items-center justify-between">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Categories Management</h2>
+      <button
+        id="create-category-btn"
+        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+        data-testid="create-category-btn"
+      >
+        + Add New Category
+      </button>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading" class="text-center py-12">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <p class="mt-4 text-gray-600 dark:text-gray-400">Loading categories...</p>
+    </div>
+
+    <!-- Categories Grid -->
+    <div id="categories-grid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    </div>
+  </div>
+
+  <!-- Create/Edit Category Modal -->
+  <div id="category-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full">
+      <div class="p-6">
+        <div class="flex items-center justify-between mb-6">
+          <h3 id="modal-title" class="text-2xl font-bold text-gray-900 dark:text-white">Add New Category</h3>
+          <button id="close-modal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <form id="category-form" class="space-y-6">
+          <input type="hidden" id="category-id" />
+          
+          <!-- Name -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category Name *</label>
+            <input type="text" id="category-name" required class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500" />
+          </div>
+
+          <!-- Description -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
+            <textarea id="category-description" rows="3" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"></textarea>
+          </div>
+
+          <div class="flex items-center justify-end space-x-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <button type="button" id="cancel-btn" class="px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600">
+              Cancel
+            </button>
+            <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700" data-testid="save-category-btn">
+              Save Category
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  import { superAdminApi } from '~/utils/api';
+  import { requireAdmin } from '~/utils/auth';
+
+  requireAdmin();
+
+  let editingCategoryId: string | null = null;
+
+  async function init() {
+    await loadCategories();
+    setupEventListeners();
+  }
+
+  async function loadCategories() {
+    const loading = document.getElementById('loading')!;
+    const grid = document.getElementById('categories-grid')!;
+    
+    loading.classList.remove('hidden');
+    grid.classList.add('hidden');
+
+    try {
+      const categories = await superAdminApi.categories.getAll();
+
+      grid.innerHTML = categories.map((cat: any) => `
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6" data-testid="category-card-${cat.id}">
+          <div class="flex items-start justify-between mb-4">
+            <div class="flex-1">
+              <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">${cat.name}</h3>
+              <p class="text-sm text-gray-600 dark:text-gray-400">${cat.description || 'No description'}</p>
+            </div>
+          </div>
+          <div class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+            <span class="text-sm text-gray-500 dark:text-gray-400">Slug: ${cat.slug}</span>
+            <div class="space-x-2">
+              <button onclick="window.editCategory('${cat.id}')" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm" data-testid="edit-category-${cat.id}">
+                Edit
+              </button>
+              <button onclick="window.deleteCategory('${cat.id}', '${cat.name}')" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-sm" data-testid="delete-category-${cat.id}">
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      loading.classList.add('hidden');
+      grid.classList.remove('hidden');
+    } catch (error) {
+      console.error('Error loading categories:', error);
+      loading.classList.add('hidden');
+    }
+  }
+
+  function setupEventListeners() {
+    document.getElementById('create-category-btn')!.addEventListener('click', () => openCategoryModal());
+    document.getElementById('close-modal')!.addEventListener('click', closeCategoryModal);
+    document.getElementById('cancel-btn')!.addEventListener('click', closeCategoryModal);
+    document.getElementById('category-form')!.addEventListener('submit', handleCategorySubmit);
+  }
+
+  function openCategoryModal(category?: any) {
+    const modal = document.getElementById('category-modal')!;
+    const modalTitle = document.getElementById('modal-title')!;
+    const form = document.getElementById('category-form') as HTMLFormElement;
+    
+    form.reset();
+    editingCategoryId = category?.id || null;
+    modalTitle.textContent = category ? 'Edit Category' : 'Add New Category';
+
+    if (category) {
+      (document.getElementById('category-id') as HTMLInputElement).value = category.id;
+      (document.getElementById('category-name') as HTMLInputElement).value = category.name;
+      (document.getElementById('category-description') as HTMLTextAreaElement).value = category.description || '';
+    }
+
+    modal.classList.remove('hidden');
+  }
+
+  function closeCategoryModal() {
+    document.getElementById('category-modal')!.classList.add('hidden');
+    editingCategoryId = null;
+  }
+
+  async function handleCategorySubmit(e: Event) {
+    e.preventDefault();
+    
+    const submitBtn = (e.target as HTMLFormElement).querySelector('button[type="submit"]') as HTMLButtonElement;
+    const originalText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Saving...';
+
+    try {
+      const categoryData = {
+        name: (document.getElementById('category-name') as HTMLInputElement).value,
+        description: (document.getElementById('category-description') as HTMLTextAreaElement).value
+      };
+
+      if (editingCategoryId) {
+        await superAdminApi.categories.update(editingCategoryId, categoryData);
+      } else {
+        await superAdminApi.categories.create(categoryData);
+      }
+
+      closeCategoryModal();
+      loadCategories();
+      alert(editingCategoryId ? 'Category updated successfully!' : 'Category created successfully!');
+    } catch (error: any) {
+      console.error('Error saving category:', error);
+      alert('Failed to save category: ' + (error.message || 'Unknown error'));
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalText;
+    }
+  }
+
+  (window as any).editCategory = async function(categoryId: string) {
+    try {
+      const categories = await superAdminApi.categories.getAll();
+      const category = categories.find((c: any) => c.id === categoryId);
+      if (category) openCategoryModal(category);
+    } catch (error) {
+      console.error('Error loading category:', error);
+    }
+  };
+
+  (window as any).deleteCategory = async function(categoryId: string, categoryName: string) {
+    if (!confirm(`Are you sure you want to delete "${categoryName}"? This action cannot be undone.`)) return;
+
+    try {
+      await superAdminApi.categories.delete(categoryId);
+      alert('Category deleted successfully!');
+      loadCategories();
+    } catch (error: any) {
+      console.error('Error deleting category:', error);
+      alert('Failed to delete category: ' + (error.message || 'Unknown error'));
+    }
+  };
+
+  init();
+</script>

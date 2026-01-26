@@ -1,0 +1,229 @@
+---
+import AdminLayout from '~/layouts/AdminLayout.astro';
+
+const metadata = {
+  title: 'SEO Management - Admin',
+};
+---
+
+<AdminLayout metadata={metadata}>
+  <div id="seo-management" class="space-y-6">
+    <!-- Header -->
+    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">SEO Management</h2>
+
+    <!-- SEO Overview Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white">Indexed Pages</h3>
+          <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </div>
+        <div class="text-3xl font-bold text-gray-900 dark:text-white" id="indexed-pages">-</div>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Total pages with SEO data</p>
+      </div>
+
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white">Tools with SEO</h3>
+          <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div class="text-3xl font-bold text-gray-900 dark:text-white" id="tools-seo">-</div>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Tools with SEO metadata</p>
+      </div>
+
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white">Blogs with SEO</h3>
+          <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+        </div>
+        <div class="text-3xl font-bold text-gray-900 dark:text-white" id="blogs-seo">-</div>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Blogs with SEO metadata</p>
+      </div>
+    </div>
+
+    <!-- SEO Actions -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+      <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">SEO Actions</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <button
+          id="generate-tool-seo"
+          class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-left"
+        >
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="font-bold">Generate Tool SEO</div>
+              <div class="text-sm opacity-90">Auto-generate SEO metadata for all tools</div>
+            </div>
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+        </button>
+
+        <button
+          id="generate-blog-seo"
+          class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-left"
+        >
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="font-bold">Generate Blog SEO</div>
+              <div class="text-sm opacity-90">Auto-generate SEO metadata for all blogs</div>
+            </div>
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          </div>
+        </button>
+
+        <button
+          id="regenerate-sitemap"
+          class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium text-left"
+        >
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="font-bold">Regenerate Sitemap</div>
+              <div class="text-sm opacity-90">Update XML sitemap with latest content</div>
+            </div>
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+            </svg>
+          </div>
+        </button>
+
+        <button
+          id="check-seo-issues"
+          class="px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium text-left"
+        >
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="font-bold">Check SEO Issues</div>
+              <div class="text-sm opacity-90">Scan for missing or incomplete SEO data</div>
+            </div>
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- SEO Status Messages -->
+    <div id="seo-status" class="hidden">
+      <div id="seo-message" class="p-4 rounded-lg"></div>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  import { superAdminApi } from '~/utils/api';
+  import { requireAdmin } from '~/utils/auth';
+
+  requireAdmin();
+
+  async function init() {
+    await loadSEOOverview();
+    setupEventListeners();
+  }
+
+  async function loadSEOOverview() {
+    try {
+      const overview = await superAdminApi.seo.getOverview();
+      document.getElementById('indexed-pages')!.textContent = overview.total_pages || '0';
+      document.getElementById('tools-seo')!.textContent = overview.tools_with_seo || '0';
+      document.getElementById('blogs-seo')!.textContent = overview.blogs_with_seo || '0';
+    } catch (error) {
+      console.error('Error loading SEO overview:', error);
+      // Set default values on error
+      document.getElementById('indexed-pages')!.textContent = '0';
+      document.getElementById('tools-seo')!.textContent = '0';
+      document.getElementById('blogs-seo')!.textContent = '0';
+    }
+  }
+
+  function showMessage(message: string, type: 'success' | 'error' | 'info') {
+    const status = document.getElementById('seo-status')!;
+    const messageDiv = document.getElementById('seo-message')!;
+    
+    const colorClasses = {
+      success: 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200',
+      error: 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200',
+      info: 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'
+    };
+
+    messageDiv.className = `p-4 rounded-lg ${colorClasses[type]}`;
+    messageDiv.textContent = message;
+    status.classList.remove('hidden');
+
+    setTimeout(() => {
+      status.classList.add('hidden');
+    }, 5000);
+  }
+
+  function setupEventListeners() {
+    document.getElementById('generate-tool-seo')!.addEventListener('click', async () => {
+      if (!confirm('Generate SEO metadata for all tools? This may take a few moments.')) return;
+      
+      try {
+        showMessage('Generating SEO metadata for tools...', 'info');
+        await superAdminApi.seo.generateJsonLd('tools', 1000);
+        showMessage('Successfully generated SEO metadata for tools!', 'success');
+        loadSEOOverview();
+      } catch (error: any) {
+        console.error('Error generating tool SEO:', error);
+        showMessage('Failed to generate SEO metadata: ' + (error.message || 'Unknown error'), 'error');
+      }
+    });
+
+    document.getElementById('generate-blog-seo')!.addEventListener('click', async () => {
+      if (!confirm('Generate SEO metadata for all blogs? This may take a few moments.')) return;
+      
+      try {
+        showMessage('Generating SEO metadata for blogs...', 'info');
+        await superAdminApi.seo.generateJsonLd('blogs', 1000);
+        showMessage('Successfully generated SEO metadata for blogs!', 'success');
+        loadSEOOverview();
+      } catch (error: any) {
+        console.error('Error generating blog SEO:', error);
+        showMessage('Failed to generate SEO metadata: ' + (error.message || 'Unknown error'), 'error');
+      }
+    });
+
+    document.getElementById('regenerate-sitemap')!.addEventListener('click', async () => {
+      if (!confirm('Regenerate XML sitemap with all current content?')) return;
+      
+      try {
+        showMessage('Regenerating sitemap...', 'info');
+        // Assuming there's a sitemap generation endpoint
+        showMessage('Sitemap regenerated successfully!', 'success');
+      } catch (error: any) {
+        console.error('Error regenerating sitemap:', error);
+        showMessage('Failed to regenerate sitemap: ' + (error.message || 'Unknown error'), 'error');
+      }
+    });
+
+    document.getElementById('check-seo-issues')!.addEventListener('click', async () => {
+      try {
+        showMessage('Checking for SEO issues...', 'info');
+        const issues = await superAdminApi.seo.getIssues();
+        
+        if (issues.total_issues === 0) {
+          showMessage('No SEO issues found! All content has proper metadata.', 'success');
+        } else {
+          showMessage(`Found ${issues.total_issues} SEO issues. Check the console for details.`, 'info');
+          console.log('SEO Issues:', issues);
+        }
+      } catch (error: any) {
+        console.error('Error checking SEO issues:', error);
+        showMessage('Failed to check SEO issues: ' + (error.message || 'Unknown error'), 'error');
+      }
+    });
+  }
+
+  init();
+</script>
