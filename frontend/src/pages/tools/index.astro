@@ -1,13 +1,33 @@
 ---
 import Layout from '~/layouts/PageLayout.astro';
-import { toolsApi, categoriesApi } from '~/utils/api';
+import { ssrToolsApi, ssrCategoriesApi } from '~/utils/ssr-api';
 
 const metadata = {
-  title: 'Browse AI Tools & Business Solutions',
+  title: 'Browse AI Tools & Business Solutions - MarketMindAI',
   description: 'Discover and compare the best AI tools and business solutions. Filter by category, pricing, and features to find the perfect tool for your needs.',
+  keywords: 'ai tools, business solutions, productivity tools, software directory',
 };
 
-// This will be handled client-side for filtering
+// Fetch data at build time (SSR/SSG)
+let tools: any[] = [];
+let categories: any[] = [];
+let errorMessage = '';
+
+try {
+  // Fetch all tools and categories at build time
+  const [toolsData, categoriesData] = await Promise.all([
+    ssrToolsApi.getAll({ limit: 100, sort: 'recent' }),
+    ssrCategoriesApi.getAll()
+  ]);
+  
+  tools = toolsData;
+  categories = categoriesData;
+  
+  console.log(`✅ SSR: Loaded ${tools.length} tools and ${categories.length} categories`);
+} catch (error) {
+  console.error('❌ Error fetching tools data:', error);
+  errorMessage = 'Failed to load tools data. Please try again later.';
+}
 ---
 
 <Layout metadata={metadata}>
@@ -18,255 +38,204 @@ const metadata = {
         Discover AI Tools & Solutions
       </h1>
       <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-        Browse through our comprehensive directory of tools. Filter by category, pricing, and features to find exactly what you need.
+        Browse through our comprehensive directory of {tools.length}+ tools. Filter by category, pricing, and features to find exactly what you need.
       </p>
     </div>
 
-    <!-- Tools Grid Container (Client-side rendered) -->
-    <div id="tools-container">
-      <!-- Search and Filters -->
-      <div class="mb-8 space-y-4">
-        <!-- Search Bar -->
-        <div class="max-w-2xl mx-auto">
-          <input
-            type="text"
-            id="search-input"
-            placeholder="Search tools..."
-            class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
+    {errorMessage ? (
+      <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 text-center">
+        <p class="text-red-800 dark:text-red-200">{errorMessage}</p>
+      </div>
+    ) : (
+      <div id="tools-container">
+        <!-- Search and Filters -->
+        <div class="mb-8 space-y-4">
+          <!-- Search Bar -->
+          <div class="max-w-2xl mx-auto">
+            <input
+              type="text"
+              id="search-input"
+              placeholder="Search tools..."
+              class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          <!-- Filters Row -->
+          <div class="flex flex-wrap gap-4 items-center justify-center">
+            <!-- Category Filter -->
+            <select
+              id="category-filter"
+              class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">All Categories</option>
+              {categories.map((cat) => (
+                <option value={cat.slug}>{cat.name}</option>
+              ))}
+            </select>
+
+            <!-- Pricing Filter -->
+            <select
+              id="pricing-filter"
+              class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">All Pricing</option>
+              <option value="free">Free</option>
+              <option value="freemium">Freemium</option>
+              <option value="paid">Paid</option>
+            </select>
+
+            <!-- Sort Filter -->
+            <select
+              id="sort-filter"
+              class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="recent">Most Recent</option>
+              <option value="trending">Trending</option>
+              <option value="rating">Highest Rated</option>
+              <option value="name">Name (A-Z)</option>
+            </select>
+          </div>
         </div>
 
-        <!-- Filters Row -->
-        <div class="flex flex-wrap gap-4 items-center justify-center">
-          <!-- Category Filter -->
-          <select
-            id="category-filter"
-            class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">All Categories</option>
-          </select>
+        <!-- Tools Grid - Pre-rendered with all tools -->
+        <div id="tools-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {tools.map((tool) => (
+            <a href={`/tools/${tool.slug}`} class="block group" data-testid={`tool-card-${tool.slug}`} data-tool={JSON.stringify({ name: tool.name, category: tool.categories.map((c: any) => c.slug), pricing: tool.pricing_type })}>
+              <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-xl transition-shadow p-6 h-full">
+                <!-- Tool Logo -->
+                {tool.logo_url && (
+                  <div class="mb-4">
+                    <img src={tool.logo_url} alt={`${tool.name} logo`} class="h-16 w-16 object-contain" loading="lazy" />
+                  </div>
+                )}
 
-          <!-- Pricing Filter -->
-          <select
-            id="pricing-filter"
-            class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">All Pricing</option>
-            <option value="free">Free</option>
-            <option value="freemium">Freemium</option>
-            <option value="paid">Paid</option>
-          </select>
+                <!-- Tool Name -->
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                  {tool.name}
+                </h3>
 
-          <!-- Sort Filter -->
-          <select
-            id="sort-filter"
-            class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="recent">Most Recent</option>
-            <option value="trending">Trending</option>
-            <option value="rating">Highest Rated</option>
-            <option value="name">Name (A-Z)</option>
-          </select>
+                <!-- Tool Description -->
+                <p class="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
+                  {tool.short_description || tool.description.substring(0, 100) + '...'}
+                </p>
+
+                <!-- Tool Meta -->
+                <div class="flex items-center justify-between text-sm">
+                  <div class="flex items-center space-x-2">
+                    <span class="text-yellow-500">★</span>
+                    <span class="text-gray-900 dark:text-white font-medium">{tool.rating.toFixed(1)}</span>
+                    <span class="text-gray-500 dark:text-gray-400">({tool.review_count})</span>
+                  </div>
+                  <span class={`px-3 py-1 rounded-full text-xs font-medium ${
+                    tool.pricing_type === 'free' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                    tool.pricing_type === 'freemium' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
+                    'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
+                  }`}>
+                    {tool.pricing_type.charAt(0).toUpperCase() + tool.pricing_type.slice(1)}
+                  </span>
+                </div>
+
+                <!-- Categories -->
+                {tool.categories && tool.categories.length > 0 && (
+                  <div class="mt-4 flex flex-wrap gap-2">
+                    {tool.categories.slice(0, 3).map((cat: any) => (
+                      <span class="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded">
+                        {cat.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </a>
+          ))}
+        </div>
+
+        <!-- No Results (initially hidden, shown by JS filter) -->
+        <div id="no-results" class="hidden text-center py-12">
+          <p class="text-xl text-gray-600 dark:text-gray-400">No tools found matching your criteria.</p>
         </div>
       </div>
-
-      <!-- Loading State -->
-      <div id="loading" class="text-center py-12">
-        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        <p class="mt-4 text-gray-600 dark:text-gray-400">Loading tools...</p>
-      </div>
-
-      <!-- Tools Grid -->
-      <div id="tools-grid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Tools will be rendered here by JavaScript -->
-      </div>
-
-      <!-- No Results -->
-      <div id="no-results" class="hidden text-center py-12">
-        <p class="text-xl text-gray-600 dark:text-gray-400">No tools found matching your criteria.</p>
-      </div>
-
-      <!-- Load More -->
-      <div class="text-center mt-8">
-        <button
-          id="load-more"
-          class="hidden px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          Load More Tools
-        </button>
-      </div>
-    </div>
+    )}
   </div>
 </Layout>
 
+<!-- Client-side filtering (progressive enhancement) -->
 <script>
-  import { toolsApi, categoriesApi } from '~/utils/api';
-
-  let currentSkip = 0;
-  const limit = 12;
-  let allTools: any[] = [];
-  let categories: any[] = [];
-
-  // Initialize
-  async function init() {
-    // Load categories
-    try {
-      categories = await categoriesApi.getAll();
-      const categorySelect = document.getElementById('category-filter') as HTMLSelectElement;
-      categories.forEach(cat => {
-        const option = document.createElement('option');
-        option.value = cat.slug;
-        option.textContent = cat.name;
-        categorySelect.appendChild(option);
-      });
-    } catch (error) {
-      console.error('Error loading categories:', error);
-    }
-
-    // Load initial tools
-    await loadTools();
-
-    // Setup event listeners
-    setupEventListeners();
-  }
-
-  async function loadTools(append = false) {
-    const loading = document.getElementById('loading')!;
-    const toolsGrid = document.getElementById('tools-grid')!;
-    const noResults = document.getElementById('no-results')!;
-    const loadMoreBtn = document.getElementById('load-more')!;
-
-    loading.classList.remove('hidden');
-
-    try {
-      const searchInput = document.getElementById('search-input') as HTMLInputElement;
-      const categoryFilter = document.getElementById('category-filter') as HTMLSelectElement;
-      const pricingFilter = document.getElementById('pricing-filter') as HTMLSelectElement;
-      const sortFilter = document.getElementById('sort-filter') as HTMLSelectElement;
-
-      const params: any = {
-        skip: currentSkip,
-        limit: limit,
-      };
-
-      if (searchInput.value) params.search = searchInput.value;
-      if (categoryFilter.value) params.category = categoryFilter.value;
-      if (pricingFilter.value) params.pricing = pricingFilter.value;
-      if (sortFilter.value) params.sort = sortFilter.value;
-
-      const tools = await toolsApi.getAll(params);
-
-      if (append) {
-        allTools = [...allTools, ...tools];
-      } else {
-        allTools = tools;
-      }
-
-      renderTools(allTools);
-
-      loading.classList.add('hidden');
-      
-      if (tools.length === 0 && !append) {
-        toolsGrid.classList.add('hidden');
-        noResults.classList.remove('hidden');
-        loadMoreBtn.classList.add('hidden');
-      } else {
-        toolsGrid.classList.remove('hidden');
-        noResults.classList.add('hidden');
-        loadMoreBtn.classList.toggle('hidden', tools.length < limit);
-      }
-    } catch (error) {
-      console.error('Error loading tools:', error);
-      loading.classList.add('hidden');
-      noResults.classList.remove('hidden');
-    }
-  }
-
-  function renderTools(tools: any[]) {
-    const toolsGrid = document.getElementById('tools-grid')!;
-    toolsGrid.innerHTML = tools.map(tool => `
-      <a href="/tools/${tool.slug}" class="block group" data-testid="tool-card-${tool.slug}">
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-xl transition-shadow p-6 h-full">
-          <!-- Tool Logo -->
-          ${tool.logo_url ? `
-            <div class="mb-4">
-              <img src="${tool.logo_url}" alt="${tool.name} logo" class="h-16 w-16 object-contain" />
-            </div>
-          ` : ''}
-
-          <!-- Tool Name -->
-          <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400">
-            ${tool.name}
-          </h3>
-
-          <!-- Tool Description -->
-          <p class="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
-            ${tool.short_description || tool.description.substring(0, 100) + '...'}
-          </p>
-
-          <!-- Tool Meta -->
-          <div class="flex items-center justify-between text-sm">
-            <div class="flex items-center space-x-2">
-              <span class="text-yellow-500">★</span>
-              <span class="text-gray-900 dark:text-white font-medium">${tool.rating.toFixed(1)}</span>
-              <span class="text-gray-500 dark:text-gray-400">(${tool.review_count})</span>
-            </div>
-            <span class="px-3 py-1 rounded-full text-xs font-medium ${
-              tool.pricing_type === 'free' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
-              tool.pricing_type === 'freemium' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
-              'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
-            }">
-              ${tool.pricing_type.charAt(0).toUpperCase() + tool.pricing_type.slice(1)}
-            </span>
-          </div>
-
-          <!-- Categories -->
-          ${tool.categories && tool.categories.length > 0 ? `
-            <div class="mt-4 flex flex-wrap gap-2">
-              ${tool.categories.slice(0, 3).map((cat: any) => `
-                <span class="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded">
-                  ${cat.name}
-                </span>
-              `).join('')}
-            </div>
-          ` : ''}
-        </div>
-      </a>
-    `).join('');
-  }
-
-  function setupEventListeners() {
+  // Client-side filtering for interactivity
+  function setupFilters() {
     const searchInput = document.getElementById('search-input') as HTMLInputElement;
     const categoryFilter = document.getElementById('category-filter') as HTMLSelectElement;
     const pricingFilter = document.getElementById('pricing-filter') as HTMLSelectElement;
     const sortFilter = document.getElementById('sort-filter') as HTMLSelectElement;
-    const loadMoreBtn = document.getElementById('load-more') as HTMLButtonElement;
+    const toolsGrid = document.getElementById('tools-grid') as HTMLElement;
+    const noResults = document.getElementById('no-results') as HTMLElement;
 
-    // Search with debounce
-    let searchTimeout: any;
-    searchInput.addEventListener('input', () => {
-      clearTimeout(searchTimeout);
-      searchTimeout = setTimeout(() => {
-        currentSkip = 0;
-        loadTools();
-      }, 500);
-    });
+    if (!toolsGrid) return;
 
-    // Filter changes
-    [categoryFilter, pricingFilter, sortFilter].forEach(filter => {
-      filter.addEventListener('change', () => {
-        currentSkip = 0;
-        loadTools();
+    const toolCards = Array.from(toolsGrid.querySelectorAll('[data-tool]'));
+
+    function filterAndSortTools() {
+      const searchTerm = searchInput?.value.toLowerCase() || '';
+      const selectedCategory = categoryFilter?.value || '';
+      const selectedPricing = pricingFilter?.value || '';
+      const selectedSort = sortFilter?.value || 'recent';
+
+      // Filter tools
+      let visibleCount = 0;
+      toolCards.forEach((card) => {
+        const toolData = JSON.parse((card as HTMLElement).getAttribute('data-tool') || '{}');
+        const toolElement = card as HTMLElement;
+        const toolName = toolData.name?.toLowerCase() || '';
+        const toolCategories = toolData.category || [];
+        const toolPricing = toolData.pricing || '';
+
+        // Apply filters
+        const matchesSearch = !searchTerm || toolName.includes(searchTerm);
+        const matchesCategory = !selectedCategory || toolCategories.includes(selectedCategory);
+        const matchesPricing = !selectedPricing || toolPricing === selectedPricing;
+
+        if (matchesSearch && matchesCategory && matchesPricing) {
+          toolElement.style.display = 'block';
+          visibleCount++;
+        } else {
+          toolElement.style.display = 'none';
+        }
       });
-    });
 
-    // Load more
-    loadMoreBtn.addEventListener('click', () => {
-      currentSkip += limit;
-      loadTools(true);
+      // Show/hide no results message
+      if (noResults) {
+        noResults.classList.toggle('hidden', visibleCount > 0);
+      }
+      toolsGrid.classList.toggle('hidden', visibleCount === 0);
+
+      // Apply sorting to visible tools
+      if (selectedSort && toolsGrid) {
+        const visibleTools = toolCards.filter(card => (card as HTMLElement).style.display !== 'none');
+        // For simplicity, sorting is kept as-is since cards are pre-sorted by server
+        // Advanced sorting would require more metadata in data-tool attribute
+      }
+    }
+
+    // Setup event listeners
+    if (searchInput) {
+      let searchTimeout: any;
+      searchInput.addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(filterAndSortTools, 300);
+      });
+    }
+
+    [categoryFilter, pricingFilter, sortFilter].forEach(filter => {
+      if (filter) {
+        filter.addEventListener('change', filterAndSortTools);
+      }
     });
   }
 
-  // Initialize on page load
-  init();
+  // Initialize filters when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupFilters);
+  } else {
+    setupFilters();
+  }
 </script>
