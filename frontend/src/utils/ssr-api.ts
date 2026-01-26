@@ -3,7 +3,7 @@
  * These functions fetch data at build time for static site generation
  */
 
-const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+const API_BASE_URL = process.env.PUBLIC_API_URL || process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
 interface FetchOptions {
   method?: string;
