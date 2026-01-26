@@ -1,0 +1,57 @@
+---
+import { SITE, METADATA } from 'astrowind:config';
+import type { MetaData } from '~/types';
+
+export interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': `${SITE.site}/#organization`,
+      name: SITE.name,
+      url: SITE.site,
+      logo: {
+        '@type': 'ImageObject',
+        url: `${SITE.site}/favicon.svg`,
+      },
+      sameAs: [
+        METADATA?.twitter?.site ? `https://twitter.com/${METADATA.twitter.site.replace('@', '')}` : '',
+      ].filter(Boolean),
+    },
+    {
+      '@type': 'WebSite',
+      '@id': `${SITE.site}/#website`,
+      url: SITE.site,
+      name: SITE.name,
+      description: description || METADATA?.description,
+      publisher: {
+        '@id': `${SITE.site}/#organization`,
+      },
+      inLanguage: 'en-US',
+    },
+    {
+      '@type': 'WebPage',
+      '@id': `${Astro.url.href}#webpage`,
+      url: Astro.url.href,
+      name: title || METADATA?.title?.default,
+      description: description || METADATA?.description,
+      isPartOf: {
+        '@id': `${SITE.site}/#website`,
+      },
+      about: {
+        '@id': `${SITE.site}/#organization`,
+      },
+      inLanguage: 'en-US',
+    },
+  ],
+};
+---
+
+<script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData)} />

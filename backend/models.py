@@ -1,0 +1,325 @@
+from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, ForeignKey, Float, Table, JSON
+from sqlalchemy.orm import relationship
+from sqlalchemy.ext.declarative import declarative_base
+from datetime import datetime
+import uuid
+
+Base = declarative_base()
+
+# Association tables for many-to-many relationships
+user_tool_favorites = Table('user_tool_favorites', Base.metadata,
+    Column('user_id', String, ForeignKey('users.id')),
+    Column('tool_id', String, ForeignKey('tools.id'))
+)
+
+tool_categories = Table('tool_categories', Base.metadata,
+    Column('tool_id', String, ForeignKey('tools.id')),
+    Column('category_id', String, ForeignKey('categories.id'))
+)
+
+class User(Base):
+    __tablename__ = "users"
+    
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    email = Column(String, unique=True, index=True, nullable=False)
+    username = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
+    full_name = Column(String)
+    role = Column(String, default="user")  # user, admin, superadmin
+    is_active = Column(Boolean, default=True)
+    is_email_verified = Column(Boolean, default=False)
+    email_verification_token = Column(String, nullable=True)
+    email_verification_expires = Column(DateTime, nullable=True)
+    email_otp_code = Column(String, nullable=True)
+    email_otp_expires = Column(DateTime, nullable=True)
+    password_reset_token = Column(String, nullable=True)
+    password_reset_expires = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    profile_image = Column(String)
+    bio = Column(Text)
+    
+    # Relationships
+    blogs = relationship("Blog", back_populates="author")
+    reviews = relationship("Review", back_populates="user")
+    favorite_tools = relationship("Tool", secondary=user_tool_favorites, back_populates="favorited_by")
+
+class Category(Base):
+    __tablename__ = "categories"
+    
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = Column(String, nullable=False, unique=True)
+    slug = Column(String, nullable=False, unique=True)
+    description = Column(Text)
+    parent_id = Column(String, ForeignKey('categories.id'))
+    created_at = Column(DateTime, default=datetime.utcnow)
+    seo_title = Column(String)
+    seo_description = Column(Text)
+    seo_keywords = Column(String)
+    
+    # Relationships
+    parent = relationship("Category", remote_side=[id])
+    children = relationship("Category", overlaps="parent")
+    tools = relationship("Tool", secondary=tool_categories, back_populates="categories")
+
+class Tool(Base):
+    __tablename__ = "tools"
+    
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = Column(String, nullable=False)
+    slug = Column(String, nullable=False, unique=True)
+    description = Column(Text)
+    short_description = Column(String)
+    url = Column(String)
+    logo_url = Column(String)
+    screenshot_url = Column(String)
+    pricing_type = Column(String)  # free, freemium, paid
+    pricing_details = Column(JSON)
+    features = Column(JSON)
+    pros = Column(JSON)
+    cons = Column(JSON)
+    rating = Column(Float, default=0.0)
+    review_count = Column(Integer, default=0)
+    view_count = Column(Integer, default=0)
+    like_count = Column(Integer, default=0)
+    trending_score = Column(Float, default=0.0)
+    is_featured = Column(Boolean, default=False)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    seo_title = Column(String)
+    seo_description = Column(Text)
+    seo_keywords = Column(String)
+    json_ld = Column(JSON)
+    
+    # New company-related fields
+    linkedin_url = Column(String)
+    company_funding = Column(JSON)  # {"amount": "10M", "round": "Series A", "date": "2023-01-01"}
+    company_news = Column(Text)
+    company_location = Column(String)
+    company_founders = Column(JSON)  # [{"name": "John Doe", "role": "CEO"}, {"name": "Jane Smith", "role": "CTO"}]
+    about = Column(Text)
+    started_on = Column(String)  # Founded date
+    logo_thumbnail_url = Column(String)  # Google Drive thumbnail URL
+    
+    # Relationships
+    categories = relationship("Category", secondary=tool_categories, back_populates="tools")
+    reviews = relationship("Review", back_populates="tool")
+    favorited_by = relationship("User", secondary=user_tool_favorites, back_populates="favorite_tools")
+    comments = relationship("ToolComment", back_populates="tool", cascade="all, delete-orphan")
+    likes = relationship("ToolLike", back_populates="tool", cascade="all, delete-orphan")
+
+class Review(Base):
+    __tablename__ = "reviews"
+    
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String, ForeignKey('users.id'), nullable=False)
+    tool_id = Column(String, ForeignKey('tools.id'), nullable=False)
+    rating = Column(Integer, nullable=False)  # 1-5
+    title = Column(String)
+    content = Column(Text)
+    pros = Column(JSON)
+    cons = Column(JSON)
+    is_verified = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    user = relationship("User", back_populates="reviews")
+    tool = relationship("Tool", back_populates="reviews")
+
+class Blog(Base):
+    __tablename__ = "blogs"
+    
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    title = Column(String, nullable=False)
+    slug = Column(String, nullable=False, unique=True)
+    content = Column(Text)
+    excerpt = Column(Text)
+    featured_image = Column(String)
+    author_id = Column(String, ForeignKey('users.id'), nullable=False)
+    status = Column(String, default="draft")  # draft, published, archived
+    view_count = Column(Integer, default=0)
+    like_count = Column(Integer, default=0)
+    reading_time = Column(Integer)  # in minutes
+    tags = Column(JSON)
+    is_ai_generated = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    published_at = Column(DateTime)
+    seo_title = Column(String)
+    seo_description = Column(Text)
+    seo_keywords = Column(String)
+    json_ld = Column(JSON)
+    
+    # Relationships
+    author = relationship("User", back_populates="blogs")
+    comments = relationship("BlogComment", back_populates="blog", cascade="all, delete-orphan")
+    likes = relationship("BlogLike", back_populates="blog", cascade="all, delete-orphan")
+    bookmarks = relationship("BlogBookmark", back_populates="blog", cascade="all, delete-orphan")
+
+class SeoPage(Base):
+    __tablename__ = "seo_pages"
+    
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    page_path = Column(String, nullable=False, unique=True)
+    title = Column(String)
+    description = Column(Text)
+    keywords = Column(String)
+    json_ld = Column(JSON)
+    meta_tags = Column(JSON)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+# Comment and Like Models for Blogs
+class BlogComment(Base):
+    __tablename__ = "blog_comments"
+    
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    blog_id = Column(String, ForeignKey('blogs.id'), nullable=False)
+    user_id = Column(String, ForeignKey('users.id'), nullable=False)
+    parent_id = Column(String, ForeignKey('blog_comments.id'))  # For nested comments/replies
+    content = Column(Text, nullable=False)
+    is_approved = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    blog = relationship("Blog", back_populates="comments")
+    user = relationship("User")
+    parent = relationship("BlogComment", remote_side=[id])
+    replies = relationship("BlogComment", cascade="all, delete-orphan", overlaps="parent")
+
+class BlogLike(Base):
+    __tablename__ = "blog_likes"
+    
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    blog_id = Column(String, ForeignKey('blogs.id'), nullable=False)
+    user_id = Column(String, ForeignKey('users.id'), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    blog = relationship("Blog", back_populates="likes")
+    user = relationship("User")
+
+class BlogBookmark(Base):
+    __tablename__ = "blog_bookmarks"
+    
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    blog_id = Column(String, ForeignKey('blogs.id'), nullable=False)
+    user_id = Column(String, ForeignKey('users.id'), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    blog = relationship("Blog", back_populates="bookmarks")
+    user = relationship("User")
+
+# Comment and Like Models for Tools
+class ToolComment(Base):
+    __tablename__ = "tool_comments"
+    
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    tool_id = Column(String, ForeignKey('tools.id'), nullable=False)
+    user_id = Column(String, ForeignKey('users.id'), nullable=False)
+    parent_id = Column(String, ForeignKey('tool_comments.id'))  # For nested comments/replies
+    content = Column(Text, nullable=False)
+    is_approved = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    tool = relationship("Tool", back_populates="comments")
+    user = relationship("User")
+    parent = relationship("ToolComment", remote_side=[id])
+    replies = relationship("ToolComment", cascade="all, delete-orphan", overlaps="parent")
+
+class ToolLike(Base):
+    __tablename__ = "tool_likes"
+    
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    tool_id = Column(String, ForeignKey('tools.id'), nullable=False)
+    user_id = Column(String, ForeignKey('users.id'), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    tool = relationship("Tool", back_populates="likes")
+    user = relationship("User")
+
+# Contact and Newsletter Models
+class ContactSubmission(Base):
+    __tablename__ = "contact_submissions"
+    
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = Column(String, nullable=False)
+    email = Column(String, nullable=False)
+    company = Column(String)  # Optional
+    subject = Column(String, nullable=False)
+    message = Column(Text, nullable=False)
+    inquiry_type = Column(String, default="general")  # general, support, partnership, billing, feature, press
+    status = Column(String, default="new")  # new, in_progress, resolved, closed
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class NewsletterSubscription(Base):
+    __tablename__ = "newsletter_subscriptions"
+    
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    email = Column(String, nullable=False, unique=True)
+    status = Column(String, default="active")  # active, unsubscribed
+    source = Column(String, default="website")  # website, footer, blog, etc.
+    subscribed_at = Column(DateTime, default=datetime.utcnow)
+    unsubscribed_at = Column(DateTime, nullable=True)
+
+class SiteSettings(Base):
+    __tablename__ = "site_settings"
+    
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    key = Column(String, nullable=False, unique=True)
+    value = Column(String, nullable=True)
+    description = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class Location(Base):
+    __tablename__ = "locations"
+    
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = Column(String, nullable=False)  # e.g., "New York", "USA"
+    slug = Column(String, nullable=False, unique=True)  # e.g., "new-york", "usa"
+    type = Column(String, nullable=False)  # "city" or "country"
+    country_code = Column(String)  # ISO country code for cities
+    is_active = Column(Boolean, default=True)
+    seo_title_template = Column(String)  # Template like "Best {tool_name} for {location_name}"
+    seo_description_template = Column(String)  # Template for meta description
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class SitemapEntry(Base):
+    __tablename__ = "sitemap_entries"
+    
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    url_path = Column(String, nullable=False, unique=True)  # e.g., "/tools/slack/new-york"
+    page_type = Column(String, nullable=False)  # "tool_location", "blog_location", "static"
+    tool_id = Column(String, ForeignKey('tools.id'), nullable=True)
+    location_id = Column(String, ForeignKey('locations.id'), nullable=True)
+    priority = Column(Float, default=0.5)  # SEO priority 0.0-1.0
+    change_frequency = Column(String, default="weekly")  # always, hourly, daily, weekly, monthly, yearly, never
+    is_active = Column(Boolean, default=True)
+    last_modified = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    tool = relationship("Tool")
+    location = relationship("Location")
+
+class FreeTool(Base):
+    __tablename__ = "free_tools"
+    
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = Column(String, nullable=False)
+    link = Column(String, nullable=False)
+    description = Column(Text)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

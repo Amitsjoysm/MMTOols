@@ -1,0 +1,252 @@
+---
+import Layout from '~/layouts/PageLayout.astro';
+import { Icon } from 'astro-icon/components';
+
+const metadata = {
+  title: 'SEO Tools & Analysis',
+  description: 'Advanced SEO tools for content optimization and keyword analysis',
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
+---
+
+<Layout metadata={metadata}>
+  <section class="px-6 py-12 sm:py-16 lg:py-20 mx-auto max-w-6xl">
+    <div class="mb-12">
+      <h1 class="text-4xl md:text-5xl font-bold leading-tighter tracking-tighter font-heading mb-4">
+        <Icon name="tabler:seo" class="inline-block w-12 h-12 mr-2 text-primary" />
+        SEO Tools & Analysis
+      </h1>
+      <p class="text-xl text-muted dark:text-slate-400">
+        Advanced tools to optimize your blog posts for search engines and improve your content's discoverability.
+      </p>
+    </div>
+
+    <!-- Features Grid -->
+    <div class="grid md:grid-cols-2 gap-8 mb-12">
+      <!-- Keyword Analysis -->
+      <div class="p-6 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700">
+        <div class="flex items-center mb-4">
+          <Icon name="tabler:key" class="w-8 h-8 text-blue-600 mr-3" />
+          <h2 class="text-2xl font-bold">Keyword Analysis</h2>
+        </div>
+        <ul class="space-y-2 text-gray-600 dark:text-gray-400">
+          <li class="flex items-start">
+            <Icon name="tabler:check" class="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+            <span>Calculate keyword density and frequency</span>
+          </li>
+          <li class="flex items-start">
+            <Icon name="tabler:check" class="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+            <span>Analyze keyword prominence in content</span>
+          </li>
+          <li class="flex items-start">
+            <Icon name="tabler:check" class="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+            <span>Extract top keywords automatically</span>
+          </li>
+          <li class="flex items-start">
+            <Icon name="tabler:check" class="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+            <span>Optimal density range: 0.5-2.5%</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Readability Score -->
+      <div class="p-6 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700">
+        <div class="flex items-center mb-4">
+          <Icon name="tabler:book" class="w-8 h-8 text-purple-600 mr-3" />
+          <h2 class="text-2xl font-bold">Readability Analysis</h2>
+        </div>
+        <ul class="space-y-2 text-gray-600 dark:text-gray-400">
+          <li class="flex items-start">
+            <Icon name="tabler:check" class="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+            <span>Flesch Reading Ease Score calculation</span>
+          </li>
+          <li class="flex items-start">
+            <Icon name="tabler:check" class="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+            <span>Reading grade level assessment</span>
+          </li>
+          <li class="flex items-start">
+            <Icon name="tabler:check" class="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+            <span>Average words per sentence tracking</span>
+          </li>
+          <li class="flex items-start">
+            <Icon name="tabler:check" class="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+            <span>Syllables per word analysis</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- SEO Score -->
+      <div class="p-6 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700">
+        <div class="flex items-center mb-4">
+          <Icon name="tabler:chart-line" class="w-8 h-8 text-green-600 mr-3" />
+          <h2 class="text-2xl font-bold">SEO Scoring</h2>
+        </div>
+        <ul class="space-y-2 text-gray-600 dark:text-gray-400">
+          <li class="flex items-start">
+            <Icon name="tabler:check" class="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+            <span>Comprehensive SEO score (0-100)</span>
+          </li>
+          <li class="flex items-start">
+            <Icon name="tabler:check" class="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+            <span>Title optimization (30-60 characters)</span>
+          </li>
+          <li class="flex items-start">
+            <Icon name="tabler:check" class="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+            <span>Meta description analysis (120-160 chars)</span>
+          </li>
+          <li class="flex items-start">
+            <Icon name="tabler:check" class="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+            <span>Content length recommendations</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- JSON-LD Schema -->
+      <div class="p-6 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700">
+        <div class="flex items-center mb-4">
+          <Icon name="tabler:code" class="w-8 h-8 text-orange-600 mr-3" />
+          <h2 class="text-2xl font-bold">JSON-LD Schema</h2>
+        </div>
+        <ul class="space-y-2 text-gray-600 dark:text-gray-400">
+          <li class="flex items-start">
+            <Icon name="tabler:check" class="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+            <span>BlogPosting structured data</span>
+          </li>
+          <li class="flex items-start">
+            <Icon name="tabler:check" class="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+            <span>Author (Person) schema markup</span>
+          </li>
+          <li class="flex items-start">
+            <Icon name="tabler:check" class="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+            <span>Breadcrumb navigation schema</span>
+          </li>
+          <li class="flex items-start">
+            <Icon name="tabler:check" class="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+            <span>Rich snippets for search results</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- DecapCMS Admin Panel -->
+    <div class="mb-12 p-8 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-900 rounded-lg border-2 border-blue-200 dark:border-blue-800">
+      <div class="flex items-center mb-4">
+        <Icon name="tabler:dashboard" class="w-10 h-10 text-blue-600 dark:text-blue-400 mr-3" />
+        <h2 class="text-3xl font-bold text-gray-900 dark:text-white">Admin Panel (DecapCMS)</h2>
+      </div>
+      <p class="text-lg text-gray-700 dark:text-gray-300 mb-6">
+        Access the visual admin interface to create and manage blog posts with built-in SEO fields.
+      </p>
+      <div class="grid md:grid-cols-2 gap-4 mb-6">
+        <div class="flex items-start">
+          <Icon name="tabler:edit" class="w-6 h-6 text-blue-600 mr-2 mt-1" />
+          <div>
+            <h3 class="font-semibold text-gray-900 dark:text-white">Visual Editor</h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400">Rich markdown editor with live preview</p>
+          </div>
+        </div>
+        <div class="flex items-start">
+          <Icon name="tabler:search" class="w-6 h-6 text-blue-600 mr-2 mt-1" />
+          <div>
+            <h3 class="font-semibold text-gray-900 dark:text-white">SEO Fields</h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400">Focus keyword, meta title, meta description</p>
+          </div>
+        </div>
+        <div class="flex items-start">
+          <Icon name="tabler:photo" class="w-6 h-6 text-blue-600 mr-2 mt-1" />
+          <div>
+            <h3 class="font-semibold text-gray-900 dark:text-white">Media Management</h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400">Upload and manage images easily</p>
+          </div>
+        </div>
+        <div class="flex items-start">
+          <Icon name="tabler:tags" class="w-6 h-6 text-blue-600 mr-2 mt-1" />
+          <div>
+            <h3 class="font-semibold text-gray-900 dark:text-white">Taxonomy</h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400">Categories and tags management</p>
+          </div>
+        </div>
+      </div>
+      <a
+        href="/decapcms/"
+        class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+        data-testid="admin-panel-link"
+      >
+        <Icon name="tabler:login" class="w-5 h-5 mr-2" />
+        Access Admin Panel
+      </a>
+    </div>
+
+    <!-- Implementation Details -->
+    <div class="p-8 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700">
+      <h2 class="text-3xl font-bold mb-6 flex items-center">
+        <Icon name="tabler:bulb" class="w-8 h-8 text-yellow-500 mr-3" />
+        How It Works
+      </h2>
+      
+      <div class="space-y-6">
+        <div>
+          <h3 class="text-xl font-semibold mb-2 text-primary">1. Create Posts via Admin Panel</h3>
+          <p class="text-gray-600 dark:text-gray-400">
+            Use the DecapCMS admin interface at <code class="px-2 py-1 bg-gray-100 dark:bg-slate-900 rounded">/decapcms/</code> to create and edit blog posts with a visual editor. All SEO fields are built into the interface.
+          </p>
+        </div>
+
+        <div>
+          <h3 class="text-xl font-semibold mb-2 text-primary">2. Automatic SEO Analysis</h3>
+          <p class="text-gray-600 dark:text-gray-400">
+            Each blog post is automatically analyzed for SEO quality. The system checks title length, meta description, keyword density, content length, and readability.
+          </p>
+        </div>
+
+        <div>
+          <h3 class="text-xl font-semibold mb-2 text-primary">3. JSON-LD Structured Data</h3>
+          <p class="text-gray-600 dark:text-gray-400">
+            All blog posts automatically include BlogPosting schema markup with author information, breadcrumbs, and rich snippet data for better search engine visibility.
+          </p>
+        </div>
+
+        <div>
+          <h3 class="text-xl font-semibold mb-2 text-primary">4. Static Site Generation</h3>
+          <p class="text-gray-600 dark:text-gray-400">
+            All pages are pre-rendered as static HTML during build time. This ensures fast loading, perfect SEO crawlability, and excellent Core Web Vitals scores without requiring JavaScript.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Technical Specs -->
+    <div class="mt-8 p-6 bg-gray-50 dark:bg-slate-900 rounded-lg">
+      <h3 class="text-xl font-bold mb-4">Technical Specifications</h3>
+      <div class="grid md:grid-cols-2 gap-4 text-sm">
+        <div>
+          <strong class="text-gray-900 dark:text-white">Build Output:</strong>
+          <span class="text-gray-600 dark:text-gray-400"> Static HTML (SSG)</span>
+        </div>
+        <div>
+          <strong class="text-gray-900 dark:text-white">JavaScript Required:</strong>
+          <span class="text-gray-600 dark:text-gray-400"> No (for content access)</span>
+        </div>
+        <div>
+          <strong class="text-gray-900 dark:text-white">SEO Crawlability:</strong>
+          <span class="text-gray-600 dark:text-gray-400"> 100% (all content in HTML)</span>
+        </div>
+        <div>
+          <strong class="text-gray-900 dark:text-white">Semantic HTML:</strong>
+          <span class="text-gray-600 dark:text-gray-400"> Full support with ARIA</span>
+        </div>
+        <div>
+          <strong class="text-gray-900 dark:text-white">Schema Markup:</strong>
+          <span class="text-gray-600 dark:text-gray-400"> JSON-LD (Organization, Website, BlogPosting)</span>
+        </div>
+        <div>
+          <strong class="text-gray-900 dark:text-white">Core Web Vitals:</strong>
+          <span class="text-gray-600 dark:text-gray-400"> Optimized</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>

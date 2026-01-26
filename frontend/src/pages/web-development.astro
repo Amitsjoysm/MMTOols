@@ -1,0 +1,185 @@
+---
+import Layout from '~/layouts/PageLayout.astro';
+import Hero from '~/components/widgets/Hero.astro';
+import Features from '~/components/widgets/Features.astro';
+import Features2 from '~/components/widgets/Features2.astro';
+import Content from '~/components/widgets/Content.astro';
+import Steps from '~/components/widgets/Steps.astro';
+import CallToAction from '~/components/widgets/CallToAction.astro';
+import Pricing from '~/components/widgets/Pricing.astro';
+
+const metadata = {
+  title: 'Web Design & Development Services - Responsive, SEO-Optimized | TechResona Pune',
+  description: 'Professional web design and development services in Pune. Responsive web design, WordPress development, eCommerce solutions, Progressive Web Apps (PWA), and custom website development.',
+  keywords: 'web design company near me, website developers in Pune, ecommerce development agency, responsive web design services, WordPress website development, progressive web app development, front-end development, UI/UX design for SaaS, web application development, custom website development, website redesign services',
+};
+---
+
+<Layout metadata={metadata}>
+  <!-- Hero Section -->
+  <Hero
+    tagline="Web Development"
+    title="Beautiful, Fast & Conversion-Focused Websites"
+    subtitle="Professional web design and development services that drive results. From stunning landing pages to complex web applications."
+    actions={[
+      { variant: 'primary', text: 'Start Your Project', href: '/contact' },
+      { text: 'View Portfolio', href: '#portfolio' },
+    ]}
+  >
+    <Fragment slot="subtitle">
+      <span class="font-semibold">Award-winning designs</span> that combine aesthetics with functionality.
+      Mobile-responsive, SEO-optimized, and built for conversions.
+    </Fragment>
+  </Hero>
+
+  <!-- Main Services -->
+  <Features
+    id="services"
+    tagline="Our Services"
+    title="Complete Web Development Solutions"
+    subtitle="From concept to launch, we handle every aspect of your web presence."
+    items={[
+      {
+        title: 'Responsive Web Design',
+        description: 'Mobile-first, responsive websites that look perfect on all devices. Optimized for user experience and conversion rates.',
+        icon: 'tabler:device-mobile',
+      },
+      {
+        title: 'WordPress Development',
+        description: 'Custom WordPress websites with powerful CMS capabilities. Easy to manage, SEO-friendly, and scalable.',
+        icon: 'tabler:brand-wordpress',
+      },
+      {
+        title: 'eCommerce Solutions',
+        description: 'Full-featured online stores using WooCommerce, Shopify, or custom solutions. Payment gateway integration and inventory management.',
+        icon: 'tabler:shopping-cart',
+      },
+      {
+        title: 'Progressive Web Apps (PWA)',
+        description: 'App-like experiences on the web. Fast, reliable, and engaging with offline capabilities and push notifications.',
+        icon: 'tabler:app-window',
+      },
+      {
+        title: 'Custom Web Applications',
+        description: 'Tailored web applications built with modern frameworks like React, Vue, or Angular for complex business needs.',
+        icon: 'tabler:code',
+      },
+      {
+        title: 'Website Redesign',
+        description: 'Modernize your existing website with fresh design, improved UX, and updated technology stack.',
+        icon: 'tabler:refresh',
+      },
+    ]}
+  />
+
+  <!-- Development Process -->
+  <Steps
+    title="Our Web Development Process"
+    tagline="How We Work"
+    items={[
+      {
+        title: 'Discovery & Planning',
+        description: 'Understanding your business goals, target audience, and project requirements. We create detailed wireframes and project roadmap.',
+        icon: 'tabler:bulb',
+      },
+      {
+        title: 'Design & Prototyping',
+        description: 'Creating stunning UI/UX designs with interactive prototypes. Multiple design iterations until you\'re 100% satisfied.',
+        icon: 'tabler:palette',
+      },
+      {
+        title: 'Development & Testing',
+        description: 'Building your website using modern technologies, best practices, and rigorous testing across all devices and browsers.',
+        icon: 'tabler:code',
+      },
+      {
+        title: 'Launch & Support',
+        description: 'Smooth deployment to production with SEO optimization. Ongoing maintenance, updates, and technical support included.',
+        icon: 'tabler:rocket',
+      },
+    ]}
+  />
+
+  <!-- Specialized Services -->
+  <Features2
+    title="Specialized Web Solutions"
+    tagline="Advanced Capabilities"
+    columns={3}
+    items={[
+      {
+        title: 'UI/UX Design for SaaS',
+        description: 'User-centric design for SaaS platforms focusing on user onboarding, engagement, and retention.',
+        icon: 'tabler:chart-dots',
+      },
+      {
+        title: 'Front-End Development',
+        description: 'Expert front-end development using React, Vue.js, or Angular with modern JavaScript (ES6+).',
+        icon: 'tabler:brand-react',
+      },
+      {
+        title: 'Landing Page Design',
+        description: 'High-converting landing pages optimized for PPC campaigns, product launches, and lead generation.',
+        icon: 'tabler:layout-bottombar',
+      },
+      {
+        title: 'API Integration',
+        description: 'Seamless integration with third-party APIs, payment gateways, CRMs, and marketing automation tools.',
+        icon: 'tabler:plug',
+      },
+      {
+        title: 'Performance Optimization',
+        description: 'Speed optimization achieving 90+ PageSpeed scores. Core Web Vitals optimization for better rankings.',
+        icon: 'tabler:gauge',
+      },
+      {
+        title: 'Accessibility Compliance',
+        description: 'WCAG 2.1 compliant websites ensuring accessibility for all users including those with disabilities.',
+        icon: 'tabler:accessible',
+      },
+    ]}
+  />
+
+  <!-- Why Choose Us -->
+  <Content
+    isReversed
+    title="Why Choose TechResona?"
+    items={[
+      {
+        title: 'Modern Technology Stack',
+        description: 'We use cutting-edge technologies and frameworks ensuring your website is future-proof.',
+      },
+      {
+        title: 'SEO-First Approach',
+        description: 'Every website we build is optimized for search engines from the ground up.',
+      },
+      {
+        title: 'Fast Turnaround',
+        description: 'Most projects completed within 4-6 weeks without compromising on quality.',
+      },
+      {
+        title: 'Transparent Pricing',
+        description: 'No hidden costs. Fixed pricing with clear deliverables and timelines.',
+      },
+    ]}
+  >
+    <Fragment slot="content">
+      <h3 class="text-2xl font-bold tracking-tight dark:text-white sm:text-3xl mb-2">
+        Your Success is Our Priority
+      </h3>
+      100+ websites delivered with 98% client satisfaction rate.
+    </Fragment>
+  </Content>
+
+  <!-- Call to Action -->
+  <CallToAction
+    title="Ready to Build Your Dream Website?"
+    subtitle="Let's discuss your project requirements and create something amazing together."
+    actions={[
+      {
+        variant: 'primary',
+        text: 'Get Free Quote',
+        href: '/contact',
+      },
+    ]}
+  />
+</Layout>

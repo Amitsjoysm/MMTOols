@@ -1,0 +1,130 @@
+---
+import { Icon } from 'astro-icon/components';
+import type { SEOScore } from '~/utils/seo';
+
+export interface Props {
+  seoScore: SEOScore;
+  focusKeyword?: string;
+}
+
+const { seoScore, focusKeyword } = Astro.props;
+
+// Determine overall status
+let overallStatus = 'poor';
+let overallColor = 'text-red-600';
+let overallBg = 'bg-red-100';
+let overallIcon = 'tabler:alert-circle';
+
+if (seoScore.overall >= 80) {
+  overallStatus = 'excellent';
+  overallColor = 'text-green-600';
+  overallBg = 'bg-green-100';
+  overallIcon = 'tabler:circle-check';
+} else if (seoScore.overall >= 60) {
+  overallStatus = 'good';
+  overallColor = 'text-blue-600';
+  overallBg = 'bg-blue-100';
+  overallIcon = 'tabler:info-circle';
+} else if (seoScore.overall >= 40) {
+  overallStatus = 'fair';
+  overallColor = 'text-yellow-600';
+  overallBg = 'bg-yellow-100';
+  overallIcon = 'tabler:alert-triangle';
+}
+
+const categories = [
+  { name: 'Title', data: seoScore.title, icon: 'tabler:heading' },
+  { name: 'Description', data: seoScore.description, icon: 'tabler:file-description' },
+  { name: 'Content', data: seoScore.content, icon: 'tabler:file-text' },
+  { name: 'Keywords', data: seoScore.keywords, icon: 'tabler:key' },
+  { name: 'Readability', data: seoScore.readability, icon: 'tabler:book' },
+];
+
+function getScoreColor(score: number, max: number): string {
+  const percentage = (score / max) * 100;
+  if (percentage >= 80) return 'text-green-600';
+  if (percentage >= 60) return 'text-blue-600';
+  if (percentage >= 40) return 'text-yellow-600';
+  return 'text-red-600';
+}
+
+function getProgressColor(score: number, max: number): string {
+  const percentage = (score / max) * 100;
+  if (percentage >= 80) return 'bg-green-500';
+  if (percentage >= 60) return 'bg-blue-500';
+  if (percentage >= 40) return 'bg-yellow-500';
+  return 'bg-red-500';
+}
+---
+
+<div class="my-8 p-6 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700">
+  <!-- Overall Score -->
+  <div class="mb-6">
+    <div class="flex items-center justify-between mb-2">
+      <h3 class="text-2xl font-bold text-gray-900 dark:text-white">SEO Analysis</h3>
+      <div class={`flex items-center gap-2 px-4 py-2 rounded-full ${overallBg} ${overallColor}`}>
+        <Icon name={overallIcon} class="w-5 h-5" />
+        <span class="font-bold text-lg">{seoScore.overall}/100</span>
+      </div>
+    </div>
+    <p class="text-sm text-gray-600 dark:text-gray-400 capitalize">
+      Overall SEO Score: <strong>{overallStatus}</strong>
+    </p>
+    {focusKeyword && (
+      <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+        Focus Keyword: <strong class="text-primary">{focusKeyword}</strong>
+      </p>
+    )}
+  </div>
+
+  <!-- Progress Bar -->
+  <div class="mb-6">
+    <div class="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
+      <div
+        class={`h-full transition-all duration-500 ${getProgressColor(seoScore.overall, 100)}`}
+        style={`width: ${seoScore.overall}%`}
+      >
+      </div>
+    </div>
+  </div>
+
+  <!-- Category Scores -->
+  <div class="space-y-4">
+    {categories.map(({ name, data, icon }) => {
+      const maxScore = name === 'Content' ? 25 : name === 'Title' || name === 'Description' || name === 'Keywords' ? 20 : 15;
+      const percentage = (data.score / maxScore) * 100;
+
+      return (
+        <div class="border-l-4 pl-4 py-2" style={`border-color: ${getProgressColor(data.score, maxScore).replace('bg-', '#')}`}>
+          <div class="flex items-start justify-between mb-1">
+            <div class="flex items-center gap-2">
+              <Icon name={icon} class="w-5 h-5 text-gray-600 dark:text-gray-400" />
+              <span class="font-semibold text-gray-900 dark:text-white">{name}</span>
+            </div>
+            <span class={`font-bold ${getScoreColor(data.score, maxScore)}`}>
+              {data.score}/{maxScore}
+            </span>
+          </div>
+          <p class="text-sm text-gray-600 dark:text-gray-400">{data.feedback}</p>
+        </div>
+      );
+    })}
+  </div>
+
+  <!-- Tips Section -->
+  <div class="mt-6 p-4 bg-blue-50 dark:bg-slate-900 rounded-lg border border-blue-200 dark:border-blue-800">
+    <div class="flex items-start gap-2">
+      <Icon name="tabler:bulb" class="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+      <div>
+        <h4 class="font-semibold text-blue-900 dark:text-blue-300 mb-1">SEO Tips</h4>
+        <ul class="text-sm text-blue-800 dark:text-blue-400 space-y-1 list-disc list-inside">
+          {seoScore.overall < 60 && <li>Improve your title and meta description to include focus keywords</li>}
+          {seoScore.content.score < 20 && <li>Add more comprehensive content (aim for 300+ words)</li>}
+          {seoScore.keywords.score < 15 && <li>Use your focus keyword naturally throughout the content</li>}
+          {seoScore.readability.score < 10 && <li>Simplify sentences to improve readability</li>}
+          {seoScore.overall >= 80 && <li>Great job! Your content is well-optimized for SEO</li>}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>

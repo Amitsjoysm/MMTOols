@@ -1,0 +1,184 @@
+---
+import Layout from '~/layouts/PageLayout.astro';
+import Hero from '~/components/widgets/Hero.astro';
+import Features from '~/components/widgets/Features.astro';
+import Features2 from '~/components/widgets/Features2.astro';
+import Content from '~/components/widgets/Content.astro';
+import Steps from '~/components/widgets/Steps.astro';
+import CallToAction from '~/components/widgets/CallToAction.astro';
+
+const metadata = {
+  title: 'Cloud Solutions & Migration Services - Azure, AWS | TechResona',
+  description: 'Expert cloud migration services for Azure and AWS. Cloud cost optimization, managed cloud services, hybrid cloud setup, and multi-cloud management in Pune, India.',
+  keywords: 'Azure migration services, AWS cloud consulting, cloud cost optimization, managed cloud services, hybrid cloud setup, cloud modernization strategy, lift and shift migration, multi-cloud management, serverless architecture consulting, cloud security assessment, data compliance in cloud, Azure Sentinel setup, AWS Well-Architected Framework',
+};
+---
+
+<Layout metadata={metadata}>
+  <!-- Hero Section -->
+  <Hero
+    tagline="Cloud Solutions"
+    title="Transform Your Business with Cloud Migration"
+    subtitle="Expert Azure and AWS cloud migration services to modernize your infrastructure, optimize costs, and scale your business with confidence."
+    actions={[
+      { variant: 'primary', text: 'Get Free Consultation', href: '/contact' },
+      { text: 'Learn More', href: '#services' },
+    ]}
+  >
+    <Fragment slot="subtitle">
+      <span class="font-semibold">Trusted by businesses</span> across India for seamless cloud transformation.
+      From lift-and-shift migrations to complete cloud modernization, we ensure zero downtime and maximum ROI.
+    </Fragment>
+  </Hero>
+
+  <!-- Main Features -->
+  <Features
+    id="services"
+    tagline="Our Cloud Services"
+    title="Comprehensive Cloud Solutions"
+    subtitle="End-to-end cloud services designed to accelerate your digital transformation journey."
+    items={[
+      {
+        title: 'Azure Migration Services',
+        description: 'Seamless migration to Microsoft Azure with comprehensive assessment, planning, and execution. Minimize downtime and maximize performance.',
+        icon: 'tabler:brand-azure',
+      },
+      {
+        title: 'AWS Cloud Consulting',
+        description: 'Expert AWS consulting services including architecture design, migration strategy, and ongoing optimization for cost-effective cloud operations.',
+        icon: 'tabler:brand-aws',
+      },
+      {
+        title: 'Cloud Cost Optimization',
+        description: 'Reduce cloud spending by up to 40% with our proven cost optimization strategies, resource right-sizing, and automated cost management.',
+        icon: 'tabler:coin',
+      },
+      {
+        title: 'Managed Cloud Services',
+        description: '24/7 cloud infrastructure management, monitoring, and support. Focus on your business while we handle your cloud operations.',
+        icon: 'tabler:headset',
+      },
+      {
+        title: 'Hybrid Cloud Setup',
+        description: 'Build robust hybrid cloud environments connecting on-premises infrastructure with public cloud for optimal flexibility and control.',
+        icon: 'tabler:network',
+      },
+      {
+        title: 'Multi-Cloud Management',
+        description: 'Manage multiple cloud platforms efficiently with unified monitoring, security, and governance across Azure, AWS, and GCP.',
+        icon: 'tabler:cloud-computing',
+      },
+    ]}
+  />
+
+  <!-- Cloud Migration Process -->
+  <Steps
+    title="Our Proven Cloud Migration Process"
+    tagline="Migration Methodology"
+    items={[
+      {
+        title: 'Assessment & Planning',
+        description: 'Comprehensive analysis of your current infrastructure, applications, and workloads. We create a detailed migration roadmap aligned with your business objectives.',
+        icon: 'tabler:clipboard-check',
+      },
+      {
+        title: 'Architecture Design',
+        description: 'Design cloud-native architecture following AWS Well-Architected Framework or Azure Cloud Adoption Framework principles for optimal performance.',
+        icon: 'tabler:topology-star-3',
+      },
+      {
+        title: 'Migration Execution',
+        description: 'Execute migration using lift-and-shift, re-platforming, or re-architecting strategies with minimal disruption to your business operations.',
+        icon: 'tabler:rocket',
+      },
+      {
+        title: 'Optimization & Support',
+        description: 'Post-migration optimization, performance tuning, cost management, and ongoing 24/7 support to ensure your cloud environment runs efficiently.',
+        icon: 'tabler:chart-line',
+      },
+    ]}
+  />
+
+  <!-- Advanced Services -->
+  <Features2
+    title="Advanced Cloud Capabilities"
+    tagline="Enterprise Solutions"
+    columns={3}
+    items={[
+      {
+        title: 'Cloud Modernization Strategy',
+        description: 'Transform legacy applications into cloud-native microservices architectures for improved scalability and resilience.',
+        icon: 'tabler:refresh',
+      },
+      {
+        title: 'Serverless Architecture',
+        description: 'Build cost-effective, auto-scaling applications using AWS Lambda, Azure Functions, and serverless computing patterns.',
+        icon: 'tabler:code',
+      },
+      {
+        title: 'Cloud Security Assessment',
+        description: 'Comprehensive security audits, vulnerability assessments, and implementation of cloud security best practices.',
+        icon: 'tabler:shield-check',
+      },
+      {
+        title: 'Data Compliance',
+        description: 'Ensure GDPR, HIPAA, and industry-specific compliance in cloud environments with automated compliance monitoring.',
+        icon: 'tabler:certificate',
+      },
+      {
+        title: 'Azure Sentinel Setup',
+        description: 'Implement Azure Sentinel for cloud-native SIEM and intelligent security analytics across your cloud infrastructure.',
+        icon: 'tabler:eye',
+      },
+      {
+        title: 'Disaster Recovery',
+        description: 'Design and implement robust disaster recovery and business continuity solutions with automated failover capabilities.',
+        icon: 'tabler:lifebuoy',
+      },
+    ]}
+  />
+
+  <!-- Why Choose Us -->
+  <Content
+    isReversed
+    title="Why TechResona for Cloud Migration?"
+    items={[
+      {
+        title: 'Certified Cloud Experts',
+        description: 'Team of Microsoft Azure and AWS certified professionals with 10+ years of combined experience.',
+      },
+      {
+        title: 'Zero Downtime Migration',
+        description: 'Proven methodologies ensuring business continuity throughout the migration process.',
+      },
+      {
+        title: 'Cost Transparency',
+        description: 'Clear pricing with no hidden costs. We help you optimize cloud spend from day one.',
+      },
+      {
+        title: 'Local Support, Global Standards',
+        description: 'Based in Pune with 24/7 support following international cloud best practices.',
+      },
+    ]}
+  >
+    <Fragment slot="content">
+      <h3 class="text-2xl font-bold tracking-tight dark:text-white sm:text-3xl mb-2">
+        Trusted Cloud Partner
+      </h3>
+      Successfully migrated 100+ businesses to the cloud with 99.9% success rate.
+    </Fragment>
+  </Content>
+
+  <!-- Call to Action -->
+  <CallToAction
+    title="Ready to Move to the Cloud?"
+    subtitle="Get a free cloud readiness assessment and migration roadmap tailored to your business needs."
+    actions={[
+      {
+        variant: 'primary',
+        text: 'Schedule Free Consultation',
+        href: '/contact',
+      },
+    ]}
+  />
+</Layout>

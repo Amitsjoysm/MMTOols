@@ -1,0 +1,256 @@
+---
+import Layout from '~/layouts/PageLayout.astro';
+import Hero from '~/components/widgets/Hero.astro';
+import Features from '~/components/widgets/Features.astro';
+import Features2 from '~/components/widgets/Features2.astro';
+import Content from '~/components/widgets/Content.astro';
+import Steps from '~/components/widgets/Steps.astro';
+import CallToAction from '~/components/widgets/CallToAction.astro';
+import Stats from '~/components/widgets/Stats.astro';
+
+const metadata = {
+  title: 'SEO Services - Local SEO, Technical SEO, Content Marketing | TechResona Pune',
+  description: 'Professional SEO services in Pune. Local SEO, technical SEO audit, ecommerce SEO, content marketing, keyword research, backlink strategy, and SEO for service businesses.',
+  keywords: 'local SEO services, technical SEO audit, ecommerce SEO strategy, SEO for service businesses, content marketing for lead generation, keyword research services, SEO backlink strategy, on-page SEO optimization, Google My Business optimization, SEO company in Pune',
+};
+---
+
+<Layout metadata={metadata}>
+  <!-- Hero Section -->
+  <Hero
+    tagline="SEO Services"
+    title="Rank Higher, Get More Traffic, Grow Your Business"
+    subtitle="Data-driven SEO strategies that deliver measurable results. Dominate search rankings and attract qualified leads."
+    actions={[
+      { variant: 'primary', text: 'Get Free SEO Audit', href: '/contact' },
+      { text: 'View Case Studies', href: '#results' },
+    ]}
+  >
+    <Fragment slot="subtitle">
+      <span class="font-semibold">Proven track record</span> of ranking businesses on page 1 of Google.
+      Transparent reporting and guaranteed results.
+    </Fragment>
+  </Hero>
+
+  <!-- Results Stats -->
+  <Stats
+    title="Our SEO Results Speak for Themselves"
+    stats={[
+      { title: 'Average Traffic Increase', amount: '285%' },
+      { title: 'Keywords on Page 1', amount: '1,200+' },
+      { title: 'Client Retention Rate', amount: '94%' },
+      { title: 'Years of Experience', amount: '10+' },
+    ]}
+  />
+
+  <!-- Main Services -->
+  <Features
+    id="services"
+    tagline="Our SEO Services"
+    title="Comprehensive SEO Solutions"
+    subtitle="Everything you need to dominate search results and attract your ideal customers."
+    items={[
+      {
+        title: 'Local SEO Services',
+        description: 'Dominate local search results and Google Maps. Optimize Google My Business, local citations, and location-based content for maximum visibility.',
+        icon: 'tabler:map-pin',
+      },
+      {
+        title: 'Technical SEO Audit',
+        description: 'Comprehensive technical analysis identifying crawl errors, speed issues, mobile usability problems, and schema markup opportunities.',
+        icon: 'tabler:code',
+      },
+      {
+        title: 'eCommerce SEO Strategy',
+        description: 'Product page optimization, category structure, rich snippets, and conversion-focused SEO for online stores.',
+        icon: 'tabler:shopping-cart',
+      },
+      {
+        title: 'Content Marketing',
+        description: 'High-quality, SEO-optimized content that attracts links, engages readers, and converts visitors into customers.',
+        icon: 'tabler:article',
+      },
+      {
+        title: 'Keyword Research',
+        description: 'In-depth keyword analysis identifying high-value, low-competition opportunities for quick wins and long-term growth.',
+        icon: 'tabler:target',
+      },
+      {
+        title: 'Link Building Strategy',
+        description: 'White-hat backlink acquisition from authoritative sites. Guest posting, digital PR, and relationship-based link building.',
+        icon: 'tabler:link',
+      },
+    ]}
+  />
+
+  <!-- SEO Process -->
+  <Steps
+    title="Our Proven SEO Process"
+    tagline="How We Work"
+    items={[
+      {
+        title: 'SEO Audit & Research',
+        description: 'Comprehensive analysis of your website, competitors, and industry. Identify quick wins and long-term opportunities.',
+        icon: 'tabler:search',
+      },
+      {
+        title: 'Strategy Development',
+        description: 'Custom SEO roadmap based on your business goals, target audience, and competitive landscape with clear KPIs.',
+        icon: 'tabler:chart-line',
+      },
+      {
+        title: 'Implementation',
+        description: 'Execute on-page optimization, technical fixes, content creation, and link building campaigns with agile methodology.',
+        icon: 'tabler:tools',
+      },
+      {
+        title: 'Monitoring & Optimization',
+        description: 'Continuous tracking of rankings, traffic, and conversions. Monthly reporting and strategy refinement for ongoing improvement.',
+        icon: 'tabler:dashboard',
+      },
+    ]}
+  />
+
+  <!-- Specialized Services -->
+  <Features2
+    title="Specialized SEO Services"
+    tagline="Advanced Techniques"
+    columns={3}
+    items={[
+      {
+        title: 'On-Page SEO',
+        description: 'Title tags, meta descriptions, heading optimization, internal linking, and content structure for maximum relevance.',
+        icon: 'tabler:file-text',
+      },
+      {
+        title: 'Off-Page SEO',
+        description: 'Authority building through quality backlinks, brand mentions, social signals, and digital PR campaigns.',
+        icon: 'tabler:world',
+      },
+      {
+        title: 'Google My Business',
+        description: 'Complete GMB optimization including posts, reviews management, Q&A, and local pack ranking strategies.',
+        icon: 'tabler:building-store',
+      },
+      {
+        title: 'Mobile SEO',
+        description: 'Mobile-first optimization ensuring perfect performance and user experience on smartphones and tablets.',
+        icon: 'tabler:device-mobile',
+      },
+      {
+        title: 'Voice Search Optimization',
+        description: 'Optimize for voice queries and featured snippets to capture growing voice search traffic.',
+        icon: 'tabler:microphone',
+      },
+      {
+        title: 'International SEO',
+        description: 'Multi-language and multi-region SEO for businesses targeting international markets with hreflang implementation.',
+        icon: 'tabler:world',
+      },
+    ]}
+  />
+
+  <!-- Industry-Specific SEO -->
+  <Content
+    isReversed
+    title="Industry-Specific SEO Expertise"
+    items={[
+      {
+        title: 'Service Business SEO',
+        description: 'Lawyers, accountants, consultants - rank for "near me" searches and service-specific keywords.',
+      },
+      {
+        title: 'E-commerce SEO',
+        description: 'Product optimization, category pages, and conversion-focused strategies for online retailers.',
+      },
+      {
+        title: 'SaaS SEO',
+        description: 'Long-tail keywords, comparison pages, and content that converts trial users into customers.',
+      },
+      {
+        title: 'Healthcare SEO',
+        description: 'HIPAA-compliant strategies for clinics, hospitals, and healthcare providers with local focus.',
+      },
+    ]}
+  >
+    <Fragment slot="content">
+      <h3 class="text-2xl font-bold tracking-tight dark:text-white sm:text-3xl mb-2">
+        We Know Your Industry
+      </h3>
+      Specialized SEO strategies tailored to your business type and target audience.
+    </Fragment>
+  </Content>
+
+  <!-- Content Marketing Services -->
+  <Features2
+    title="Content Marketing for Lead Generation"
+    tagline="Content That Converts"
+    columns={2}
+    items={[
+      {
+        title: 'Blog Content Strategy',
+        description: 'SEO-optimized blog posts targeting buyer-intent keywords that attract and convert qualified leads.',
+        icon: 'tabler:writing',
+      },
+      {
+        title: 'Pillar Page Creation',
+        description: 'Comprehensive guides that rank for competitive keywords and establish topical authority.',
+        icon: 'tabler:file-text',
+      },
+      {
+        title: 'Video SEO',
+        description: 'YouTube optimization and video content strategy to capture video search traffic.',
+        icon: 'tabler:video',
+      },
+      {
+        title: 'Infographic Design & Distribution',
+        description: 'Visual content that attracts backlinks and social shares while simplifying complex topics.',
+        icon: 'tabler:chart-dots-3',
+      },
+    ]}
+  />
+
+  <!-- Why Choose Us -->
+  <Content
+    isAfterContent
+    title="Why TechResona for SEO?"
+    items={[
+      {
+        title: 'White Hat Techniques Only',
+        description: 'We follow Google guidelines strictly. No black hat tactics that risk penalties.',
+      },
+      {
+        title: 'Transparent Reporting',
+        description: 'Monthly reports showing rankings, traffic, conversions, and ROI. Full access to analytics.',
+      },
+      {
+        title: 'Proven Methodology',
+        description: '200+ successful SEO campaigns with documented results and case studies.',
+      },
+      {
+        title: 'No Long-Term Contracts',
+        description: 'Month-to-month service. No lock-in because we earn your business every month.',
+      },
+    ]}
+  >
+    <Fragment slot="content">
+      <h3 class="text-2xl font-bold tracking-tight dark:text-white sm:text-3xl mb-2">
+        Partner with Pune's Top SEO Agency
+      </h3>
+      Results-driven SEO that focuses on ROI, not vanity metrics.
+    </Fragment>
+  </Content>
+
+  <!-- Call to Action -->
+  <CallToAction
+    title="Ready to Dominate Search Results?"
+    subtitle="Get a free, no-obligation SEO audit showing exactly how we'll improve your rankings and traffic."
+    actions={[
+      {
+        variant: 'primary',
+        text: 'Get Your Free SEO Audit',
+        href: '/contact',
+      },
+    ]}
+  />
+</Layout>

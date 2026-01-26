@@ -1,0 +1,110 @@
+---
+import { SITE, METADATA } from 'astrowind:config';
+import type { Post } from '~/types';
+
+export interface Props {
+  post: Post;
+  url: string;
+}
+
+const { post, url } = Astro.props;
+
+// Format date to ISO string
+const publishedDate = post.publishDate ? new Date(post.publishDate).toISOString() : new Date().toISOString();
+const modifiedDate = post.updateDate ? new Date(post.updateDate).toISOString() : publishedDate;
+
+// Build author schema
+const authorName = post.author || SITE.name;
+const authorSchema = {
+  '@type': 'Person',
+  name: authorName,
+  url: SITE.site,
+};
+
+// Build organization schema
+const publisherSchema = {
+  '@type': 'Organization',
+  name: SITE.name,
+  url: SITE.site,
+  logo: {
+    '@type': 'ImageObject',
+    url: `${SITE.site}/favicon.svg`,
+  },
+};
+
+// Build breadcrumb schema
+const breadcrumbSchema = {
+  '@type': 'BreadcrumbList',
+  '@id': `${url}#breadcrumb`,
+  itemListElement: [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Home',
+      item: SITE.site,
+    },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: 'Blog',
+      item: `${SITE.site}/blog`,
+    },
+    {
+      '@type': 'ListItem',
+      position: 3,
+      name: post.title,
+      item: url,
+    },
+  ],
+};
+
+// Build main BlogPosting schema
+const blogPostingSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  '@id': `${url}#article`,
+  headline: post.title,
+  description: post.excerpt || '',
+  datePublished: publishedDate,
+  dateModified: modifiedDate,
+  author: authorSchema,
+  publisher: publisherSchema,
+  url: url,
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': url,
+  },
+  ...(post.image && {
+    image: {
+      '@type': 'ImageObject',
+      url: typeof post.image === 'string' ? post.image : post.image.src,
+      ...(typeof post.image !== 'string' && {
+        width: post.image.width,
+        height: post.image.height,
+      }),
+    },
+  }),
+  ...(post.keywords && { keywords: post.keywords }),
+  ...(post.category && {
+    articleSection: typeof post.category === 'string' ? post.category : post.category.title,
+  }),
+  ...(post.tags && post.tags.length > 0 && {
+    keywords: post.tags.join(', '),
+  }),
+  inLanguage: 'en-US',
+  isPartOf: {
+    '@type': 'Blog',
+    '@id': `${SITE.site}/blog#blog`,
+    name: `${SITE.name} Blog`,
+    publisher: publisherSchema,
+  },
+};
+
+// Combine all schemas into a graph
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@graph': [blogPostingSchema, breadcrumbSchema],
+};
+---
+
+<script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData)} />
