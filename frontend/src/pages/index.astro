@@ -1,141 +1,132 @@
 ---
 import Layout from '~/layouts/PageLayout.astro';
-
 import Hero from '~/components/widgets/Hero.astro';
 import Features from '~/components/widgets/Features.astro';
 import Features2 from '~/components/widgets/Features2.astro';
-import Content from '~/components/widgets/Content.astro';
-import BlogLatestPosts from '~/components/widgets/BlogLatestPosts.astro';
 import Stats from '~/components/widgets/Stats.astro';
 import CallToAction from '~/components/widgets/CallToAction.astro';
-import Testimonials from '~/components/widgets/Testimonials.astro';
+import Content from '~/components/widgets/Content.astro';
 
 const metadata = {
-  title: 'TechResona - Cloud Solutions, Web Development & IT Services in Pune',
-  description: 'Leading IT solutions provider in Pune offering cloud migration, web development, AI automation, SEO services, and Microsoft 365 licenses. Transform your business with TechResona.',
+  title: 'MarketMindAI - Discover & Compare the Best AI Tools & Business Solutions',
+  description: 'Your ultimate directory for discovering, comparing, and reviewing AI tools and business solutions. Find the perfect tools with expert insights, user reviews, and side-by-side comparisons.',
   ignoreTitleTemplate: true,
 };
 ---
 
 <Layout metadata={metadata}>
   <!-- Hero Widget ******************* -->
-
   <Hero
     actions={[
       {
         variant: 'primary',
-        text: 'Get Started',
-        href: '/contact',
+        text: 'Browse Tools',
+        href: '/tools',
       },
-      { text: 'Our Services', href: '#services' },
+      { 
+        text: 'Read Blog', 
+        href: '/blog' 
+      },
     ]}
   >
     <Fragment slot="title">
-      Transform Your Business with <span class="hidden xl:inline">Cutting-Edge</span>
-      <span class="text-accent dark:text-white"> Technology Solutions</span>
+      Discover the <span class="text-accent dark:text-white">Best AI Tools</span> for Your Business
     </Fragment>
 
     <Fragment slot="subtitle">
-      <span class="font-semibold">TechResona</span> delivers enterprise-grade cloud solutions, web development, AI automation, and IT services to businesses across India. From cloud migration to digital transformation, we're your trusted technology partner.
+      <span class="font-semibold">MarketMindAI</span> is your comprehensive directory for finding, comparing, and reviewing AI tools and business solutions. Make informed decisions with expert insights and real user reviews.
     </Fragment>
   </Hero>
 
   <!-- Stats Widget ****************** -->
-
   <Stats
     stats={[
-      { title: 'Happy Clients', amount: '200+' },
-      { title: 'Cloud Migrations', amount: '150+' },
-      { title: 'Websites Delivered', amount: '300+' },
-      { title: 'Uptime SLA', amount: '99.9%' },
+      { title: 'Tools Listed', amount: '500+' },
+      { title: 'User Reviews', amount: '10K+' },
+      { title: 'Categories', amount: '50+' },
+      { title: 'Monthly Visitors', amount: '100K+' },
     ]}
   />
 
   <!-- Features Widget *************** -->
-
   <Features
-    id="services"
-    tagline="Our Services"
-    title="Comprehensive IT Solutions for Modern Businesses"
-    subtitle="From cloud infrastructure to digital marketing, we provide end-to-end technology solutions that drive growth and efficiency."
+    id="features"
+    tagline="Why Choose MarketMindAI"
+    title="Everything You Need to Find the Perfect Tool"
+    subtitle="Comprehensive features designed to help you discover, compare, and choose the best tools for your business needs."
     items={[
       {
-        title: 'Cloud Solutions & Migration',
+        title: 'Extensive Tool Directory',
         description:
-          'Expert Azure and AWS migration services. Cloud modernization, cost optimization, and 24/7 managed cloud services.',
-        icon: 'tabler:cloud',
-        href: '/cloud-solutions',
+          'Access hundreds of carefully curated AI tools and business solutions across multiple categories. From productivity to marketing, find everything in one place.',
+        icon: 'tabler:database',
       },
       {
-        title: 'Web Development & Design',
+        title: 'Side-by-Side Comparisons',
         description:
-          'Responsive, SEO-optimized websites and web applications. WordPress, eCommerce, Progressive Web Apps, and custom development.',
-        icon: 'tabler:world-www',
-        href: '/web-development',
+          'Compare features, pricing, pros, and cons of multiple tools at once. Make data-driven decisions with clear, visual comparisons.',
+        icon: 'tabler:git-compare',
       },
       {
-        title: 'AI & Business Automation',
+        title: 'Verified User Reviews',
         description:
-          'Transform operations with RPA, workflow automation, and custom ChatGPT integration. Save time and reduce errors.',
-        icon: 'tabler:robot',
-        href: '/ai-automation',
+          'Read authentic reviews from real users. Get insights from those who have actually used the tools to understand real-world performance.',
+        icon: 'tabler:stars',
       },
       {
-        title: 'SEO Services',
+        title: 'Expert Insights',
         description:
-          'Rank higher on Google with proven SEO strategies. Local SEO, technical audits, content marketing, and link building.',
-        icon: 'tabler:seo',
-        href: '/seo-services',
-      },
-      {
-        title: 'Microsoft 365 & G Suite',
-        description:
-          'Competitive pricing on Microsoft 365 and Google Workspace licenses. Complete setup, migration, and support included.',
-        icon: 'tabler:brand-office',
-        href: '/microsoft-365-licenses',
-      },
-      {
-        title: 'IT Consulting',
-        description:
-          'Strategic technology consulting to align IT with business goals. Digital transformation and technology roadmap planning.',
+          'Access detailed analysis, best practices, and expert recommendations for each tool. Learn from industry professionals.',
         icon: 'tabler:bulb',
-        href: '/contact',
+      },
+      {
+        title: 'Regular Updates',
+        description:
+          'Stay informed with the latest tool updates, new releases, and industry trends through our regularly updated blog.',
+        icon: 'tabler:refresh',
+      },
+      {
+        title: 'Smart Filtering',
+        description:
+          'Find exactly what you need with advanced filters. Search by category, pricing model, features, ratings, and more.',
+        icon: 'tabler:filter',
       },
     ]}
   />
 
   <!-- Content Widget **************** -->
-
   <Content
     isReversed
-    tagline="Why TechResona"
-    title="Your Trusted Technology Partner in Pune"
+    tagline="Featured Categories"
+    title="Explore Tools by Category"
     items={[
       {
-        title: '10+ Years of Experience',
+        title: 'AI & Machine Learning',
         description:
-          'Decade-long track record delivering enterprise-grade solutions to startups, SMBs, and large enterprises.',
+          'Cutting-edge AI tools for automation, data analysis, and intelligent decision-making.',
       },
       {
-        title: 'Certified Professionals',
+        title: 'Productivity & Collaboration',
         description:
-          'Team of Microsoft, AWS, and Google certified experts ensuring best-in-class implementations.',
+          'Boost team efficiency with project management, communication, and workflow tools.',
       },
       {
-        title: 'End-to-End Solutions',
+        title: 'Marketing & Sales',
         description:
-          'From consultation to deployment and ongoing support, we handle everything so you can focus on your business.',
+          'Drive growth with tools for email marketing, CRM, social media, and analytics.',
       },
       {
-        title: '24/7 Support',
+        title: 'Development & Design',
         description:
-          'Round-the-clock technical support ensuring your systems run smoothly without interruption.',
+          'Build better products with coding tools, design software, and testing platforms.',
       },
     ]}
   >
     <Fragment slot="content">
-      <h3 class="text-2xl font-bold tracking-tight dark:text-white sm:text-3xl mb-2">Building on Modern Foundations</h3>
-      We leverage cutting-edge technologies and proven methodologies to deliver solutions that scale with your business.
+      <h3 class="text-2xl font-bold tracking-tight dark:text-white sm:text-3xl mb-2">
+        Find Tools Tailored to Your Needs
+      </h3>
+      Browse through our carefully organized categories to discover tools that match your specific requirements.
     </Fragment>
 
     <Fragment slot="bg">
@@ -143,106 +134,70 @@ const metadata = {
     </Fragment>
   </Content>
 
-  <!-- Content Widget **************** -->
-
-  <Content
-    isAfterContent
-    title="Our Approach to Technology Excellence"
+  <!-- Features2 Widget ************** -->
+  <Features2
+    title="Most Popular Tools"
+    subtitle="Discover the tools that businesses trust and love"
+    tagline="Trending Now"
     items={[
       {
-        title: 'Business-First Mindset',
-        description: 'Technology solutions aligned with your business objectives, not just technical requirements.',
+        title: 'ChatGPT',
+        description: 'Advanced AI chatbot for content creation, coding assistance, and more.',
+        icon: 'tabler:message-chatbot',
       },
       {
-        title: 'Scalable Architecture',
-        description:
-          'Infrastructure and applications designed to grow with your business without costly rebuilds.',
+        title: 'Notion',
+        description: 'All-in-one workspace for notes, docs, wikis, and project management.',
+        icon: 'tabler:notebook',
       },
       {
-        title: 'Cost Optimization',
-        description:
-          'Maximize ROI with efficient resource allocation and ongoing cost management strategies.',
+        title: 'Figma',
+        description: 'Collaborative interface design tool for teams.',
+        icon: 'tabler:palette',
       },
       {
-        title: 'Security & Compliance',
-        description:
-          'Enterprise-grade security measures and industry compliance built into every solution.',
+        title: 'Zapier',
+        description: 'Automate workflows by connecting your favorite apps.',
+        icon: 'tabler:plug',
+      },
+      {
+        title: 'Slack',
+        description: 'Team communication platform for real-time collaboration.',
+        icon: 'tabler:messages',
+      },
+      {
+        title: 'HubSpot',
+        description: 'Complete CRM platform for marketing, sales, and service.',
+        icon: 'tabler:brand-google-analytics',
       },
     ]}
   >
-    <Fragment slot="content">Your success is our mission.</Fragment>
-
     <Fragment slot="bg">
       <div class="absolute inset-0 bg-blue-50 dark:bg-transparent"></div>
     </Fragment>
-  </Content>
-
-  <!-- Testimonials Widget *********** -->
-
-  <Testimonials
-    title="What Our Clients Say"
-    testimonials={[
-      {
-        testimonial: `TechResona's cloud migration service was seamless. They moved our entire infrastructure to Azure with zero downtime. The cost savings alone paid for the migration in 6 months.`,
-        name: 'Rajesh Kumar',
-        job: 'CTO, FinServe Solutions',
-        image: {
-          src: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80',
-          alt: 'Rajesh Kumar',
-        },
-      },
-      {
-        testimonial: `Our website traffic increased by 300% within 6 months of working with TechResona. Their SEO expertise is unmatched in Pune.`,
-        name: 'Priya Sharma',
-        job: 'Marketing Director, EduTech India',
-        image: {
-          src: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80',
-          alt: 'Priya Sharma',
-        },
-      },
-      {
-        testimonial: `The business automation they implemented saved us 40 hours per week. ROI was achieved in just 3 months. Highly recommended!`,
-        name: 'Amit Patel',
-        job: 'Operations Manager, LogiTrans',
-        image: {
-          src: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80',
-          alt: 'Amit Patel',
-        },
-      },
-    ]}
-  />
-
-  <!-- HighlightedPosts Widget ******* -->
-
-  <BlogLatestPosts
-    title="Latest from Our Blog"
-    information={`Stay updated with the latest trends in cloud computing, web development, AI automation, and digital marketing. 
-                  Expert insights and practical guides to help your business thrive in the digital age.`}
-  />
-
+  </Features2>
 
   <!-- Call to Action Widget *********** -->
-
   <CallToAction
     actions={[
       {
         variant: 'primary',
-        text: 'Contact Us',
-        href: '/contact',
+        text: 'Explore All Tools',
+        href: '/tools',
       },
       {
-        text: 'Learn More',
-        href: '/about',
+        text: 'Submit Your Tool',
+        href: '/contact',
       },
     ]}
   >
     <Fragment slot="title">
-      Ready to Transform&nbsp;<br class="block sm:hidden" /><span class="sm:whitespace-nowrap">Your Business?</span>
+      Ready to Find Your&nbsp;<br class="block sm:hidden" /><span class="sm:whitespace-nowrap">Perfect Tool?</span>
     </Fragment>
 
     <Fragment slot="subtitle">
-      Let's discuss your technology needs and create a customized solution that drives growth.<br class="hidden md:inline" />
-      Get a free consultation with our experts today!
+      Start exploring our comprehensive directory of AI tools and business solutions.<br class="hidden md:inline" />
+      Join thousands of businesses making smarter tool choices every day.
     </Fragment>
   </CallToAction>
 </Layout>
