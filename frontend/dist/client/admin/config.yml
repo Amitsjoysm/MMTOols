@@ -1,0 +1,63 @@
+backend:
+  name: test-repo
+
+media_folder: 'src/assets/images'
+public_folder: '/_astro'
+
+collections:
+  - name: 'post'
+    label: 'Blog Posts'
+    folder: 'src/content/post'
+    create: true
+    slug: '{{slug}}'
+    fields:
+      - { label: 'Title', name: 'title', widget: 'string', hint: 'Keep between 30-60 characters for optimal SEO' }
+      - { label: 'Excerpt', name: 'excerpt', widget: 'text', hint: 'Brief summary of the post' }
+      - { label: 'Category', name: 'category', widget: 'string' }
+      - {
+          label: 'Tags',
+          name: 'tags',
+          widget: 'list',
+          allow_add: true,
+          allow_delete: true,
+          collapsed: false,
+          field: { label: 'Tag', name: 'tag', widget: 'string' },
+        }
+      - { label: 'Image', name: 'image', widget: 'string', hint: 'Featured image URL or path', required: false }
+      - { label: 'Publish Date', name: 'publishDate', widget: 'datetime', required: false }
+      - { label: 'Author', name: 'author', widget: 'string', required: false }
+      - { 
+          label: '--- SEO Settings ---', 
+          name: 'seo_divider', 
+          widget: 'hidden', 
+          required: false 
+        }
+      - { 
+          label: 'Focus Keyword', 
+          name: 'focusKeyword', 
+          widget: 'string', 
+          required: false,
+          hint: 'Main keyword to optimize for (e.g., "web development tips")'
+        }
+      - { 
+          label: 'Meta Title', 
+          name: 'metaTitle', 
+          widget: 'string', 
+          required: false,
+          hint: 'Custom title for search results (leave empty to use post title). 30-60 characters recommended.'
+        }
+      - { 
+          label: 'Meta Description', 
+          name: 'metaDescription', 
+          widget: 'text', 
+          required: false,
+          hint: 'Description for search results. 120-160 characters for optimal display.'
+        }
+      - { 
+          label: 'Keywords', 
+          name: 'keywords', 
+          widget: 'string', 
+          required: false,
+          hint: 'Comma-separated keywords (e.g., "seo, web development, marketing")'
+        }
+      - { label: 'Content', name: 'body', widget: 'markdown', hint: 'Main article content. Aim for 300+ words for better SEO.' }
