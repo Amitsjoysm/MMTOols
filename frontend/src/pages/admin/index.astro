@@ -1,0 +1,289 @@
+---
+import AdminLayout from '~/layouts/AdminLayout.astro';
+
+const metadata = {
+  title: 'Dashboard - Admin',
+};
+---
+
+<AdminLayout metadata={metadata}>
+  <div id="dashboard-container">
+    <!-- Loading State -->
+    <div id="loading" class="text-center py-12">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <p class="mt-4 text-gray-600 dark:text-gray-400">Loading analytics...</p>
+    </div>
+
+    <!-- Dashboard Content (rendered by JS) -->
+    <div id="dashboard-content" class="hidden space-y-6">
+      <!-- Stats Grid -->
+      <div id="stats-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Stats will be rendered here -->
+      </div>
+
+      <!-- Charts Row -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Growth Chart -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Growth Overview</h3>
+          <div id="growth-chart" class="space-y-4">
+            <!-- Growth metrics will be rendered here -->
+          </div>
+        </div>
+
+        <!-- Top Categories -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Top Categories</h3>
+          <div id="top-categories" class="space-y-3">
+            <!-- Categories will be rendered here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Content Overview -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Top Tools -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Most Viewed Tools</h3>
+          <div id="top-tools" class="space-y-3">
+            <!-- Tools will be rendered here -->
+          </div>
+        </div>
+
+        <!-- Top Blogs -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Most Viewed Blogs</h3>
+          <div id="top-blogs" class="space-y-3">
+            <!-- Blogs will be rendered here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Activity -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Recent Activity (Today)</h3>
+        <div id="recent-activity" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <!-- Recent activity stats will be rendered here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div id="error" class="hidden text-center py-12">
+      <p class="text-xl text-red-600 dark:text-red-400">Error loading dashboard data.</p>
+      <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+        Retry
+      </button>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  import { superAdminApi } from '~/utils/api';
+
+  async function loadDashboard() {
+    const loading = document.getElementById('loading')!;
+    const content = document.getElementById('dashboard-content')!;
+    const error = document.getElementById('error')!;
+
+    try {
+      const analytics = await superAdminApi.getDashboardAnalytics(30);
+      
+      loading.classList.add('hidden');
+      content.classList.remove('hidden');
+      
+      // Render stats cards
+      renderStatsGrid(analytics.overview);
+      
+      // Render growth chart
+      renderGrowthChart(analytics.overview.monthly_growth);
+      
+      // Render top categories
+      renderTopCategories(analytics.recent_activity.top_categories);
+      
+      // Render top content
+      renderTopTools(analytics.top_content.most_viewed_tools);
+      renderTopBlogs(analytics.top_content.most_viewed_blogs);
+      
+      // Render recent activity
+      renderRecentActivity(analytics.recent_activity);
+      
+    } catch (err) {
+      console.error('Error loading dashboard:', err);
+      loading.classList.add('hidden');
+      error.classList.remove('hidden');
+    }
+  }
+
+  function renderStatsGrid(overview: any) {
+    const statsGrid = document.getElementById('stats-grid')!;
+    
+    const stats = [
+      {
+        title: 'Total Tools',
+        value: overview.total_tools.toLocaleString(),
+        change: `+${overview.monthly_growth.tools}%`,
+        icon: '⚡',
+        color: 'blue'
+      },
+      {
+        title: 'Total Blogs',
+        value: overview.total_blogs.toLocaleString(),
+        change: `+${overview.monthly_growth.blogs}%`,
+        icon: '📝',
+        color: 'green'
+      },
+      {
+        title: 'Total Users',
+        value: overview.total_users.toLocaleString(),
+        change: `+${overview.monthly_growth.users}%`,
+        icon: '👥',
+        color: 'purple'
+      },
+      {
+        title: 'Total Reviews',
+        value: overview.total_reviews.toLocaleString(),
+        change: `+${overview.monthly_growth.reviews}%`,
+        icon: '⭐',
+        color: 'yellow'
+      }
+    ];
+
+    statsGrid.innerHTML = stats.map(stat => `
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6" data-testid="stat-card-${stat.title.toLowerCase().replace(' ', '-')}">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-2xl">${stat.icon}</span>
+          <span class="text-sm font-medium px-2 py-1 rounded-full ${
+            parseFloat(stat.change) >= 0 
+              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+              : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+          }">
+            ${stat.change}
+          </span>
+        </div>
+        <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">${stat.value}</h3>
+        <p class="text-sm text-gray-600 dark:text-gray-400">${stat.title}</p>
+      </div>
+    `).join('');
+  }
+
+  function renderGrowthChart(growth: any) {
+    const chartDiv = document.getElementById('growth-chart')!;
+    
+    chartDiv.innerHTML = `
+      <div class="space-y-3">
+        ${Object.entries(growth).map(([key, value]) => `
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300 capitalize">${key}</span>
+              <span class="text-sm font-bold ${
+                parseFloat(value as string) >= 0 
+                  ? 'text-green-600 dark:text-green-400' 
+                  : 'text-red-600 dark:text-red-400'
+              }">
+                ${value >= 0 ? '+' : ''}${value}%
+              </span>
+            </div>
+            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+              <div 
+                class="h-2 rounded-full ${
+                  parseFloat(value as string) >= 0 
+                    ? 'bg-green-600 dark:bg-green-500' 
+                    : 'bg-red-600 dark:bg-red-500'
+                }" 
+                style="width: ${Math.min(Math.abs(parseFloat(value as string)), 100)}%"
+              ></div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  function renderTopCategories(categories: any[]) {
+    const categoriesDiv = document.getElementById('top-categories')!;
+    
+    if (!categories || categories.length === 0) {
+      categoriesDiv.innerHTML = '<p class="text-gray-500 dark:text-gray-400">No categories data available</p>';
+      return;
+    }
+    
+    categoriesDiv.innerHTML = categories.map(cat => `
+      <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+        <div class="flex-1">
+          <div class="font-medium text-gray-900 dark:text-white">${cat.name}</div>
+          <div class="text-sm text-gray-600 dark:text-gray-400">${cat.tools} tools</div>
+        </div>
+        <span class="text-sm font-medium px-2 py-1 rounded-full ${
+          cat.growth >= 0 
+            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+            : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+        }">
+          ${cat.growth >= 0 ? '+' : ''}${cat.growth}%
+        </span>
+      </div>
+    `).join('');
+  }
+
+  function renderTopTools(tools: any[]) {
+    const toolsDiv = document.getElementById('top-tools')!;
+    
+    if (!tools || tools.length === 0) {
+      toolsDiv.innerHTML = '<p class="text-gray-500 dark:text-gray-400">No tools data available</p>';
+      return;
+    }
+    
+    toolsDiv.innerHTML = tools.map(tool => `
+      <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+        <div class="flex-1">
+          <div class="font-medium text-gray-900 dark:text-white">${tool.name}</div>
+          <div class="text-sm text-gray-600 dark:text-gray-400">${tool.views.toLocaleString()} views • ${tool.rating.toFixed(1)} ⭐</div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function renderTopBlogs(blogs: any[]) {
+    const blogsDiv = document.getElementById('top-blogs')!;
+    
+    if (!blogs || blogs.length === 0) {
+      blogsDiv.innerHTML = '<p class="text-gray-500 dark:text-gray-400">No blogs data available</p>';
+      return;
+    }
+    
+    blogsDiv.innerHTML = blogs.map(blog => `
+      <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+        <div class="flex-1">
+          <div class="font-medium text-gray-900 dark:text-white">${blog.title}</div>
+          <div class="text-sm text-gray-600 dark:text-gray-400">${blog.views.toLocaleString()} views • ${blog.likes} likes</div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function renderRecentActivity(activity: any) {
+    const activityDiv = document.getElementById('recent-activity')!;
+    
+    activityDiv.innerHTML = `
+      <div class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+        <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">${activity.new_users_today}</div>
+        <div class="text-sm text-gray-600 dark:text-gray-400">New Users</div>
+      </div>
+      <div class="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+        <div class="text-2xl font-bold text-green-600 dark:text-green-400">${activity.new_tools_today}</div>
+        <div class="text-sm text-gray-600 dark:text-gray-400">New Tools</div>
+      </div>
+      <div class="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+        <div class="text-2xl font-bold text-purple-600 dark:text-purple-400">${activity.new_blogs_today}</div>
+        <div class="text-sm text-gray-600 dark:text-gray-400">New Blogs</div>
+      </div>
+      <div class="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+        <div class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">${activity.new_reviews_today}</div>
+        <div class="text-sm text-gray-600 dark:text-gray-400">New Reviews</div>
+      </div>
+    `;
+  }
+
+  // Load dashboard on page load
+  loadDashboard();
+</script>
