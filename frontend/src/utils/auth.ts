@@ -51,6 +51,10 @@ export function getUserData(): User | null {
   return null;
 }
 
+export function getCurrentUser(): User | null {
+  return getUserData();
+}
+
 export function isAuthenticated(): boolean {
   return !!getAuthToken();
 }
