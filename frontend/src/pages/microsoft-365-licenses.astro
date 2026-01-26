@@ -1,0 +1,328 @@
+---
+import Layout from '~/layouts/PageLayout.astro';
+import Hero from '~/components/widgets/Hero.astro';
+import Features from '~/components/widgets/Features.astro';
+import Features2 from '~/components/widgets/Features2.astro';
+import Pricing from '~/components/widgets/Pricing.astro';
+import Content from '~/components/widgets/Content.astro';
+import CallToAction from '~/components/widgets/CallToAction.astro';
+
+const metadata = {
+  title: 'Microsoft 365 & G Suite Licenses - Volume Licensing | TechResona Pune',
+  description: 'Authorized reseller of Microsoft 365 and Google Workspace licenses. Volume licensing, license management, deployment, migration, and security configuration services in Pune.',
+  keywords: 'Microsoft 365 license management, G Suite setup and migration, Google Workspace deployment, volume licensing for business, productivity suite migration, Microsoft 365 security configuration, Office 365 business plans, Google Workspace pricing, Microsoft Teams setup, SharePoint deployment',
+};
+---
+
+<Layout metadata={metadata}>
+  <!-- Hero Section -->
+  <Hero
+    tagline="Software Licenses"
+    title="Microsoft 365 & Google Workspace Licensing Solutions"
+    subtitle="Authorized reseller offering competitive pricing, seamless deployment, and expert support for your productivity suite needs."
+    actions={[
+      { variant: 'primary', text: 'Get Quote', href: '/contact' },
+      { text: 'Compare Plans', href: '#pricing' },
+    ]}
+  >
+    <Fragment slot="subtitle">
+      <span class="font-semibold">Save up to 20%</span> on volume licensing deals.
+      Complete setup, migration, and ongoing support included.
+    </Fragment>
+  </Hero>
+
+  <!-- Main Services -->
+  <Features
+    id="services"
+    tagline="What We Offer"
+    title="Complete Licensing & Deployment Services"
+    subtitle="More than just licenses - we provide end-to-end implementation and support."
+    items={[
+      {
+        title: 'Microsoft 365 Licensing',
+        description: 'All Microsoft 365 plans including Business Basic, Standard, Premium, and Enterprise E3/E5. Competitive pricing with volume discounts.',
+        icon: 'tabler:brand-office',
+      },
+      {
+        title: 'Google Workspace Licenses',
+        description: 'Business Starter, Standard, Plus, and Enterprise plans. Gmail, Drive, Meet, and Docs for seamless collaboration.',
+        icon: 'tabler:brand-google',
+      },
+      {
+        title: 'License Management',
+        description: 'Centralized license management, user provisioning, and cost optimization. Track usage and optimize license allocation.',
+        icon: 'tabler:license',
+      },
+      {
+        title: 'Deployment & Setup',
+        description: 'Complete deployment including domain setup, user creation, security policies, and application configuration.',
+        icon: 'tabler:settings',
+      },
+      {
+        title: 'Migration Services',
+        description: 'Seamless migration from on-premises Exchange to Office 365 or from G Suite to Microsoft 365 with zero data loss.',
+        icon: 'tabler:transfer',
+      },
+      {
+        title: 'Security Configuration',
+        description: 'Advanced security setup including MFA, DLP, Conditional Access, and compliance policies for data protection.',
+        icon: 'tabler:shield-lock',
+      },
+    ]}
+  />
+
+  <!-- Microsoft 365 Plans -->
+  <Pricing
+    title="Microsoft 365 Plans"
+    tagline="Pricing"
+    prices={[
+      {
+        title: 'Business Basic',
+        subtitle: 'Essential cloud services',
+        price: '₹125',
+        period: 'per user/month',
+        items: [
+          {
+            description: 'Web and mobile versions of Office apps',
+          },
+          {
+            description: '1 TB OneDrive cloud storage',
+          },
+          {
+            description: 'Business email with 50 GB mailbox',
+          },
+          {
+            description: 'Microsoft Teams',
+          },
+          {
+            description: 'Security and compliance tools',
+          },
+        ],
+        callToAction: {
+          text: 'Get Started',
+          href: '/contact',
+        },
+      },
+      {
+        title: 'Business Standard',
+        subtitle: 'Most popular for SMBs',
+        price: '₹660',
+        period: 'per user/month',
+        items: [
+          {
+            description: 'Everything in Business Basic',
+          },
+          {
+            description: 'Desktop versions of Office apps',
+          },
+          {
+            description: 'Outlook, Word, Excel, PowerPoint',
+          },
+          {
+            description: 'Host webinars and meetings',
+          },
+          {
+            description: 'Attendee registration and reporting',
+          },
+        ],
+        callToAction: {
+          text: 'Get Started',
+          href: '/contact',
+        },
+        hasRibbon: true,
+        ribbonTitle: 'Popular',
+      },
+      {
+        title: 'Business Premium',
+        subtitle: 'Advanced security included',
+        price: '₹1100',
+        period: 'per user/month',
+        items: [
+          {
+            description: 'Everything in Business Standard',
+          },
+          {
+            description: 'Advanced security features',
+          },
+          {
+            description: 'Threat protection',
+          },
+          {
+            description: 'Access and data controls',
+          },
+          {
+            description: 'Cybersecurity training',
+          },
+        ],
+        callToAction: {
+          text: 'Get Started',
+          href: '/contact',
+        },
+      },
+    ]}
+  />
+
+  <!-- Google Workspace Plans -->
+  <Pricing
+    title="Google Workspace Plans"
+    prices={[
+      {
+        title: 'Business Starter',
+        subtitle: 'Get started with ease',
+        price: '₹125',
+        period: 'per user/month',
+        items: [
+          {
+            description: 'Custom business email',
+          },
+          {
+            description: '30 GB cloud storage per user',
+          },
+          {
+            description: '100 participant video meetings',
+          },
+          {
+            description: 'Standard security and management',
+          },
+        ],
+        callToAction: {
+          text: 'Get Started',
+          href: '/contact',
+        },
+      },
+      {
+        title: 'Business Standard',
+        subtitle: 'Enhanced features',
+        price: '₹672',
+        period: 'per user/month',
+        items: [
+          {
+            description: 'Everything in Business Starter',
+          },
+          {
+            description: '2 TB cloud storage per user',
+          },
+          {
+            description: '150 participant video meetings',
+          },
+          {
+            description: 'Recording and attendance tracking',
+          },
+        ],
+        callToAction: {
+          text: 'Get Started',
+          href: '/contact',
+        },
+        hasRibbon: true,
+        ribbonTitle: 'Recommended',
+      },
+      {
+        title: 'Business Plus',
+        subtitle: 'Enhanced security & compliance',
+        price: '₹1260',
+        period: 'per user/month',
+        items: [
+          {
+            description: 'Everything in Business Standard',
+          },
+          {
+            description: '5 TB cloud storage per user',
+          },
+          {
+            description: '500 participant video meetings',
+          },
+          {
+            description: 'eDiscovery, retention, and advanced security',
+          },
+        ],
+        callToAction: {
+          text: 'Get Started',
+          href: '/contact',
+        },
+      },
+    ]}
+  />
+
+  <!-- Additional Services -->
+  <Features2
+    title="Additional Services Included"
+    tagline="Complete Solution"
+    columns={3}
+    items={[
+      {
+        title: 'SharePoint Setup',
+        description: 'Intranet portal and document management system configuration with custom workflows.',
+        icon: 'tabler:share',
+      },
+      {
+        title: 'Microsoft Teams Deployment',
+        description: 'Complete Teams rollout with channel structure, apps integration, and user training.',
+        icon: 'tabler:brand-teams',
+      },
+      {
+        title: 'Email Migration',
+        description: 'Migrate from any email system (POP/IMAP, Exchange, G Suite) to Microsoft 365 or Google Workspace.',
+        icon: 'tabler:mail',
+      },
+      {
+        title: 'Multi-Factor Authentication',
+        description: 'Enhanced security with MFA setup and conditional access policies for all users.',
+        icon: 'tabler:key',
+      },
+      {
+        title: 'Data Loss Prevention',
+        description: 'Configure DLP policies to prevent sensitive information from leaving your organization.',
+        icon: 'tabler:shield-check',
+      },
+      {
+        title: 'User Training',
+        description: 'Comprehensive training for end-users and administrators on productivity tools and features.',
+        icon: 'tabler:school',
+      },
+    ]}
+  />
+
+  <!-- Why Choose Us -->
+  <Content
+    isReversed
+    title="Why Choose TechResona for Your Licensing Needs?"
+    items={[
+      {
+        title: 'Authorized Partner',
+        description: 'Microsoft and Google authorized reseller with direct access to licensing programs.',
+      },
+      {
+        title: 'Competitive Pricing',
+        description: 'Best prices in Pune with additional discounts on volume licensing (10+ users).',
+      },
+      {
+        title: 'Complete Setup Included',
+        description: 'Free deployment and configuration with all license purchases.',
+      },
+      {
+        title: 'Ongoing Support',
+        description: 'Dedicated support team for license management, technical issues, and user training.',
+      },
+    ]}
+  >
+    <Fragment slot="content">
+      <h3 class="text-2xl font-bold tracking-tight dark:text-white sm:text-3xl mb-2">
+        Trusted by 200+ Businesses
+      </h3>
+      Managing over 5,000 licenses across India with 99.5% uptime.
+    </Fragment>
+  </Content>
+
+  <!-- Call to Action -->
+  <CallToAction
+    title="Need Help Choosing the Right Plan?"
+    subtitle="Our licensing experts will analyze your requirements and recommend the most cost-effective solution."
+    actions={[
+      {
+        variant: 'primary',
+        text: 'Talk to Licensing Expert',
+        href: '/contact',
+      },
+    ]}
+  />
+</Layout>

@@ -1,0 +1,233 @@
+---
+import Layout from '~/layouts/PageLayout.astro';
+import Hero from '~/components/widgets/Hero.astro';
+import Features from '~/components/widgets/Features.astro';
+import Features2 from '~/components/widgets/Features2.astro';
+import Content from '~/components/widgets/Content.astro';
+import Steps from '~/components/widgets/Steps.astro';
+import CallToAction from '~/components/widgets/CallToAction.astro';
+
+const metadata = {
+  title: 'AI & Business Automation Services - RPA, Workflow Automation | TechResona',
+  description: 'Transform your business with AI automation and RPA services. Robotic Process Automation, workflow automation, custom ChatGPT integration, Power Automate consulting in Pune.',
+  keywords: 'robotic process automation RPA services, business process automation, workflow automation solutions, AI automation for business, AI-powered workflow orchestration, custom ChatGPT integration, Power Automate consulting, Zapier integration setup, marketing automation setup, AI integration services',
+};
+---
+
+<Layout metadata={metadata}>
+  <!-- Hero Section -->
+  <Hero
+    tagline="AI & Automation"
+    title="Automate Your Business with AI-Powered Solutions"
+    subtitle="Eliminate repetitive tasks, reduce errors, and boost productivity with intelligent automation solutions tailored to your business."
+    actions={[
+      { variant: 'primary', text: 'Schedule Demo', href: '/contact' },
+      { text: 'Explore Solutions', href: '#solutions' },
+    ]}
+  >
+    <Fragment slot="subtitle">
+      <span class="font-semibold">Save 40+ hours per week</span> with intelligent automation.
+      From simple task automation to complex AI-driven workflows.
+    </Fragment>
+  </Hero>
+
+  <!-- Main Services -->
+  <Features
+    id="solutions"
+    tagline="Automation Solutions"
+    title="Comprehensive Business Automation Services"
+    subtitle="Streamline operations and scale your business with cutting-edge automation technology."
+    items={[
+      {
+        title: 'Robotic Process Automation (RPA)',
+        description: 'Deploy software robots to handle repetitive tasks like data entry, invoice processing, and report generation with 99.9% accuracy.',
+        icon: 'tabler:robot',
+      },
+      {
+        title: 'Business Process Automation',
+        description: 'End-to-end process automation from lead capture to customer onboarding. Reduce processing time by up to 80%.',
+        icon: 'tabler:hierarchy-2',
+      },
+      {
+        title: 'AI-Powered Workflows',
+        description: 'Intelligent workflow automation using machine learning to make decisions, predict outcomes, and optimize processes.',
+        icon: 'tabler:brain',
+      },
+      {
+        title: 'Custom ChatGPT Integration',
+        description: 'Integrate ChatGPT and GPT-4 into your business applications for intelligent customer support, content generation, and data analysis.',
+        icon: 'tabler:message-chatbot',
+      },
+      {
+        title: 'Power Automate Consulting',
+        description: 'Microsoft Power Automate implementation for seamless integration across Microsoft 365, Dynamics 365, and third-party apps.',
+        icon: 'tabler:bolt',
+      },
+      {
+        title: 'Zapier Integration',
+        description: 'Connect 5000+ apps with Zapier automation. Custom workflows for marketing, sales, operations, and customer service.',
+        icon: 'tabler:plug',
+      },
+    ]}
+  />
+
+  <!-- Implementation Process -->
+  <Steps
+    title="Our Automation Implementation Process"
+    tagline="How We Automate"
+    items={[
+      {
+        title: 'Process Analysis',
+        description: 'Comprehensive analysis of your current workflows to identify automation opportunities and calculate potential ROI.',
+        icon: 'tabler:search',
+      },
+      {
+        title: 'Solution Design',
+        description: 'Custom automation architecture design selecting the right tools - RPA, AI, or workflow automation platforms.',
+        icon: 'tabler:sitemap',
+      },
+      {
+        title: 'Development & Testing',
+        description: 'Building automation workflows with rigorous testing to ensure reliability and error handling before deployment.',
+        icon: 'tabler:code',
+      },
+      {
+        title: 'Deployment & Training',
+        description: 'Smooth rollout with comprehensive user training and documentation. Ongoing monitoring and optimization.',
+        icon: 'tabler:users',
+      },
+    ]}
+  />
+
+  <!-- Specialized AI Services -->
+  <Features2
+    title="Advanced AI Capabilities"
+    tagline="Next-Gen Solutions"
+    columns={3}
+    items={[
+      {
+        title: 'Marketing Automation',
+        description: 'HubSpot, Marketo, and ActiveCampaign automation for lead nurturing, email campaigns, and customer journeys.',
+        icon: 'tabler:ad',
+      },
+      {
+        title: 'Document Processing',
+        description: 'AI-powered OCR and document understanding for automated data extraction from invoices, contracts, and forms.',
+        icon: 'tabler:file-text',
+      },
+      {
+        title: 'Customer Service Automation',
+        description: 'Intelligent chatbots and virtual assistants handling 80% of customer inquiries with natural language understanding.',
+        icon: 'tabler:headset',
+      },
+      {
+        title: 'Sales Process Automation',
+        description: 'Automate lead qualification, follow-ups, proposal generation, and CRM updates to accelerate sales cycles.',
+        icon: 'tabler:chart-line',
+      },
+      {
+        title: 'HR & Recruitment Automation',
+        description: 'Streamline candidate screening, interview scheduling, onboarding, and employee data management.',
+        icon: 'tabler:briefcase',
+      },
+      {
+        title: 'Financial Process Automation',
+        description: 'Automate accounts payable/receivable, expense management, financial reporting, and compliance.',
+        icon: 'tabler:cash',
+      },
+    ]}
+  />
+
+  <!-- Use Cases -->
+  <Content
+    isReversed
+    title="Real-World Automation Impact"
+    items={[
+      {
+        title: 'Manufacturing',
+        description: 'Automated inventory management reducing stockouts by 95% and optimizing supply chain operations.',
+      },
+      {
+        title: 'Healthcare',
+        description: 'Patient data processing automation saving 30 hours per week for administrative staff.',
+      },
+      {
+        title: 'E-commerce',
+        description: 'Order processing and fulfillment automation handling 1000+ orders daily without human intervention.',
+      },
+      {
+        title: 'Financial Services',
+        description: 'Compliance reporting automation reducing processing time from days to hours.',
+      },
+    ]}
+  >
+    <Fragment slot="content">
+      <h3 class="text-2xl font-bold tracking-tight dark:text-white sm:text-3xl mb-2">
+        Proven Results Across Industries
+      </h3>
+      Average ROI of 300% within the first year of automation implementation.
+    </Fragment>
+  </Content>
+
+  <!-- Technologies -->
+  <Features2
+    title="Automation Technologies We Use"
+    tagline="Our Tech Stack"
+    columns={4}
+    items={[
+      {
+        title: 'UiPath',
+        description: 'Enterprise RPA platform',
+        icon: 'tabler:robot',
+      },
+      {
+        title: 'Power Automate',
+        description: 'Microsoft automation',
+        icon: 'tabler:brand-windows',
+      },
+      {
+        title: 'Zapier',
+        description: 'App integration',
+        icon: 'tabler:plug',
+      },
+      {
+        title: 'OpenAI GPT',
+        description: 'AI integration',
+        icon: 'tabler:brain',
+      },
+      {
+        title: 'Make (Integromat)',
+        description: 'Visual automation',
+        icon: 'tabler:topology-star',
+      },
+      {
+        title: 'Python',
+        description: 'Custom automation scripts',
+        icon: 'tabler:code',
+      },
+      {
+        title: 'n8n',
+        description: 'Open-source workflows',
+        icon: 'tabler:chart-dots',
+      },
+      {
+        title: 'HubSpot',
+        description: 'Marketing automation',
+        icon: 'tabler:ad',
+      },
+    ]}
+  />
+
+  <!-- Call to Action -->
+  <CallToAction
+    title="Ready to Automate Your Business?"
+    subtitle="Get a free automation assessment and discover how much time and money you can save."
+    actions={[
+      {
+        variant: 'primary',
+        text: 'Get Free Automation Assessment',
+        href: '/contact',
+      },
+    ]}
+  />
+</Layout>
