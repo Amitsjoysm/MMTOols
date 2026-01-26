@@ -2,23 +2,24 @@
 import Layout from '~/layouts/PageLayout.astro';
 import { ssrBlogsApi } from '~/utils/ssr-api';
 
-// Generate static paths for all blogs at build time
-export async function getStaticPaths() {
-  try {
-    const blogs = await ssrBlogsApi.getAll({ limit: 1000, status: 'published' });
-    
-    return blogs.map((blog: any) => ({
-      params: { slug: blog.slug },
-      props: { blog },
-    }));
-  } catch (error) {
-    console.error('Error generating static paths for blogs:', error);
-    return [];
-  }
+// SSR: Fetch blog data on each request for SEO-optimized content
+const { slug } = Astro.params;
+
+// Fetch blog data
+let blog: any = null;
+let errorMessage = '';
+
+try {
+  blog = await ssrBlogsApi.getBySlug(slug as string);
+} catch (error) {
+  console.error('Error fetching blog:', error);
+  errorMessage = 'Blog not found';
 }
 
-const { slug } = Astro.params;
-const { blog } = Astro.props;
+// If blog not found, return 404
+if (!blog) {
+  return Astro.redirect('/404');
+}
 
 // Generate metadata for SEO
 const metadata = {
