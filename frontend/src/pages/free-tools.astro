@@ -1,4 +1,7 @@
 ---
+// Prerender free tools page for SEO
+export const prerender = true;
+
 import Layout from '~/layouts/PageLayout.astro';
 import Hero from '~/components/widgets/Hero.astro';
 
@@ -6,6 +9,22 @@ const metadata = {
   title: 'Free AI Tools - MarketMindAI',
   description: 'Discover our collection of free AI-powered tools to boost your productivity',
 };
+
+// Fetch free tools at build time
+let freeTools: any[] = [];
+let errorMessage = '';
+
+try {
+  const API_BASE_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8001';
+  const response = await fetch(`${API_BASE_URL}/api/free-tools`);
+  if (response.ok) {
+    freeTools = await response.json();
+    console.log(`✅ SSR: Loaded ${freeTools.length} free tools`);
+  }
+} catch (error) {
+  console.error('Error fetching free tools:', error);
+  errorMessage = 'Failed to load free tools';
+}
 ---
 
 <Layout metadata={metadata}>
@@ -21,33 +40,39 @@ const metadata = {
 
   <!-- Tools Grid -->
   <section class="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-    <div id="tools-loading" class="text-center py-12">
-      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-      <p class="mt-4 text-gray-600 dark:text-gray-400">Loading free tools...</p>
-    </div>
-
-    <div id="tools-grid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      <!-- Tools will be loaded here -->
-    </div>
-
-    <div id="tools-error" class="hidden text-center py-12">
-      <p class="text-red-600 dark:text-red-400">Failed to load tools. Please try again later.</p>
-    </div>
-
-    <div id="no-tools" class="hidden text-center py-12">
-      <p class="text-gray-600 dark:text-gray-400">No free tools available at the moment.</p>
-    </div>
+    {errorMessage ? (
+      <div class="text-center py-12">
+        <p class="text-red-600 dark:text-red-400">{errorMessage}</p>
+      </div>
+    ) : freeTools.length === 0 ? (
+      <div class="text-center py-12">
+        <p class="text-gray-600 dark:text-gray-400">No free tools available at the moment.</p>
+      </div>
+    ) : (
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {freeTools.map((tool) => (
+          <a 
+            href={tool.link} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            class="block bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-xl transition-shadow p-6"
+          >
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">{tool.name}</h3>
+            {tool.description && (
+              <p class="text-gray-600 dark:text-gray-300 mb-4">{tool.description}</p>
+            )}
+            <div class="flex items-center text-blue-600 dark:text-blue-400 font-medium">
+              Try Now
+              <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </div>
+          </a>
+        ))}
+      </div>
+    )}
   </section>
 </Layout>
-
-<script>
-  const API_BASE_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8001';
-
-  async function loadFreeTools() {
-    const loadingDiv = document.getElementById('tools-loading');
-    const gridDiv = document.getElementById('tools-grid');
-    const errorDiv = document.getElementById('tools-error');
-    const noToolsDiv = document.getElementById('no-tools');
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/free-tools`);
