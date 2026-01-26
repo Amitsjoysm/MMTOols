@@ -131,6 +131,37 @@ export const blogsApi = {
   getBySlug: (slug: string) => apiFetch<any>(`/api/blogs/by-slug/${slug}`),
   
   incrementView: (slug: string) => apiFetch(`/api/blogs/${slug}/view`, { method: 'POST' }),
+  
+  // Comments
+  getComments: (blogSlug: string, params?: { skip?: number; limit?: number }) => {
+    const queryParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          queryParams.append(key, String(value));
+        }
+      });
+    }
+    return apiFetch<any[]>(`/api/blogs/${blogSlug}/comments?${queryParams.toString()}`);
+  },
+  
+  createComment: (blogSlug: string, data: { content: string; parent_id?: string }) =>
+    apiFetch<any>(`/api/blogs/${blogSlug}/comments`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  
+  // Like
+  toggleLike: (blogSlug: string) =>
+    apiFetch<any>(`/api/blogs/${blogSlug}/like`, {
+      method: 'POST',
+    }),
+  
+  // Bookmark
+  toggleBookmark: (blogSlug: string) =>
+    apiFetch<any>(`/api/blogs/${blogSlug}/bookmark`, {
+      method: 'POST',
+    }),
 };
 
 // Categories API
