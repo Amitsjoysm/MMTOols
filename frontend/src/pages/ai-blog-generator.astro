@@ -1,0 +1,275 @@
+---
+import Layout from '~/layouts/PageLayout.astro';
+import { requireAuth } from '~/utils/auth';
+
+const metadata = {
+  title: 'AI Blog Generator - MarketMindAI',
+  description: 'Generate high-quality blog posts with AI',
+};
+---
+
+<Layout metadata={metadata}>
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+        AI Blog Generator
+      </h1>
+      <p class="text-lg text-gray-600 dark:text-gray-400">
+        Create engaging, SEO-optimized blog posts powered by AI
+      </p>
+    </div>
+
+    <!-- Blog Topics Suggestions -->
+    <div class="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-6 mb-8">
+      <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+        Need inspiration? Try these topics:
+      </h2>
+      <div id="topics-list" class="space-y-2">
+        <div class="text-center py-4">
+          <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Generation Form -->
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
+      <form id="generate-blog-form" class="space-y-6">
+        <div>
+          <label for="topic" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Blog Topic *
+          </label>
+          <input
+            type="text"
+            id="topic"
+            name="topic"
+            required
+            placeholder="e.g., Best AI Tools for Content Marketing"
+            class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            data-testid="blog-topic-input"
+          />
+        </div>
+
+        <div>
+          <label for="keywords" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Keywords (comma-separated)
+          </label>
+          <input
+            type="text"
+            id="keywords"
+            name="keywords"
+            placeholder="e.g., AI tools, content marketing, automation"
+            class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            data-testid="keywords-input"
+          />
+        </div>
+
+        <div>
+          <label for="tone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Tone
+          </label>
+          <select
+            id="tone"
+            name="tone"
+            class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            data-testid="tone-select"
+          >
+            <option value="professional">Professional</option>
+            <option value="casual">Casual</option>
+            <option value="technical">Technical</option>
+            <option value="friendly">Friendly</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="length" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Approximate Length
+          </label>
+          <select
+            id="length"
+            name="length"
+            class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            data-testid="length-select"
+          >
+            <option value="short">Short (500-800 words)</option>
+            <option value="medium" selected>Medium (800-1200 words)</option>
+            <option value="long">Long (1200-2000 words)</option>
+          </select>
+        </div>
+
+        <div id="form-message" class="hidden"></div>
+
+        <button
+          type="submit"
+          class="w-full px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-lg"
+          data-testid="generate-blog-btn"
+        >
+          Generate Blog Post
+        </button>
+      </form>
+    </div>
+
+    <!-- Generated Blog Preview -->
+    <div id="generated-blog" class="hidden mt-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+          Generated Blog Post
+        </h2>
+        <button
+          id="save-blog-btn"
+          class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+          data-testid="save-blog-btn"
+        >
+          Save to Drafts
+        </button>
+      </div>
+      <div id="blog-content" class="prose dark:prose-invert max-w-none">
+        <!-- Generated content will appear here -->
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  import { isAuthenticated } from '~/utils/auth';
+
+  // Check authentication
+  if (!isAuthenticated()) {
+    window.location.href = '/auth/login?redirect=/ai-blog-generator';
+  }
+
+  const API_BASE_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8001';
+  let generatedBlogData: any = null;
+
+  // Load blog topics
+  async function loadTopics() {
+    const topicsList = document.getElementById('topics-list');
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/ai/blog-topics`);
+      const data = await response.json();
+      
+      if (data.topics && data.topics.length > 0) {
+        topicsList.innerHTML = data.topics.map((topic: string) => `
+          <button 
+            class="topic-suggestion w-full text-left px-4 py-2 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-800 transition-colors text-gray-700 dark:text-gray-300"
+            data-topic="${topic}"
+          >
+            ${topic}
+          </button>
+        `).join('');
+
+        // Add click handlers for topic suggestions
+        document.querySelectorAll('.topic-suggestion').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const topic = (e.target as HTMLElement).dataset.topic;
+            if (topic) {
+              (document.getElementById('topic') as HTMLInputElement).value = topic;
+            }
+          });
+        });
+      } else {
+        topicsList.innerHTML = '<p class="text-gray-600 dark:text-gray-400">No suggestions available</p>';
+      }
+    } catch (error) {
+      topicsList.innerHTML = '<p class="text-gray-600 dark:text-gray-400">Failed to load suggestions</p>';
+    }
+  }
+
+  // Generate blog
+  const form = document.getElementById('generate-blog-form') as HTMLFormElement;
+  const messageDiv = document.getElementById('form-message');
+  const generatedBlogDiv = document.getElementById('generated-blog');
+  const blogContentDiv = document.getElementById('blog-content');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+    const topic = (document.getElementById('topic') as HTMLInputElement).value;
+    const keywords = (document.getElementById('keywords') as HTMLInputElement).value;
+    const tone = (document.getElementById('tone') as HTMLSelectElement).value;
+    const length = (document.getElementById('length') as HTMLSelectElement).value;
+    
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Generating... This may take a minute';
+    messageDiv.classList.add('hidden');
+    generatedBlogDiv.classList.add('hidden');
+
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${API_BASE_URL}/api/ai/generate-blog`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          topic,
+          keywords: keywords.split(',').map(k => k.trim()).filter(k => k),
+          tone,
+          length,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        generatedBlogData = data;
+        
+        blogContentDiv.innerHTML = `
+          <h1 class="text-3xl font-bold mb-4">${data.title}</h1>
+          <div class="text-gray-600 dark:text-gray-400 mb-6">
+            <p><strong>Excerpt:</strong> ${data.excerpt}</p>
+            ${data.seo_keywords ? `<p><strong>Keywords:</strong> ${data.seo_keywords}</p>` : ''}
+          </div>
+          <div class="blog-content">
+            ${data.content}
+          </div>
+        `;
+        
+        generatedBlogDiv.classList.remove('hidden');
+        messageDiv.className = 'p-4 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-lg';
+        messageDiv.textContent = 'Blog post generated successfully!';
+        messageDiv.classList.remove('hidden');
+      } else {
+        throw new Error('Failed to generate blog');
+      }
+    } catch (error: any) {
+      messageDiv.className = 'p-4 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded-lg';
+      messageDiv.textContent = error.message || 'Failed to generate blog post. Please try again.';
+      messageDiv.classList.remove('hidden');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Generate Blog Post';
+    }
+  });
+
+  // Save blog
+  const saveBlogBtn = document.getElementById('save-blog-btn');
+  saveBlogBtn?.addEventListener('click', async () => {
+    if (!generatedBlogData) return;
+
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${API_BASE_URL}/api/user/blogs`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(generatedBlogData),
+      });
+
+      if (response.ok) {
+        alert('Blog saved to drafts!');
+        window.location.href = '/user/dashboard';
+      } else {
+        throw new Error('Failed to save blog');
+      }
+    } catch (error) {
+      alert('Failed to save blog. Please try again.');
+    }
+  });
+
+  // Load topics on page load
+  loadTopics();
+</script>
