@@ -1,0 +1,103 @@
+---
+export interface Props {
+  contentSlug: string;
+  contentType: 'blog' | 'tool';
+  initialLikeCount?: number;
+  className?: string;
+}
+
+const { contentSlug, contentType, initialLikeCount = 0, className = '' } = Astro.props;
+const likeId = `like-${contentType}-${contentSlug}`;
+---
+
+<div class={`like-button-wrapper ${className}`} id={likeId}>
+  <button
+    class="like-button inline-flex items-center space-x-2 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:border-blue-500 dark:hover:border-blue-400 transition-all group"
+    data-testid="like-button"
+  >
+    <svg 
+      class="w-5 h-5 text-gray-500 dark:text-gray-400 group-hover:text-red-500 transition-colors" 
+      fill="none" 
+      stroke="currentColor" 
+      viewBox="0 0 24 24"
+    >
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+    </svg>
+    <span class="like-count text-sm font-medium text-gray-700 dark:text-gray-300" data-testid="like-count">
+      {initialLikeCount}
+    </span>
+  </button>
+  <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center auth-message hidden">
+    Login to like
+  </p>
+</div>
+
+<script define:vars={{ contentSlug, contentType }}>
+  const API_BASE_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8001';
+  const isAuthenticated = !!localStorage.getItem('auth_token');
+  
+  const likeButton = document.querySelector(`#like-${contentType}-${contentSlug} .like-button`) as HTMLButtonElement;
+  const likeCount = document.querySelector(`#like-${contentType}-${contentSlug} .like-count`);
+  const authMessage = document.querySelector(`#like-${contentType}-${contentSlug} .auth-message`);
+  const heartIcon = likeButton?.querySelector('svg');
+
+  if (!isAuthenticated && authMessage) {
+    authMessage.classList.remove('hidden');
+  }
+
+  if (likeButton) {
+    likeButton.addEventListener('click', async () => {
+      if (!isAuthenticated) {
+        window.location.href = '/auth/login';
+        return;
+      }
+
+      try {
+        const token = localStorage.getItem('auth_token');
+        const response = await fetch(`${API_BASE_URL}/api/${contentType}s/${contentSlug}/like`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          
+          // Update count
+          if (likeCount) {
+            likeCount.textContent = data.like_count.toString();
+          }
+
+          // Toggle heart icon fill
+          if (heartIcon) {
+            if (data.liked) {
+              heartIcon.setAttribute('fill', 'currentColor');
+              heartIcon.classList.add('text-red-500');
+              heartIcon.classList.remove('text-gray-500', 'dark:text-gray-400');
+            } else {
+              heartIcon.setAttribute('fill', 'none');
+              heartIcon.classList.remove('text-red-500');
+              heartIcon.classList.add('text-gray-500', 'dark:text-gray-400');
+            }
+          }
+
+          // Animate button
+          likeButton.classList.add('scale-110');
+          setTimeout(() => likeButton.classList.remove('scale-110'), 200);
+        }
+      } catch (error) {
+        console.error('Error toggling like:', error);
+      }
+    });
+  }
+</script>
+
+<style>
+  .like-button {
+    transition: transform 0.2s;
+  }
+  .like-button:active {
+    transform: scale(0.95);
+  }
+</style>
