@@ -28,12 +28,18 @@ const metadata = {
 
     <!-- Categories Grid -->
     <div id="categories-grid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Categories will be rendered here -->
+    </div>
+
+    <!-- Empty State -->
+    <div id="empty-state" class="hidden text-center py-12">
+      <p class="text-gray-500 dark:text-gray-400">No categories yet. Create your first category!</p>
     </div>
   </div>
 
   <!-- Create/Edit Category Modal -->
   <div id="category-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
       <div class="p-6">
         <div class="flex items-center justify-between mb-6">
           <h3 id="modal-title" class="text-2xl font-bold text-gray-900 dark:text-white">Add New Category</h3>
@@ -59,6 +65,28 @@ const metadata = {
             <textarea id="category-description" rows="3" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"></textarea>
           </div>
 
+          <!-- SEO Fields -->
+          <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+            <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">SEO Settings</h4>
+            
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">SEO Title</label>
+                <input type="text" id="category-seo-title" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500" />
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">SEO Description</label>
+                <textarea id="category-seo-description" rows="2" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"></textarea>
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">SEO Keywords</label>
+                <input type="text" id="category-seo-keywords" placeholder="keyword1, keyword2, keyword3" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500" />
+              </div>
+            </div>
+          </div>
+
           <div class="flex items-center justify-end space-x-4 pt-4 border-t border-gray-200 dark:border-gray-700">
             <button type="button" id="cancel-btn" class="px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600">
               Cancel
@@ -79,6 +107,7 @@ const metadata = {
 
   requireAdmin();
 
+  let allCategories: any[] = [];
   let editingCategoryId: string | null = null;
 
   async function init() {
@@ -89,41 +118,68 @@ const metadata = {
   async function loadCategories() {
     const loading = document.getElementById('loading')!;
     const grid = document.getElementById('categories-grid')!;
+    const emptyState = document.getElementById('empty-state')!;
     
     loading.classList.remove('hidden');
     grid.classList.add('hidden');
+    emptyState.classList.add('hidden');
 
     try {
-      const categories = await superAdminApi.categories.getAll();
+      allCategories = await superAdminApi.categories.getAll();
 
-      grid.innerHTML = categories.map((cat: any) => `
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6" data-testid="category-card-${cat.id}">
-          <div class="flex items-start justify-between mb-4">
-            <div class="flex-1">
-              <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">${cat.name}</h3>
-              <p class="text-sm text-gray-600 dark:text-gray-400">${cat.description || 'No description'}</p>
-            </div>
-          </div>
-          <div class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
-            <span class="text-sm text-gray-500 dark:text-gray-400">Slug: ${cat.slug}</span>
-            <div class="space-x-2">
-              <button onclick="window.editCategory('${cat.id}')" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm" data-testid="edit-category-${cat.id}">
-                Edit
-              </button>
-              <button onclick="window.deleteCategory('${cat.id}', '${cat.name}')" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-sm" data-testid="delete-category-${cat.id}">
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      `).join('');
+      if (allCategories.length === 0) {
+        emptyState.classList.remove('hidden');
+      } else {
+        renderCategories();
+        grid.classList.remove('hidden');
+      }
 
       loading.classList.add('hidden');
-      grid.classList.remove('hidden');
     } catch (error) {
       console.error('Error loading categories:', error);
       loading.classList.add('hidden');
     }
+  }
+
+  function renderCategories() {
+    const grid = document.getElementById('categories-grid')!;
+    
+    grid.innerHTML = allCategories.map(category => `
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow" data-testid="category-card-${category.id}">
+        <div class="flex items-start justify-between mb-3">
+          <div class="flex-1">
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">${category.name}</h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">${category.description || 'No description'}</p>
+            <div class="text-xs text-gray-500 dark:text-gray-500">
+              <span class="inline-block px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded">Slug: ${category.slug}</span>
+            </div>
+          </div>
+        </div>
+        
+        ${category.seo_title || category.seo_description ? `
+          <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div class="text-xs text-gray-500 dark:text-gray-500">
+              <div class="flex items-center space-x-2 mb-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span>SEO Optimized</span>
+              </div>
+            </div>
+          </div>
+        ` : ''}
+        
+        <div class="mt-4 flex items-center justify-end space-x-2">
+          <button onclick="window.editCategory('${category.id}')" class="px-3 py-1 text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300" data-testid="edit-category-${category.id}">
+            Edit
+          </button>
+          <button onclick="window.deleteCategory('${category.id}', '${category.name.replace(/'/g, "\\'")}')
+class="px-3 py-1 text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300" data-testid="delete-category-${category.id}">
+            Delete
+          </button>
+        </div>
+      </div>
+    `).join('');
   }
 
   function setupEventListeners() {
@@ -146,6 +202,9 @@ const metadata = {
       (document.getElementById('category-id') as HTMLInputElement).value = category.id;
       (document.getElementById('category-name') as HTMLInputElement).value = category.name;
       (document.getElementById('category-description') as HTMLTextAreaElement).value = category.description || '';
+      (document.getElementById('category-seo-title') as HTMLInputElement).value = category.seo_title || '';
+      (document.getElementById('category-seo-description') as HTMLTextAreaElement).value = category.seo_description || '';
+      (document.getElementById('category-seo-keywords') as HTMLInputElement).value = category.seo_keywords || '';
     }
 
     modal.classList.remove('hidden');
@@ -167,7 +226,10 @@ const metadata = {
     try {
       const categoryData = {
         name: (document.getElementById('category-name') as HTMLInputElement).value,
-        description: (document.getElementById('category-description') as HTMLTextAreaElement).value
+        description: (document.getElementById('category-description') as HTMLTextAreaElement).value,
+        seo_title: (document.getElementById('category-seo-title') as HTMLInputElement).value,
+        seo_description: (document.getElementById('category-seo-description') as HTMLTextAreaElement).value,
+        seo_keywords: (document.getElementById('category-seo-keywords') as HTMLInputElement).value,
       };
 
       if (editingCategoryId) {
@@ -188,18 +250,17 @@ const metadata = {
     }
   }
 
-  (window as any).editCategory = async function(categoryId: string) {
-    try {
-      const categories = await superAdminApi.categories.getAll();
-      const category = categories.find((c: any) => c.id === categoryId);
-      if (category) openCategoryModal(category);
-    } catch (error) {
-      console.error('Error loading category:', error);
+  (window as any).editCategory = function(categoryId: string) {
+    const category = allCategories.find(c => c.id === categoryId);
+    if (category) {
+      openCategoryModal(category);
     }
   };
 
   (window as any).deleteCategory = async function(categoryId: string, categoryName: string) {
-    if (!confirm(`Are you sure you want to delete "${categoryName}"? This action cannot be undone.`)) return;
+    if (!confirm(`Are you sure you want to delete "${categoryName}"? This action cannot be undone.`)) {
+      return;
+    }
 
     try {
       await superAdminApi.categories.delete(categoryId);
