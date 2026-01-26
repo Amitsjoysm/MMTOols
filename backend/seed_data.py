@@ -15,7 +15,7 @@ from models import (
 from auth import get_password_hash
 import uuid
 
-def create_seed_data():
+def create_seed_data(force_reseed=False):
     """Create comprehensive seed data"""
     print("🌱 Starting seed data creation...")
     
@@ -29,9 +29,8 @@ def create_seed_data():
         # Check if data already exists
         existing_users = db.query(User).count()
         if existing_users > 0:
-            print("⚠️  Database already has data. Skipping seed...")
-            response = input("Do you want to clear and reseed? (yes/no): ")
-            if response.lower() != 'yes':
+            if not force_reseed:
+                print("⚠️  Database already has data. Use --force to reseed.")
                 print("Seed cancelled.")
                 return
             # Clear existing data
