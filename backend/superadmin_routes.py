@@ -762,9 +762,10 @@ async def get_all_blogs_admin(
 @router.post("/api/superadmin/blogs")
 async def create_blog_admin(
     blog: BlogCreateAdmin,
+    current_superadmin: User = Depends(get_current_superadmin),
     db: Session = Depends(get_db)
 ):
-    """Create new blog - NO AUTH REQUIRED"""
+    """Create new blog"""
     
     # Generate slug
     slug = generate_slug(blog.title)
