@@ -852,9 +852,10 @@ async def update_blog_admin(
 @router.delete("/api/superadmin/blogs/{blog_id}")
 async def delete_blog_admin(
     blog_id: str,
+    current_superadmin: User = Depends(get_current_superadmin),
     db: Session = Depends(get_db)
 ):
-    """Delete blog - NO AUTH REQUIRED"""
+    """Delete blog"""
     
     blog = db.query(Blog).filter(Blog.id == blog_id).first()
     if not blog:
