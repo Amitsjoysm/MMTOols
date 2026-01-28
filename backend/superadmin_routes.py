@@ -809,9 +809,10 @@ async def create_blog_admin(
 async def update_blog_admin(
     blog_id: str,
     blog_update: BlogUpdateAdmin,
+    current_superadmin: User = Depends(get_current_superadmin),
     db: Session = Depends(get_db)
 ):
-    """Update blog - NO AUTH REQUIRED"""
+    """Update blog"""
     
     blog = db.query(Blog).filter(Blog.id == blog_id).first()
     if not blog:
