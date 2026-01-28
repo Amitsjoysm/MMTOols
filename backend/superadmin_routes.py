@@ -889,9 +889,10 @@ async def publish_blog_admin(
 @router.post("/api/superadmin/blogs/{blog_id}/unpublish")
 async def unpublish_blog_admin(
     blog_id: str,
+    current_superadmin: User = Depends(get_current_superadmin),
     db: Session = Depends(get_db)
 ):
-    """Unpublish blog - NO AUTH REQUIRED"""
+    """Unpublish blog"""
     
     blog = db.query(Blog).filter(Blog.id == blog_id).first()
     if not blog:
