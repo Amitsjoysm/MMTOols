@@ -11,13 +11,22 @@ const metadata = {
     <!-- Header with Actions -->
     <div class="flex items-center justify-between">
       <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Tools Management</h2>
-      <button
-        id="create-tool-btn"
-        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-        data-testid="create-tool-btn"
-      >
-        + Add New Tool
-      </button>
+      <div class="flex gap-3">
+        <button
+          id="bulk-upload-btn"
+          class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+          data-testid="bulk-upload-btn"
+        >
+          📤 Bulk Upload
+        </button>
+        <button
+          id="create-tool-btn"
+          class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          data-testid="create-tool-btn"
+        >
+          + Add New Tool
+        </button>
+      </div>
     </div>
 
     <!-- Filters -->
