@@ -207,6 +207,80 @@ const metadata = {
   </div>
 </AdminLayout>
 
+  <!-- Bulk Upload Modal -->
+  <div id="bulk-upload-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full">
+      <div class="p-6">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-2xl font-bold text-gray-900 dark:text-white">Bulk Upload Tools</h3>
+          <button id="close-bulk-modal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="space-y-6">
+          <!-- Instructions -->
+          <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <h4 class="font-semibold text-blue-900 dark:text-blue-100 mb-2">📋 Instructions</h4>
+            <ol class="list-decimal list-inside text-sm text-blue-800 dark:text-blue-200 space-y-1">
+              <li>Download the CSV template below</li>
+              <li>Fill in your tools data following the template format</li>
+              <li>Upload the completed CSV file</li>
+            </ol>
+          </div>
+
+          <!-- Download Template Button -->
+          <button
+            id="download-template-btn"
+            class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium border-2 border-dashed border-gray-300 dark:border-gray-600"
+          >
+            📥 Download CSV Template
+          </button>
+
+          <!-- Upload Form -->
+          <form id="bulk-upload-form" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Upload CSV File *
+              </label>
+              <input
+                type="file"
+                id="csv-file-input"
+                accept=".csv"
+                required
+                class="w-full px-4 py-2 rounded-lg border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              />
+              <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Only CSV files are accepted</p>
+            </div>
+
+            <!-- Upload Progress -->
+            <div id="upload-progress" class="hidden">
+              <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                <div id="progress-bar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+              </div>
+              <p id="progress-text" class="text-sm text-gray-600 dark:text-gray-400 mt-2 text-center"></p>
+            </div>
+
+            <!-- Results -->
+            <div id="upload-results" class="hidden space-y-3"></div>
+
+            <div class="flex items-center justify-end space-x-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <button type="button" id="cancel-bulk-btn" class="px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600">
+                Cancel
+              </button>
+              <button type="submit" id="upload-btn" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700" data-testid="upload-csv-btn">
+                Upload & Import
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
 <script>
   import { superAdminApi, categoriesApi } from '~/utils/api';
   import { requireAdmin } from '~/utils/auth';
