@@ -352,9 +352,10 @@ async def get_all_tools_admin(
     category: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
     search: Optional[str] = Query(None),
+    current_superadmin: User = Depends(get_current_superadmin),
     db: Session = Depends(get_db)
 ):
-    """Get all tools with admin privileges - NO AUTH REQUIRED"""
+    """Get all tools with admin privileges"""
     
     query = db.query(Tool).options(joinedload(Tool.categories))
     
@@ -396,9 +397,10 @@ async def get_all_tools_admin(
 @router.post("/api/superadmin/tools")
 async def create_tool(
     tool: ToolCreate,
+    current_superadmin: User = Depends(get_current_superadmin),
     db: Session = Depends(get_db)
 ):
-    """Create new tool - NO AUTH REQUIRED"""
+    """Create new tool"""
     
     # Validate URL format if provided
     if tool.url and not validate_url_format(tool.url):
