@@ -711,9 +711,10 @@ async def get_all_blogs_admin(
     status: Optional[str] = Query(None),
     author_id: Optional[str] = Query(None),
     search: Optional[str] = Query(None),
+    current_superadmin: User = Depends(get_current_superadmin),
     db: Session = Depends(get_db)
 ):
-    """Get all blogs with admin privileges - NO AUTH REQUIRED"""
+    """Get all blogs with admin privileges"""
     
     query = db.query(Blog).options(joinedload(Blog.author))
     
