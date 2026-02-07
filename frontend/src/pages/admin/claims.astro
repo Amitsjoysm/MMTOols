@@ -1,0 +1,380 @@
+---
+import AdminLayout from '~/layouts/AdminLayout.astro';
+
+const title = 'Tool Claims Management';
+const description = 'Manage tool ownership claim requests';
+---
+
+<AdminLayout title={title} description={description}>
+  <div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-8">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Tool Claims Management</h1>
+      <div class="flex gap-2">
+        <button
+          id="refreshBtn"
+          class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+        >
+          Refresh
+        </button>
+      </div>
+    </div>
+
+    <!-- Filter tabs -->
+    <div class="mb-6 border-b border-gray-200 dark:border-gray-700">
+      <ul class="flex flex-wrap -mb-px text-sm font-medium text-center">
+        <li class="mr-2">
+          <button
+            data-filter="pending"
+            class="filter-tab inline-block p-4 border-b-2 border-blue-600 text-blue-600 rounded-t-lg active"
+          >
+            Pending <span id="pending-count" class="ml-1 bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs">0</span>
+          </button>
+        </li>
+        <li class="mr-2">
+          <button
+            data-filter="approved"
+            class="filter-tab inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300"
+          >
+            Approved <span id="approved-count" class="ml-1 bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs">0</span>
+          </button>
+        </li>
+        <li class="mr-2">
+          <button
+            data-filter="rejected"
+            class="filter-tab inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300"
+          >
+            Rejected <span id="rejected-count" class="ml-1 bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs">0</span>
+          </button>
+        </li>
+        <li class="mr-2">
+          <button
+            data-filter="all"
+            class="filter-tab inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300"
+          >
+            All
+          </button>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Loading state -->
+    <div id="loading" class="flex justify-center items-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>
+
+    <!-- Error state -->
+    <div id="error" class="hidden bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-lg p-4 mb-6">
+      <p class="text-red-800 dark:text-red-200" id="error-message"></p>
+    </div>
+
+    <!-- Claims list -->
+    <div id="claims-container" class="hidden space-y-4">
+      <!-- Claims will be dynamically inserted here -->
+    </div>
+
+    <!-- Empty state -->
+    <div id="empty-state" class="hidden text-center py-12">
+      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+      </svg>
+      <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No claims found</h3>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">No tool claims match your filter criteria.</p>
+    </div>
+  </div>
+
+  <!-- Rejection Modal -->
+  <div id="rejection-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
+      <div class="mt-3">
+        <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white mb-4">
+          Reject Claim Request
+        </h3>
+        <div class="mt-2 px-7 py-3">
+          <label for="rejection-reason" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Reason for Rejection (Optional)
+          </label>
+          <textarea
+            id="rejection-reason"
+            rows="4"
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+            placeholder="Provide a reason for rejection..."
+          ></textarea>
+        </div>
+        <div class="flex gap-3 px-4 py-3">
+          <button
+            id="confirm-reject"
+            class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+          >
+            Reject
+          </button>
+          <button
+            id="cancel-reject"
+            class="flex-1 px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8001';
+    let currentFilter = 'pending';
+    let claims = [];
+    let currentToolId = null;
+
+    // Get auth token
+    function getAuthToken() {
+      return localStorage.getItem('token');
+    }
+
+    // Fetch claims
+    async function fetchClaims(filter = 'pending') {
+      const token = getAuthToken();
+      if (!token) {
+        window.location.href = '/auth/login';
+        return;
+      }
+
+      showLoading();
+
+      try {
+        const response = await fetch(`${API_URL}/api/admin/tool-claims?status_filter=${filter}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.status === 401) {
+          window.location.href = '/auth/login';
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch claims');
+        }
+
+        claims = await response.json();
+        updateCounts();
+        renderClaims();
+      } catch (error) {
+        showError(error.message);
+      }
+    }
+
+    // Update counts
+    function updateCounts() {
+      const pending = claims.filter(c => c.claim_status === 'pending').length;
+      const approved = claims.filter(c => c.claim_status === 'approved').length;
+      const rejected = claims.filter(c => c.claim_status === 'rejected').length;
+
+      document.getElementById('pending-count').textContent = pending;
+      document.getElementById('approved-count').textContent = approved;
+      document.getElementById('rejected-count').textContent = rejected;
+    }
+
+    // Render claims
+    function renderClaims() {
+      const container = document.getElementById('claims-container');
+      const emptyState = document.getElementById('empty-state');
+      const loading = document.getElementById('loading');
+
+      loading.classList.add('hidden');
+
+      if (claims.length === 0) {
+        container.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      container.classList.remove('hidden');
+      
+      container.innerHTML = claims.map(claim => `
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
+          <div class="flex items-start justify-between">
+            <div class="flex items-start space-x-4 flex-1">
+              ${claim.logo_url ? `
+                <img src="${claim.logo_url}" alt="${claim.name}" class="w-16 h-16 rounded-lg object-cover" />
+              ` : `
+                <div class="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                  <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+              `}
+              <div class="flex-1">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  ${claim.name}
+                </h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                  ${claim.short_description || 'No description'}
+                </p>
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span class="text-gray-500 dark:text-gray-400">Requested by:</span>
+                    <p class="font-medium text-gray-900 dark:text-white">
+                      ${claim.claimed_by?.full_name || claim.claimed_by?.username}
+                    </p>
+                    <p class="text-xs text-gray-500">${claim.claimed_by?.email}</p>
+                  </div>
+                  <div>
+                    <span class="text-gray-500 dark:text-gray-400">Request Date:</span>
+                    <p class="font-medium text-gray-900 dark:text-white">
+                      ${new Date(claim.claim_request_date).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+                ${claim.claim_rejection_reason ? `
+                  <div class="mt-3 p-3 bg-red-50 dark:bg-red-900 rounded-lg">
+                    <p class="text-sm text-red-800 dark:text-red-200">
+                      <strong>Rejection Reason:</strong> ${claim.claim_rejection_reason}
+                    </p>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+            <div class="flex flex-col gap-2 ml-4">
+              <span class="px-3 py-1 text-xs font-semibold rounded-full ${
+                claim.claim_status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                claim.claim_status === 'approved' ? 'bg-green-100 text-green-800' :
+                'bg-red-100 text-red-800'
+              }">
+                ${claim.claim_status.toUpperCase()}
+              </span>
+              ${claim.claim_status === 'pending' ? `
+                <button
+                  onclick="approveClaim('${claim.id}')"
+                  class="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition"
+                  data-testid="approve-claim-btn-${claim.id}"
+                >
+                  ✓ Approve
+                </button>
+                <button
+                  onclick="openRejectModal('${claim.id}')"
+                  class="px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition"
+                  data-testid="reject-claim-btn-${claim.id}"
+                >
+                  ✗ Reject
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Approve claim
+    window.approveClaim = async function(toolId) {
+      const token = getAuthToken();
+      if (!token) return;
+
+      try {
+        const response = await fetch(`${API_URL}/api/admin/tool-claims/${toolId}/approve`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to approve claim');
+        }
+
+        alert('Claim approved successfully!');
+        fetchClaims(currentFilter);
+      } catch (error) {
+        alert('Error: ' + error.message);
+      }
+    };
+
+    // Open reject modal
+    window.openRejectModal = function(toolId) {
+      currentToolId = toolId;
+      document.getElementById('rejection-modal').classList.remove('hidden');
+      document.getElementById('rejection-reason').value = '';
+    };
+
+    // Close reject modal
+    document.getElementById('cancel-reject').addEventListener('click', () => {
+      document.getElementById('rejection-modal').classList.add('hidden');
+      currentToolId = null;
+    });
+
+    // Confirm rejection
+    document.getElementById('confirm-reject').addEventListener('click', async () => {
+      const token = getAuthToken();
+      if (!token || !currentToolId) return;
+
+      const reason = document.getElementById('rejection-reason').value.trim();
+
+      try {
+        const response = await fetch(`${API_URL}/api/admin/tool-claims/${currentToolId}/reject`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            approved: false,
+            rejection_reason: reason || 'No reason provided'
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to reject claim');
+        }
+
+        alert('Claim rejected successfully!');
+        document.getElementById('rejection-modal').classList.add('hidden');
+        currentToolId = null;
+        fetchClaims(currentFilter);
+      } catch (error) {
+        alert('Error: ' + error.message);
+      }
+    });
+
+    // Filter tabs
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        // Update active tab
+        document.querySelectorAll('.filter-tab').forEach(t => {
+          t.classList.remove('border-blue-600', 'text-blue-600', 'active');
+          t.classList.add('border-transparent');
+        });
+        e.target.classList.add('border-blue-600', 'text-blue-600', 'active');
+        e.target.classList.remove('border-transparent');
+
+        // Fetch claims
+        currentFilter = e.target.dataset.filter;
+        fetchClaims(currentFilter);
+      });
+    });
+
+    // Refresh button
+    document.getElementById('refreshBtn').addEventListener('click', () => {
+      fetchClaims(currentFilter);
+    });
+
+    // Show loading
+    function showLoading() {
+      document.getElementById('loading').classList.remove('hidden');
+      document.getElementById('claims-container').classList.add('hidden');
+      document.getElementById('empty-state').classList.add('hidden');
+      document.getElementById('error').classList.add('hidden');
+    }
+
+    // Show error
+    function showError(message) {
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('error').classList.remove('hidden');
+      document.getElementById('error-message').textContent = message;
+    }
+
+    // Initial load
+    fetchClaims('pending');
+  </script>
+</AdminLayout>
