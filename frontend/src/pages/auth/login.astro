@@ -142,10 +142,17 @@ const metadata = {
           
           // Store auth token and user data
           localStorage.setItem('auth_token', response.access_token);
+          localStorage.setItem('token', response.access_token); // Also store as 'token' for compatibility
           localStorage.setItem('user_data', JSON.stringify(response.user));
           
-          // Redirect to admin dashboard
-          window.location.href = '/admin';
+          // Redirect based on user role
+          const userRole = response.user.role;
+          if (userRole === 'superadmin' || userRole === 'admin') {
+            window.location.href = '/admin';
+          } else {
+            // Regular users go to user dashboard
+            window.location.href = '/user/claimed-tools';
+          }
         } catch (error: any) {
           console.error('Login error:', error);
           errorMessage.textContent = error.message || 'Invalid email or password. Please try again.';
