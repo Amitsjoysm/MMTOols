@@ -3,10 +3,17 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from starlette.middleware.gzip import GZipMiddleware
 from sqlalchemy import create_engine, text
 from database import get_db, engine
 from models import Base
 from scheduler import start_trending_updater, start_seo_updater
+from security_config import (
+    SecurityHeadersMiddleware, 
+    RateLimitMiddleware, 
+    RequestSizeLimitMiddleware,
+    AuditLogger
+)
 import os
 import logging
 import traceback
