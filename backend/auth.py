@@ -2,11 +2,12 @@ from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from fastapi import HTTPException, status, Depends
+from fastapi import HTTPException, status, Depends, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from database import get_db
 from models import User
+from ip_whitelist_middleware import require_superadmin_ip
 import os
 
 # Configuration
@@ -71,7 +72,15 @@ def get_current_admin(current_user: User = Depends(get_current_user)):
         )
     return current_user
 
-def get_current_superadmin(current_user: User = Depends(get_current_user)):
+def get_current_superadmin(
+    current_user: User = Depends(get_current_user),
+    request: Request = None,
+    ip_check: bool = Depends(require_superadmin_ip)
+):
+    """
+    Verify SuperAdmin role and IP whitelist
+    IP check is enforced for all SuperAdmin routes
+    """
     if current_user.role != "superadmin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
