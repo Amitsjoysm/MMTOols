@@ -133,6 +133,25 @@ app.add_middleware(
     expose_headers=["*"]
 )
 
+# Add security middlewares
+logger.info("Adding security middlewares...")
+
+# 1. GZip compression for better performance
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+# 2. Request size limit to prevent memory exhaustion
+max_request_size = int(os.getenv("MAX_REQUEST_SIZE_MB", "10"))
+app.add_middleware(RequestSizeLimitMiddleware, max_size_mb=max_request_size)
+
+# 3. Rate limiting to prevent abuse
+rate_limit = int(os.getenv("RATE_LIMIT_REQUESTS_PER_MINUTE", "100"))
+app.add_middleware(RateLimitMiddleware, requests_per_minute=rate_limit)
+
+# 4. Security headers
+app.add_middleware(SecurityHeadersMiddleware)
+
+logger.info(f"Security configured: Rate Limit={rate_limit} req/min, Max Request Size={max_request_size}MB")
+
 # Create database tables
 Base.metadata.create_all(bind=engine)
 
