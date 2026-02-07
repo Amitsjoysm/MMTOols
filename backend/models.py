@@ -102,12 +102,20 @@ class Tool(Base):
     started_on = Column(String)  # Founded date
     logo_thumbnail_url = Column(String)  # Google Drive thumbnail URL
     
+    # Tool claiming fields
+    claimed_by_user_id = Column(String, ForeignKey('users.id'), nullable=True)
+    claim_status = Column(String, default="unclaimed")  # unclaimed, pending, approved, rejected
+    claim_request_date = Column(DateTime, nullable=True)
+    claim_approved_date = Column(DateTime, nullable=True)
+    claim_rejection_reason = Column(Text, nullable=True)
+    
     # Relationships
     categories = relationship("Category", secondary=tool_categories, back_populates="tools")
     reviews = relationship("Review", back_populates="tool")
     favorited_by = relationship("User", secondary=user_tool_favorites, back_populates="favorite_tools")
     comments = relationship("ToolComment", back_populates="tool", cascade="all, delete-orphan")
     likes = relationship("ToolLike", back_populates="tool", cascade="all, delete-orphan")
+    claimed_by = relationship("User", foreign_keys=[claimed_by_user_id])
 
 class Review(Base):
     __tablename__ = "reviews"
