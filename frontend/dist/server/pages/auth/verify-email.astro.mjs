@@ -1,6 +1,6 @@
-import { e as createAstro, c as createComponent, a as renderTemplate, h as defineScriptVars, r as renderComponent, m as maybeRenderHead } from '../../chunks/astro/server_CiGCQnlW.mjs';
+import { f as createAstro, c as createComponent, a as renderTemplate, h as defineScriptVars, r as renderComponent, m as maybeRenderHead } from '../../chunks/astro/server_Chl_MonH.mjs';
 import 'piccolore';
-import { $ as $$PageLayout } from '../../chunks/PageLayout_BPU-MuxB.mjs';
+import { $ as $$PageLayout } from '../../chunks/PageLayout_BLdQrLIn.mjs';
 export { renderers } from '../../renderers.mjs';
 
 var __freeze = Object.freeze;

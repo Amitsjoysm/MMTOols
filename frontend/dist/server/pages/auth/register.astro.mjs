@@ -1,4 +1,4 @@
-import { c as createComponent, b as addAttribute, f as renderHead, d as renderScript, a as renderTemplate } from '../../chunks/astro/server_CiGCQnlW.mjs';
+import { c as createComponent, b as addAttribute, e as renderHead, d as renderScript, a as renderTemplate } from '../../chunks/astro/server_Chl_MonH.mjs';
 import 'piccolore';
 import 'clsx';
 /* empty css                                        */
@@ -6,8 +6,8 @@ export { renderers } from '../../renderers.mjs';
 
 const $$Register = createComponent(async ($$result, $$props, $$slots) => {
   const metadata = {
-    title: "Register - MarketMindAI Admin",
-    description: "Create an account to access the MarketMindAI admin dashboard"
+    title: "Sign Up - MarketMindAI",
+    description: "Create your free MarketMindAI account"
   };
   return renderTemplate`<html lang="en" class="motion-safe:scroll-smooth 2xl:text-[20px]"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${metadata.title}</title><meta name="description"${addAttribute(metadata.description, "content")}><meta name="robots" content="noindex, nofollow">${renderHead()}</head> <body class="antialiased bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 min-h-screen flex items-center justify-center"> <div class="w-full max-w-md px-4 py-8"> <!-- Logo and Header --> <div class="text-center mb-8"> <a href="/" class="inline-block mb-4"> <div class="flex items-center justify-center space-x-2"> <svg class="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path> </svg> <span class="text-2xl font-bold text-gray-900 dark:text-white">MarketMindAI</span> </div> </a> <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">Create Account</h1> <p class="text-gray-600 dark:text-gray-400">Join MarketMindAI today</p> </div> <!-- Register Form --> <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8"> <form id="register-form" class="space-y-6"> <!-- Full Name --> <div> <label for="full_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
 Full Name
