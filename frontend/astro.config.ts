@@ -33,6 +33,16 @@ export default defineConfig({
     port: 3000,
     host: true
   },
+  vite: {
+    server: {
+      allowedHosts: ['ai-tooltracker.preview.emergentagent.com', 'localhost', '127.0.0.1']
+    },
+    resolve: {
+      alias: {
+        '~': path.resolve(__dirname, './src'),
+      },
+    },
+  },
   build: {
     inlineStylesheets: 'auto',
   },
