@@ -1,0 +1,71 @@
+<!-- Auth Button Component -->
+<!-- This script runs on every page to update the auth button based on login status -->
+
+<script>
+  // Function to check if user is logged in
+  function checkAuthStatus() {
+    const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
+    const userData = localStorage.getItem('user_data');
+    
+    if (!token || !userData) {
+      return null;
+    }
+    
+    try {
+      const user = JSON.parse(userData);
+      return user;
+    } catch (e) {
+      return null;
+    }
+  }
+  
+  // Update the auth button in header
+  function updateAuthButton() {
+    const user = checkAuthStatus();
+    const authButton = document.querySelector('[id="auth-button"]') || 
+                       document.querySelector('a[href="/auth/login"]');
+    
+    if (!authButton) return;
+    
+    if (user) {
+      // User is logged in - show appropriate dashboard link
+      const role = user.role;
+      
+      if (role === 'superadmin' || role === 'admin') {
+        authButton.textContent = 'Admin Dashboard';
+        authButton.setAttribute('href', '/admin');
+      } else {
+        authButton.textContent = 'My Dashboard';
+        authButton.setAttribute('href', '/user/claimed-tools');
+      }
+      
+      // Add logout functionality
+      authButton.addEventListener('click', (e) => {
+        if (e.shiftKey) {
+          // Shift+Click to logout
+          e.preventDefault();
+          if (confirm('Logout?')) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user_data');
+            window.location.href = '/';
+          }
+        }
+      });
+    } else {
+      // User is not logged in - show login button
+      authButton.textContent = 'Login';
+      authButton.setAttribute('href', '/auth/login');
+    }
+  }
+  
+  // Run when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', updateAuthButton);
+  } else {
+    updateAuthButton();
+  }
+  
+  // Also update when returning to page
+  window.addEventListener('pageshow', updateAuthButton);
+</script>
