@@ -2,7 +2,53 @@
 import { Icon } from 'astro-icon/components';
 ---
 
-<span class="self-center ml-2 rtl:ml-0 rtl:mr-2 text-2xl md:text-xl font-bold text-gray-900 dark:text-white whitespace-nowrap flex items-center">
-  <Icon name="tabler:cloud" class="w-8 h-8 mr-2 text-blue-600" />
-  <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-cyan-600">Tech</span><span class="text-gray-900 dark:text-white">Resona</span>
+<span class="self-center ml-2 rtl:ml-0 rtl:mr-2 text-2xl md:text-xl font-bold text-gray-900 dark:text-white whitespace-nowrap flex items-center" id="site-logo-container">
+  <Icon name="tabler:chart-bar" class="w-8 h-8 mr-2 text-blue-600" />
+  <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">Market</span><span class="text-gray-900 dark:text-white">MindAI</span>
 </span>
+
+<script>
+  // Dynamic logo loader from settings
+  async function loadSiteLogo() {
+    try {
+      // Get API base URL dynamically
+      function getApiBaseUrl() {
+        if (typeof window !== 'undefined') {
+          const currentOrigin = window.location.origin;
+          if (currentOrigin.includes('preview.app.github.dev') || 
+              currentOrigin.includes('github.dev') ||
+              currentOrigin.includes('preview.emergentagent.com')) {
+            return currentOrigin.replace(':3000', ':8001').replace('3000-', '8001-');
+          }
+        }
+        return 'http://localhost:8001';
+      }
+      
+      const API_URL = getApiBaseUrl();
+      const response = await fetch(`${API_URL}/api/site-settings/logo`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.logo_url) {
+          // Replace all logo containers with the custom logo
+          const logoContainers = document.querySelectorAll('#site-logo-container, .site-logo-container');
+          logoContainers.forEach(container => {
+            container.innerHTML = `
+              <img src="${data.logo_url}" alt="${data.site_name || 'MarketMindAI'}" class="h-8 md:h-10 w-auto mr-2" />
+              <span class="text-gray-900 dark:text-white">${data.site_name || 'MarketMindAI'}</span>
+            `;
+          });
+        }
+      }
+    } catch (error) {
+      // Use default logo on error - no console spam
+    }
+  }
+  
+  // Load on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadSiteLogo);
+  } else {
+    loadSiteLogo();
+  }
+</script>
