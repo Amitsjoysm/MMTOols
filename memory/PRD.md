@@ -12,7 +12,7 @@ Build a full-featured web application named "MarketMindAI" - a comprehensive dir
    - Access an AI tools comparison/recommender.
    - Rate, review, and like tools and blogs.
 4. **Admin Features:** Users with an 'admin' role should be able to claim listed tools from a pending queue and manage their content pages.
-5. **SuperAdmin Features:** Users with a 'superadmin' role should have full CRUD capabilities over Users, Roles, Tools, Blogs, and Categories.
+5. **SuperAdmin Features:** Users with a 'superadmin' role should have full CRUD capabilities over Users, Roles, Tools, Blogs, and Categories. **They can also manage site branding including logo.**
 6. **Access Control:** All pages, except for public tool/blog listings, should require authentication. SuperAdmin access must be restricted by IP.
 7. **Scalability:** The application should be designed to handle up to 2 million users.
 
@@ -29,6 +29,7 @@ Build a full-featured web application named "MarketMindAI" - a comprehensive dir
 - **blogs:** {id, title, slug, content, author_id, is_published, json_ld}
 - **reviews:** {id, tool_id, blog_id, user_id, rating, comment}
 - **likes:** {id, tool_id, blog_id, user_id}
+- **site_settings:** {id, key, value, description} - For logo and branding
 
 ## What's Been Implemented (as of December 2025)
 
@@ -46,6 +47,11 @@ Build a full-featured web application named "MarketMindAI" - a comprehensive dir
   - [x] Compare Tools page login gate for unauthenticated users
   - [x] Intercept "Compare Tools" navigation link for auth check
   - [x] Fixed API URL configuration across all pages (dynamic URL detection for preview environments)
+- [x] **Branding Update (December 9, 2025):**
+  - [x] Replaced "TechResona" branding with "MarketMindAI" across the site
+  - [x] Created SuperAdmin endpoint for logo management (`/api/superadmin/site-settings/logo`)
+  - [x] Created Admin UI for site settings (`/admin/site-settings`)
+  - [x] Dynamic logo loading in navbar via `/api/site-settings/logo` public endpoint
 
 ### Test Credentials
 - **Superadmin:** `superadmin@marketmindai.com` / `superadmin123`
@@ -81,6 +87,7 @@ Build a full-featured web application named "MarketMindAI" - a comprehensive dir
 │   ├── superadmin_routes.py  # API for SuperAdmin actions
 │   ├── admin_routes.py       # API for Admin actions
 │   ├── tool_claim_routes.py  # API for tool claiming
+│   ├── site_settings_routes.py # API for logo and site settings
 │   └── user_interaction_routes.py # API for likes/reviews
 ├── frontend/
 │   └── src/
@@ -88,13 +95,14 @@ Build a full-featured web application named "MarketMindAI" - a comprehensive dir
 │       │   ├── common/
 │       │   │   ├── AuthButton.astro       # Dynamic login/dashboard button + My Account dropdown
 │       │   │   └── AdminProtection.astro  # Backend API-based admin route guard
+│       │   ├── Logo.astro                 # Dynamic logo component
 │       ├── layouts/
 │       │   ├── PageLayout.astro      # General page layout
 │       │   └── AdminLayout.astro     # Admin section layout
 │       ├── pages/
 │       │   ├── index.astro           # Home page
 │       │   ├── auth/                 # User login/register pages
-│       │   ├── admin/                # Admin login/claims pages
+│       │   ├── admin/                # Admin login/claims/site-settings pages
 │       │   ├── tools/compare.astro   # Tool comparison with login gate
 │       │   └── user/                 # User blog management pages
 │       ├── utils/
@@ -110,3 +118,6 @@ Build a full-featured web application named "MarketMindAI" - a comprehensive dir
 - `/api/user/blogs`: CRUD API for user blog management
 - `/api/admin/claims`: API for admins to manage tool claim requests
 - `/api/superadmin/users`: API for superadmins to manage all users
+- `/api/site-settings/logo`: Public endpoint to get site logo
+- `/api/superadmin/site-settings/logo`: SuperAdmin endpoint to update/upload logo
+- `/api/superadmin/site-settings/name`: SuperAdmin endpoint to update site name
