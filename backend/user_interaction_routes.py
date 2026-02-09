@@ -220,10 +220,9 @@ async def get_my_tool_review(
         user_name=current_user.full_name or current_user.username,
         rating=review.rating,
         title=review.title,
-        comment=review.comment,
-        pros=review.pros,
-        cons=review.cons,
-        helpful_count=review.helpful_count,
+        content=review.content,
+        pros=review.pros or [],
+        cons=review.cons or [],
         created_at=review.created_at,
         updated_at=review.updated_at
     )
