@@ -38,10 +38,9 @@ class ReviewResponse(BaseModel):
     user_name: str
     rating: int
     title: str
-    comment: str
-    pros: Optional[str]
-    cons: Optional[str]
-    helpful_count: int
+    content: str
+    pros: Optional[List[str]]
+    cons: Optional[List[str]]
     created_at: datetime
     updated_at: datetime
 
