@@ -25,9 +25,9 @@ class ReviewCreate(BaseModel):
     tool_id: str
     rating: int  # 1-5
     title: str
-    comment: str
-    pros: Optional[str] = None
-    cons: Optional[str] = None
+    content: str
+    pros: Optional[List[str]] = None
+    cons: Optional[List[str]] = None
 
 
 class ReviewResponse(BaseModel):
