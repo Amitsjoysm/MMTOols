@@ -593,14 +593,34 @@ function getPricingClass(pricingType: string): string {
       
       const title = (document.getElementById('review-title') as HTMLInputElement)?.value;
       const content = (document.getElementById('review-content') as HTMLTextAreaElement)?.value;
+      const prosText = (document.getElementById('review-pros') as HTMLTextAreaElement)?.value;
+      const consText = (document.getElementById('review-cons') as HTMLTextAreaElement)?.value;
+      
+      // Convert pros/cons from text to array
+      const pros = prosText ? prosText.split('\n').map(p => p.trim()).filter(p => p.length > 0) : [];
+      const cons = consText ? consText.split('\n').map(c => c.trim()).filter(c => c.length > 0) : [];
       
       try {
-        await toolsApi.createReview({
-          tool_id: toolId,
-          rating: selectedRating,
-          title,
-          content
+        const response = await fetch(`${import.meta.env.PUBLIC_API_URL || 'http://localhost:8001'}/api/user/tools/${toolId}/review`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+          },
+          body: JSON.stringify({
+            tool_id: toolId,
+            rating: selectedRating,
+            title,
+            content,
+            pros,
+            cons
+          })
         });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.detail || 'Failed to submit review');
+        }
         
         modal.classList.add('hidden');
         reviewForm.reset();
