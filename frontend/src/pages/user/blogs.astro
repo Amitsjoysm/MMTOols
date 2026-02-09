@@ -1,0 +1,341 @@
+---
+import PageLayout from '~/layouts/PageLayout.astro';
+
+const metadata = {
+  title: 'My Blogs - MarketMindAI',
+  description: 'Manage your blog articles',
+};
+---
+
+<PageLayout metadata={metadata}>
+  <div class="container mx-auto px-4 py-12 max-w-7xl">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+      <div>
+        <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2" data-testid="page-title">
+          My Blogs
+        </h1>
+        <p class="text-gray-600 dark:text-gray-400">
+          Create and manage your blog articles with automatic SEO optimization
+        </p>
+      </div>
+      <a
+        href="/user/blogs/create"
+        class="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition shadow-lg"
+        data-testid="create-blog-btn"
+      >
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Create New Blog
+      </a>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="mb-6 border-b border-gray-200 dark:border-gray-700">
+      <ul class="flex flex-wrap -mb-px text-sm font-medium text-center">
+        <li class="mr-2">
+          <button
+            data-filter="all"
+            class="filter-tab inline-block p-4 border-b-2 border-blue-600 text-blue-600 rounded-t-lg active"
+          >
+            All <span id="all-count" class="ml-1 bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs">0</span>
+          </button>
+        </li>
+        <li class="mr-2">
+          <button
+            data-filter="draft"
+            class="filter-tab inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300"
+          >
+            Drafts <span id="draft-count" class="ml-1 bg-gray-100 text-gray-800 px-2 py-0.5 rounded-full text-xs">0</span>
+          </button>
+        </li>
+        <li class="mr-2">
+          <button
+            data-filter="published"
+            class="filter-tab inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300"
+          >
+            Published <span id="published-count" class="ml-1 bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs">0</span>
+          </button>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading" class="flex justify-center items-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>
+
+    <!-- Error State -->
+    <div id="error" class="hidden bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-lg p-4 mb-6">
+      <p class="text-red-800 dark:text-red-200" id="error-message"></p>
+    </div>
+
+    <!-- Blogs Grid -->
+    <div id="blogs-container" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Blogs will be dynamically inserted here -->
+    </div>
+
+    <!-- Empty State -->
+    <div id="empty-state" class="hidden text-center py-12">
+      <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+      <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-white">No blogs yet</h3>
+      <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+        Get started by creating your first blog article with automatic SEO optimization.
+      </p>
+      <a
+        href="/user/blogs/create"
+        class="mt-6 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+      >
+        Create Your First Blog
+      </a>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8001';
+    let currentFilter = 'all';
+    let blogs = [];
+
+    function getAuthToken() {
+      return localStorage.getItem('token') || localStorage.getItem('auth_token');
+    }
+
+    async function fetchBlogs() {
+      const token = getAuthToken();
+      if (!token) {
+        window.location.href = '/auth/login';
+        return;
+      }
+
+      showLoading();
+
+      try {
+        const response = await fetch(`${API_URL}/api/user/blogs`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.status === 401) {
+          window.location.href = '/auth/login';
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch blogs');
+        }
+
+        blogs = await response.json();
+        updateCounts();
+        renderBlogs();
+      } catch (error) {
+        showError(error.message);
+      }
+    }
+
+    function updateCounts() {
+      const all = blogs.length;
+      const draft = blogs.filter(b => b.status === 'draft').length;
+      const published = blogs.filter(b => b.status === 'published').length;
+
+      document.getElementById('all-count').textContent = all;
+      document.getElementById('draft-count').textContent = draft;
+      document.getElementById('published-count').textContent = published;
+    }
+
+    function renderBlogs() {
+      const container = document.getElementById('blogs-container');
+      const emptyState = document.getElementById('empty-state');
+      const loading = document.getElementById('loading');
+
+      loading.classList.add('hidden');
+
+      let filteredBlogs = blogs;
+      if (currentFilter !== 'all') {
+        filteredBlogs = blogs.filter(b => b.status === currentFilter);
+      }
+
+      if (filteredBlogs.length === 0) {
+        container.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      container.classList.remove('hidden');
+      
+      container.innerHTML = filteredBlogs.map(blog => `
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden border border-gray-200 dark:border-gray-700 hover:shadow-lg transition" data-testid="blog-card">
+          <div class="h-48 bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+            ${blog.featured_image ? `
+              <img src="${blog.featured_image}" alt="${blog.title}" class="w-full h-full object-cover" />
+            ` : `
+              <svg class="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            `}
+          </div>
+          <div class="p-6">
+            <div class="flex items-center justify-between mb-2">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                blog.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+              }">
+                ${blog.status === 'published' ? '✓ Published' : '📝 Draft'}
+              </span>
+              ${blog.seo_title ? `
+                <span class="text-xs text-green-600 dark:text-green-400" title="SEO Optimized">
+                  ✓ SEO
+                </span>
+              ` : ''}
+            </div>
+            
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
+              ${blog.title}
+            </h3>
+            
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">
+              ${blog.excerpt || blog.content?.substring(0, 120) + '...' || 'No description'}
+            </p>
+
+            <div class="flex items-center text-xs text-gray-500 dark:text-gray-400 mb-4">
+              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              ${new Date(blog.created_at).toLocaleDateString()}
+              ${blog.published_at ? `
+                <span class="ml-3">Published: ${new Date(blog.published_at).toLocaleDateString()}</span>
+              ` : ''}
+            </div>
+
+            <div class="flex gap-2">
+              <a
+                href="/user/blogs/edit/${blog.id}"
+                class="flex-1 text-center px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition"
+                data-testid="edit-blog-btn"
+              >
+                Edit
+              </a>
+              ${blog.status === 'draft' ? `
+                <button
+                  onclick="publishBlog('${blog.id}')"
+                  class="flex-1 px-3 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition"
+                  data-testid="publish-blog-btn"
+                >
+                  Publish
+                </button>
+              ` : `
+                <a
+                  href="/blogs/${blog.slug}"
+                  class="flex-1 text-center px-3 py-2 bg-gray-600 text-white text-sm rounded-lg hover:bg-gray-700 transition"
+                  data-testid="view-blog-btn"
+                >
+                  View
+                </a>
+              `}
+              <button
+                onclick="deleteBlog('${blog.id}')"
+                class="px-3 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition"
+                data-testid="delete-blog-btn"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Publish blog
+    window.publishBlog = async function(blogId) {
+      if (!confirm('Are you sure you want to publish this blog? It will be visible to everyone and SEO will be automatically optimized.')) {
+        return;
+      }
+
+      const token = getAuthToken();
+      try {
+        const response = await fetch(`${API_URL}/api/user/blogs/${blogId}/publish`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to publish blog');
+        }
+
+        const result = await response.json();
+        alert('Blog published successfully with automatic SEO optimization!\n\n' + 
+              '✓ SEO Title: ' + result.blog.seo_title + '\n' +
+              '✓ SEO Description: Generated\n' +
+              '✓ JSON-LD Schema: Added');
+        fetchBlogs();
+      } catch (error) {
+        alert('Error: ' + error.message);
+      }
+    };
+
+    // Delete blog
+    window.deleteBlog = async function(blogId) {
+      if (!confirm('Are you sure you want to delete this blog? This action cannot be undone.')) {
+        return;
+      }
+
+      const token = getAuthToken();
+      try {
+        const response = await fetch(`${API_URL}/api/user/blogs/${blogId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to delete blog');
+        }
+
+        alert('Blog deleted successfully!');
+        fetchBlogs();
+      } catch (error) {
+        alert('Error: ' + error.message);
+      }
+    };
+
+    // Filter tabs
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        document.querySelectorAll('.filter-tab').forEach(t => {
+          t.classList.remove('border-blue-600', 'text-blue-600', 'active');
+          t.classList.add('border-transparent');
+        });
+        e.target.classList.add('border-blue-600', 'text-blue-600', 'active');
+        e.target.classList.remove('border-transparent');
+
+        currentFilter = e.target.dataset.filter;
+        renderBlogs();
+      });
+    });
+
+    function showLoading() {
+      document.getElementById('loading').classList.remove('hidden');
+      document.getElementById('blogs-container').classList.add('hidden');
+      document.getElementById('empty-state').classList.add('hidden');
+      document.getElementById('error').classList.add('hidden');
+    }
+
+    function showError(message) {
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('error').classList.remove('hidden');
+      document.getElementById('error-message').textContent = message;
+    }
+
+    // Initial load
+    fetchBlogs();
+  </script>
+</PageLayout>
