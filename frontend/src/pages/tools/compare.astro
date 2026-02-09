@@ -309,5 +309,27 @@ const metadata = {
     }
   }
 
-  init();
+  // Authentication check before initializing the page
+  function checkAuthentication() {
+    const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
+    const overlay = document.getElementById('auth-gate-overlay');
+    const loadingSpinner = document.getElementById('auth-loading');
+    const gateContent = document.getElementById('auth-gate-content');
+    
+    if (!token) {
+      // Not logged in - show login gate
+      if (loadingSpinner) loadingSpinner.classList.add('hidden');
+      if (gateContent) gateContent.classList.remove('hidden');
+      return false;
+    }
+    
+    // User is logged in - remove overlay and continue
+    if (overlay) overlay.remove();
+    return true;
+  }
+
+  // Check auth first, then init if authenticated
+  if (checkAuthentication()) {
+    init();
+  }
 </script>
