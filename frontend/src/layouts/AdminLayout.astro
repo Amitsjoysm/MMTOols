@@ -1,6 +1,7 @@
 ---
 import type { Props as BaseProps } from '~/layouts/PageLayout.astro';
 import '~/assets/styles/tailwind.css';
+import AdminProtection from '~/components/common/AdminProtection.astro';
 
 export interface Props extends BaseProps {}
 
@@ -16,6 +17,7 @@ const { metadata } = Astro.props;
     <meta name="robots" content="noindex, nofollow" />
   </head>
   <body class="antialiased bg-gray-50 dark:bg-gray-900">
+    <AdminProtection />
     <div class="flex h-screen overflow-hidden">
       <!-- Sidebar -->
       <aside class="w-64 bg-white dark:bg-gray-800 shadow-lg" id="sidebar">
