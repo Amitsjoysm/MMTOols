@@ -38,9 +38,10 @@ export const headerData = {
   ],
   actions: [
     { 
-      text: 'Admin Dashboard', 
-      href: getPermalink('/admin'),
-      variant: 'secondary'
+      text: 'Login', 
+      href: getPermalink('/auth/login'),
+      variant: 'secondary',
+      id: 'auth-button'  // Will be dynamically updated by client-side JS
     },
     { 
       text: 'Submit Tool', 
