@@ -21,6 +21,7 @@ def get_build_path():
         "/var/www/marketmindai",
         "/var/www/html",
         "/app/marketmindai-production-optimized",
+        "/app/frontend/dist",
         "/app/frontend/build"
     ]
     
@@ -28,10 +29,13 @@ def get_build_path():
         if os_mod.path.exists(path):
             # Check if index.html exists
             if os_mod.path.exists(os_mod.path.join(path, 'index.html')):
+                print(f"✅ Using frontend build path: {path}")
                 return path
     
-    # Default fallback to production
-    return "/www/wwwroot/marketmindai.com"
+    # Default fallback - use /app/frontend/dist (development)
+    default_path = "/app/frontend/dist"
+    print(f"⚠️  No production build path found. Using default: {default_path}")
+    return default_path
 
 FRONTEND_BUILD_PATH = get_build_path()
 BACKEND_URL = os_mod.getenv('FRONTEND_URL', 'https://marketmindai.com').rstrip('/')
