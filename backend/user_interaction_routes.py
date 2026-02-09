@@ -109,10 +109,9 @@ async def create_tool_review(
         user_id=current_user.id,
         rating=review_data.rating,
         title=review_data.title,
-        comment=review_data.comment,
+        content=review_data.content,
         pros=review_data.pros,
-        cons=review_data.cons,
-        helpful_count=0
+        cons=review_data.cons
     )
     
     db.add(review)
@@ -135,10 +134,9 @@ async def create_tool_review(
         user_name=current_user.full_name or current_user.username,
         rating=review.rating,
         title=review.title,
-        comment=review.comment,
-        pros=review.pros,
-        cons=review.cons,
-        helpful_count=review.helpful_count,
+        content=review.content,
+        pros=review.pros or [],
+        cons=review.cons or [],
         created_at=review.created_at,
         updated_at=review.updated_at
     )
