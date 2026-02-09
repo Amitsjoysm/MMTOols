@@ -107,6 +107,27 @@
     }
   }
   
+  // Intercept "Compare Tools" link clicks for auth check
+  function setupCompareToolsAuthGate() {
+    document.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      const link = target.closest('a[href*="/tools/compare"]');
+      
+      if (link) {
+        const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
+        
+        if (!token) {
+          e.preventDefault();
+          // Show a more user-friendly alert and redirect
+          const shouldLogin = confirm('Login required to compare tools. Would you like to login now?');
+          if (shouldLogin) {
+            window.location.href = '/auth/login?redirect=/tools/compare';
+          }
+        }
+      }
+    });
+  }
+  
   // Global logout function
   window.logoutUser = function() {
     if (confirm('Are you sure you want to logout?')) {
@@ -146,11 +167,17 @@
     }
   }
   
+  // Initialize auth-gated features
+  function initAuthFeatures() {
+    updateAuthButton();
+    setupCompareToolsAuthGate();
+  }
+  
   // Run when DOM is ready
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', updateAuthButton);
+    document.addEventListener('DOMContentLoaded', initAuthFeatures);
   } else {
-    updateAuthButton();
+    initAuthFeatures();
   }
   
   // Also update when returning to page
