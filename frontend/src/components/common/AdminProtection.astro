@@ -1,0 +1,45 @@
+<!-- Admin Route Protection -->
+<!-- This script runs on admin pages to ensure only authenticated admins can access -->
+
+<script>
+  // Check authentication and redirect if not authorized
+  function checkAdminAuth() {
+    const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
+    const userData = localStorage.getItem('user_data');
+    
+    // Check if on admin page
+    const isAdminPage = window.location.pathname.startsWith('/admin');
+    
+    if (isAdminPage) {
+      if (!token || !userData) {
+        // Not logged in - redirect to admin login
+        alert('Please login to access the admin area');
+        window.location.href = '/admin/login';
+        return;
+      }
+      
+      try {
+        const user = JSON.parse(userData);
+        const role = user.role;
+        
+        // Check if user has admin or superadmin role
+        if (role !== 'admin' && role !== 'superadmin') {
+          alert('Access denied. Admin privileges required.');
+          window.location.href = '/';
+          return;
+        }
+      } catch (e) {
+        // Invalid user data - redirect to login
+        localStorage.removeItem('token');
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('user_data');
+        alert('Session expired. Please login again.');
+        window.location.href = '/admin/login';
+        return;
+      }
+    }
+  }
+  
+  // Run immediately
+  checkAdminAuth();
+</script>
