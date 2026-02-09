@@ -1,0 +1,321 @@
+---
+import PageLayout from '~/layouts/PageLayout.astro';
+
+const metadata = {
+  title: 'Create Blog - MarketMindAI',
+  description: 'Create a new blog article with automatic SEO optimization',
+};
+---
+
+<PageLayout metadata={metadata}>
+  <div class="container mx-auto px-4 py-12 max-w-5xl">
+    <!-- Header -->
+    <div class="mb-8">
+      <a href="/user/blogs" class="text-blue-600 hover:text-blue-700 mb-4 inline-flex items-center">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back to My Blogs
+      </a>
+      <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+        Create New Blog
+      </h1>
+      <p class="text-gray-600 dark:text-gray-400">
+        Write your blog with automatic SEO optimization and JSON-LD schema generation
+      </p>
+    </div>
+
+    <!-- Success Message -->
+    <div id="success-message" class="hidden mb-6 bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 rounded-lg p-4">
+      <div class="flex items-start">
+        <svg class="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        <div>
+          <p class="text-green-800 dark:text-green-200 font-medium" id="success-text"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error Message -->
+    <div id="error-message" class="hidden mb-6 bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-lg p-4">
+      <p class="text-red-800 dark:text-red-200" id="error-text"></p>
+    </div>
+
+    <!-- Blog Form -->
+    <form id="blog-form" class="space-y-6">
+      <!-- Basic Information -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Basic Information</h2>
+        
+        <!-- Title -->
+        <div class="mb-4">
+          <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Blog Title *
+          </label>
+          <input
+            type="text"
+            id="title"
+            name="title"
+            required
+            maxlength="200"
+            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+            placeholder="Enter your blog title..."
+          />
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">This will also be used as SEO title if not specified</p>
+        </div>
+
+        <!-- Excerpt -->
+        <div class="mb-4">
+          <label for="excerpt" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Excerpt / Summary
+          </label>
+          <textarea
+            id="excerpt"
+            name="excerpt"
+            rows="3"
+            maxlength="300"
+            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+            placeholder="Brief summary of your blog (will be used as SEO description)..."
+          ></textarea>
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Recommended: 150-160 characters for SEO</p>
+        </div>
+
+        <!-- Content -->
+        <div class="mb-4">
+          <label for="content" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Content *
+          </label>
+          <textarea
+            id="content"
+            name="content"
+            rows="15"
+            required
+            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white font-mono text-sm"
+            placeholder="Write your blog content here... (Markdown supported)"
+          ></textarea>
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">You can use Markdown formatting</p>
+        </div>
+
+        <!-- Featured Image URL -->
+        <div class="mb-4">
+          <label for="featured_image" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Featured Image URL
+          </label>
+          <input
+            type="url"
+            id="featured_image"
+            name="featured_image"
+            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+            placeholder="https://example.com/image.jpg"
+          />
+        </div>
+
+        <!-- Tags -->
+        <div class="mb-4">
+          <label for="tags" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Tags
+          </label>
+          <input
+            type="text"
+            id="tags"
+            name="tags"
+            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+            placeholder="AI, Marketing, Productivity (comma separated)"
+          />
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Separate tags with commas</p>
+        </div>
+      </div>
+
+      <!-- SEO Settings (Optional) -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">SEO Settings (Optional)</h2>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          Leave empty for automatic generation. JSON-LD schema will be auto-generated on publish.
+        </p>
+        
+        <!-- SEO Title -->
+        <div class="mb-4">
+          <label for="seo_title" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            SEO Title
+          </label>
+          <input
+            type="text"
+            id="seo_title"
+            name="seo_title"
+            maxlength="60"
+            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+            placeholder="Custom SEO title (leave empty for auto-generation)"
+          />
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Recommended: 50-60 characters</p>
+        </div>
+
+        <!-- SEO Description -->
+        <div class="mb-4">
+          <label for="seo_description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            SEO Meta Description
+          </label>
+          <textarea
+            id="seo_description"
+            name="seo_description"
+            rows="2"
+            maxlength="160"
+            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+            placeholder="Custom SEO description (leave empty for auto-generation)"
+          ></textarea>
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Recommended: 150-160 characters</p>
+        </div>
+
+        <!-- SEO Keywords -->
+        <div class="mb-4">
+          <label for="seo_keywords" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            SEO Keywords
+          </label>
+          <input
+            type="text"
+            id="seo_keywords"
+            name="seo_keywords"
+            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+            placeholder="keyword1, keyword2, keyword3"
+          />
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex gap-4">
+        <button
+          type="button"
+          id="save-draft-btn"
+          class="flex-1 px-6 py-3 bg-gray-600 text-white font-semibold rounded-lg hover:bg-gray-700 transition"
+        >
+          Save as Draft
+        </button>
+        <button
+          type="button"
+          id="publish-btn"
+          class="flex-1 px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition"
+        >
+          Save & Publish (Auto SEO + JSON-LD)
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8001';
+
+    function getAuthToken() {
+      return localStorage.getItem('token') || localStorage.getItem('auth_token');
+    }
+
+    function showSuccess(message) {
+      const successDiv = document.getElementById('success-message');
+      const successText = document.getElementById('success-text');
+      successText.textContent = message;
+      successDiv.classList.remove('hidden');
+      document.getElementById('error-message').classList.add('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function showError(message) {
+      const errorDiv = document.getElementById('error-message');
+      const errorText = document.getElementById('error-text');
+      errorText.textContent = message;
+      errorDiv.classList.remove('hidden');
+      document.getElementById('success-message').classList.add('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function saveBlog(publish = false) {
+      const token = getAuthToken();
+      if (!token) {
+        window.location.href = '/auth/login';
+        return;
+      }
+
+      const title = (document.getElementById('title') as HTMLInputElement).value;
+      const content = (document.getElementById('content') as HTMLTextAreaElement).value;
+      
+      if (!title || !content) {
+        showError('Title and content are required');
+        return;
+      }
+
+      const blogData = {
+        title,
+        content,
+        excerpt: (document.getElementById('excerpt') as HTMLTextAreaElement).value,
+        featured_image: (document.getElementById('featured_image') as HTMLInputElement).value,
+        tags: (document.getElementById('tags') as HTMLInputElement).value,
+        seo_title: (document.getElementById('seo_title') as HTMLInputElement).value,
+        seo_description: (document.getElementById('seo_description') as HTMLTextAreaElement).value,
+        seo_keywords: (document.getElementById('seo_keywords') as HTMLInputElement).value,
+        status: 'draft'
+      };
+
+      try {
+        // Create blog
+        const response = await fetch(`${API_URL}/api/user/blogs`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(blogData)
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.detail || 'Failed to create blog');
+        }
+
+        const blog = await response.json();
+
+        // If publish is true, publish immediately
+        if (publish) {
+          const publishResponse = await fetch(`${API_URL}/api/user/blogs/${blog.id}/publish`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (!publishResponse.ok) {
+            throw new Error('Blog created but failed to publish');
+          }
+
+          const publishResult = await publishResponse.json();
+          showSuccess(
+            `✓ Blog published successfully!\n\n` +
+            `✓ SEO Title: ${publishResult.blog.seo_title}\n` +
+            `✓ SEO Description: Generated\n` +
+            `✓ JSON-LD Schema: Auto-generated for Google`
+          );
+        } else {
+          showSuccess('✓ Blog saved as draft successfully!');
+        }
+
+        // Redirect after 2 seconds
+        setTimeout(() => {
+          window.location.href = '/user/blogs';
+        }, 2000);
+
+      } catch (error) {
+        showError(error.message);
+      }
+    }
+
+    // Save as draft
+    document.getElementById('save-draft-btn').addEventListener('click', () => {
+      saveBlog(false);
+    });
+
+    // Publish
+    document.getElementById('publish-btn').addEventListener('click', () => {
+      if (confirm('Publish this blog? It will be visible to everyone and SEO will be automatically optimized with JSON-LD schema.')) {
+        saveBlog(true);
+      }
+    });
+  </script>
+</PageLayout>
