@@ -166,7 +166,7 @@ async def update_tool_review(
     # Update review
     review.rating = review_data.rating
     review.title = review_data.title
-    review.comment = review_data.comment
+    review.content = review_data.content
     review.pros = review_data.pros
     review.cons = review_data.cons
     review.updated_at = datetime.utcnow()
@@ -188,10 +188,9 @@ async def update_tool_review(
         user_name=current_user.full_name or current_user.username,
         rating=review.rating,
         title=review.title,
-        comment=review.comment,
-        pros=review.pros,
-        cons=review.cons,
-        helpful_count=review.helpful_count,
+        content=review.content,
+        pros=review.pros or [],
+        cons=review.cons or [],
         created_at=review.created_at,
         updated_at=review.updated_at
     )
