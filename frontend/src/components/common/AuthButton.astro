@@ -1,5 +1,5 @@
 <!-- Auth Button Component -->
-<!-- This script runs on every page to update the auth button based on login status -->
+<!-- This script runs on every page to update the auth button and add user navigation based on login status -->
 
 <script>
   // Function to check if user is logged in
@@ -19,6 +19,104 @@
     }
   }
   
+  // Add user-specific navigation links to header
+  function addUserNavigation(user) {
+    const nav = document.querySelector('nav[aria-label="Main navigation"] ul');
+    if (!nav) return;
+    
+    // Check if user links already exist
+    if (document.querySelector('[data-user-nav]')) return;
+    
+    const role = user.role;
+    
+    // Create user dropdown for regular users
+    if (role === 'user') {
+      const userDropdown = document.createElement('li');
+      userDropdown.setAttribute('data-user-nav', 'true');
+      userDropdown.className = 'dropdown';
+      userDropdown.innerHTML = `
+        <button
+          type="button"
+          class="hover:text-link dark:hover:text-white px-4 py-3 flex items-center whitespace-nowrap text-blue-600 dark:text-blue-400 font-semibold"
+          data-testid="my-account-dropdown"
+        >
+          My Account
+          <svg class="w-3.5 h-3.5 ml-0.5 hidden md:inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </button>
+        <ul class="dropdown-menu md:backdrop-blur-md dark:md:bg-dark rounded md:absolute pl-4 md:pl-0 md:hidden font-medium md:bg-white/90 md:min-w-[200px] drop-shadow-xl">
+          <li>
+            <a
+              class="first:rounded-t last:rounded-b md:hover:bg-gray-100 hover:text-link dark:hover:text-white dark:hover:bg-gray-700 py-2 px-5 block whitespace-no-wrap"
+              href="/user/dashboard"
+              data-testid="nav-my-dashboard"
+            >
+              Dashboard
+            </a>
+          </li>
+          <li>
+            <a
+              class="first:rounded-t last:rounded-b md:hover:bg-gray-100 hover:text-link dark:hover:text-white dark:hover:bg-gray-700 py-2 px-5 block whitespace-no-wrap"
+              href="/user/blogs"
+              data-testid="nav-my-blogs"
+            >
+              My Blogs
+            </a>
+          </li>
+          <li>
+            <a
+              class="first:rounded-t last:rounded-b md:hover:bg-gray-100 hover:text-link dark:hover:text-white dark:hover:bg-gray-700 py-2 px-5 block whitespace-no-wrap"
+              href="/user/blogs/create"
+              data-testid="nav-create-blog"
+            >
+              Create Blog
+            </a>
+          </li>
+          <li>
+            <a
+              class="first:rounded-t last:rounded-b md:hover:bg-gray-100 hover:text-link dark:hover:text-white dark:hover:bg-gray-700 py-2 px-5 block whitespace-no-wrap"
+              href="/user/claimed-tools"
+              data-testid="nav-claimed-tools"
+            >
+              Claimed Tools
+            </a>
+          </li>
+          <li>
+            <button
+              onclick="window.logoutUser()"
+              class="w-full text-left first:rounded-t last:rounded-b md:hover:bg-gray-100 hover:text-red-600 dark:hover:bg-gray-700 py-2 px-5 block whitespace-no-wrap text-red-500"
+              data-testid="nav-logout"
+            >
+              Logout
+            </button>
+          </li>
+        </ul>
+      `;
+      
+      // Find the Contact link and insert before it
+      const contactLink = Array.from(nav.children).find(li => 
+        li.querySelector('a')?.getAttribute('href')?.includes('/contact')
+      );
+      
+      if (contactLink) {
+        nav.insertBefore(userDropdown, contactLink);
+      } else {
+        nav.appendChild(userDropdown);
+      }
+    }
+  }
+  
+  // Global logout function
+  window.logoutUser = function() {
+    if (confirm('Are you sure you want to logout?')) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('user_data');
+      window.location.href = '/';
+    }
+  };
+  
   // Update the auth button in header
   function updateAuthButton() {
     const user = checkAuthStatus();
@@ -31,27 +129,16 @@
       // User is logged in - show appropriate dashboard link
       const role = user.role;
       
-      if (role === 'superadmin' || role === 'admin') {
-        authButton.textContent = 'Admin Dashboard';
+      // Add user navigation for regular users
+      if (role === 'user') {
+        addUserNavigation(user);
+        // Hide the login button for regular users since they have the dropdown
+        authButton.textContent = 'Dashboard';
+        authButton.setAttribute('href', '/user/dashboard');
+      } else if (role === 'superadmin' || role === 'admin') {
+        authButton.textContent = 'Admin Panel';
         authButton.setAttribute('href', '/admin');
-      } else {
-        authButton.textContent = 'My Dashboard';
-        authButton.setAttribute('href', '/user/claimed-tools');
       }
-      
-      // Add logout functionality
-      authButton.addEventListener('click', (e) => {
-        if (e.shiftKey) {
-          // Shift+Click to logout
-          e.preventDefault();
-          if (confirm('Logout?')) {
-            localStorage.removeItem('token');
-            localStorage.removeItem('auth_token');
-            localStorage.removeItem('user_data');
-            window.location.href = '/';
-          }
-        }
-      });
     } else {
       // User is not logged in - show login button
       authButton.textContent = 'Login';
