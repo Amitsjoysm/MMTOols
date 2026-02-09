@@ -47,9 +47,12 @@ def regenerate_seo_pages():
         result = regenerate_all_pages()
         logger.info(f"SEO pages regenerated: {result.get('tools', 0)} tools, {result.get('blogs', 0)} blogs")
         return result
+    except FileNotFoundError as e:
+        logger.warning(f"SEO page regeneration skipped - build directory not found: {e}")
+        return {'tools': 0, 'blogs': 0, 'skipped': True}
     except Exception as e:
-        logger.error(f"Error regenerating SEO pages: {e}")
-        return {'tools': 0, 'blogs': 0}
+        logger.error(f"Error regenerating SEO pages: {e}", exc_info=True)
+        return {'tools': 0, 'blogs': 0, 'error': str(e)}
 
 def generate_sitemap():
     """Generate and save sitemap.xml file for SEO"""
