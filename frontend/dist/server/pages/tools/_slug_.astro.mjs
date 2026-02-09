@@ -1,6 +1,6 @@
 import { f as createAstro, c as createComponent, a as renderTemplate, h as defineScriptVars, r as renderComponent, m as maybeRenderHead, b as addAttribute } from '../../chunks/astro/server_Chl_MonH.mjs';
 import 'piccolore';
-import { $ as $$PageLayout } from '../../chunks/PageLayout_BLdQrLIn.mjs';
+import { $ as $$PageLayout } from '../../chunks/PageLayout_z9TmQO_-.mjs';
 import { a as ssrToolsApi } from '../../chunks/ssr-api_CezTdN0q.mjs';
 export { renderers } from '../../renderers.mjs';
 

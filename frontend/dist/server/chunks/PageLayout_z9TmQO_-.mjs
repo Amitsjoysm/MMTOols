@@ -1,6 +1,6 @@
 import { f as createAstro, c as createComponent, m as maybeRenderHead, b as addAttribute, r as renderComponent, a as renderTemplate, g as renderSlot, z as spreadAttributes, F as Fragment, u as unescapeHTML, d as renderScript } from './astro/server_Chl_MonH.mjs';
 import 'piccolore';
-import { $ as $$Layout } from './Layout_7NM5JPRS.mjs';
+import { $ as $$Layout } from './Layout_DTiyIMiL.mjs';
 import { $ as $$Icon, a as $$Logo } from './Logo_B7W-KGKn.mjs';
 import { U as UI, t as trimSlash, g as getHomePermalink, a as getAsset, S as SITE, c as getPermalink, d as getBlogPermalink } from './permalinks_DwY3Cg8-.mjs';
 import 'clsx';

@@ -1,6 +1,6 @@
 import { f as createAstro, c as createComponent, r as renderComponent, a as renderTemplate, m as maybeRenderHead, g as renderSlot } from './astro/server_Chl_MonH.mjs';
 import 'piccolore';
-import { $ as $$PageLayout } from './PageLayout_BLdQrLIn.mjs';
+import { $ as $$PageLayout } from './PageLayout_z9TmQO_-.mjs';
 
 const $$Astro = createAstro("https://marketmindai.com");
 const $$MarkdownLayout = createComponent(($$result, $$props, $$slots) => {

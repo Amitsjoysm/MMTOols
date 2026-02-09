@@ -1,6 +1,6 @@
 import { renderers } from './renderers.mjs';
 import { c as createExports, s as serverEntrypointModule } from './chunks/_@astrojs-ssr-adapter_ChAkj0b8.mjs';
-import { manifest } from './manifest_CbMg4WfT.mjs';
+import { manifest } from './manifest_CC3A3iuN.mjs';
 
 const serverIslandMap = new Map();;
 
@@ -37,13 +37,16 @@ const _page29 = () => import('./pages/terms.astro.mjs');
 const _page30 = () => import('./pages/tools/compare.astro.mjs');
 const _page31 = () => import('./pages/tools/_slug_.astro.mjs');
 const _page32 = () => import('./pages/tools.astro.mjs');
-const _page33 = () => import('./pages/user/claimed-tools.astro.mjs');
-const _page34 = () => import('./pages/user/dashboard.astro.mjs');
-const _page35 = () => import('./pages/_---blog_/_category_/_---page_.astro.mjs');
-const _page36 = () => import('./pages/_---blog_/_tag_/_---page_.astro.mjs');
-const _page37 = () => import('./pages/_---blog_/_---page_.astro.mjs');
-const _page38 = () => import('./pages/index.astro.mjs');
-const _page39 = () => import('./pages/_---blog_.astro.mjs');
+const _page33 = () => import('./pages/user/blogs/create.astro.mjs');
+const _page34 = () => import('./pages/user/blogs/edit/_id_.astro.mjs');
+const _page35 = () => import('./pages/user/blogs.astro.mjs');
+const _page36 = () => import('./pages/user/claimed-tools.astro.mjs');
+const _page37 = () => import('./pages/user/dashboard.astro.mjs');
+const _page38 = () => import('./pages/_---blog_/_category_/_---page_.astro.mjs');
+const _page39 = () => import('./pages/_---blog_/_tag_/_---page_.astro.mjs');
+const _page40 = () => import('./pages/_---blog_/_---page_.astro.mjs');
+const _page41 = () => import('./pages/index.astro.mjs');
+const _page42 = () => import('./pages/_---blog_.astro.mjs');
 const pageMap = new Map([
     ["node_modules/astro/dist/assets/endpoint/node.js", _page0],
     ["src/pages/404.astro", _page1],
@@ -78,13 +81,16 @@ const pageMap = new Map([
     ["src/pages/tools/compare.astro", _page30],
     ["src/pages/tools/[slug].astro", _page31],
     ["src/pages/tools/index.astro", _page32],
-    ["src/pages/user/claimed-tools.astro", _page33],
-    ["src/pages/user/dashboard.astro", _page34],
-    ["src/pages/[...blog]/[category]/[...page].astro", _page35],
-    ["src/pages/[...blog]/[tag]/[...page].astro", _page36],
-    ["src/pages/[...blog]/[...page].astro", _page37],
-    ["src/pages/index.astro", _page38],
-    ["src/pages/[...blog]/index.astro", _page39]
+    ["src/pages/user/blogs/create.astro", _page33],
+    ["src/pages/user/blogs/edit/[id].astro", _page34],
+    ["src/pages/user/blogs.astro", _page35],
+    ["src/pages/user/claimed-tools.astro", _page36],
+    ["src/pages/user/dashboard.astro", _page37],
+    ["src/pages/[...blog]/[category]/[...page].astro", _page38],
+    ["src/pages/[...blog]/[tag]/[...page].astro", _page39],
+    ["src/pages/[...blog]/[...page].astro", _page40],
+    ["src/pages/index.astro", _page41],
+    ["src/pages/[...blog]/index.astro", _page42]
 ]);
 
 const _manifest = Object.assign(manifest, {

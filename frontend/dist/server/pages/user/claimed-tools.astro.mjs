@@ -1,6 +1,6 @@
 import { c as createComponent, r as renderComponent, a as renderTemplate, m as maybeRenderHead, d as renderScript } from '../../chunks/astro/server_Chl_MonH.mjs';
 import 'piccolore';
-import { $ as $$PageLayout } from '../../chunks/PageLayout_BLdQrLIn.mjs';
+import { $ as $$PageLayout } from '../../chunks/PageLayout_z9TmQO_-.mjs';
 export { renderers } from '../../renderers.mjs';
 
 const $$ClaimedTools = createComponent(async ($$result, $$props, $$slots) => {
