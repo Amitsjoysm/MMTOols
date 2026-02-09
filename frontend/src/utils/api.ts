@@ -1,6 +1,32 @@
 // API utility for backend communication
 
-const API_BASE_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8001';
+// Automatically detect the correct API URL
+function getApiBaseUrl(): string {
+  // Check if PUBLIC_API_URL is set
+  if (import.meta.env.PUBLIC_API_URL) {
+    return import.meta.env.PUBLIC_API_URL;
+  }
+  
+  // For Codespaces/Preview environments, use the current origin
+  if (typeof window !== 'undefined') {
+    const currentOrigin = window.location.origin;
+    
+    // Check if we're in a preview/codespace environment
+    if (currentOrigin.includes('preview.app.github.dev') || 
+        currentOrigin.includes('github.dev') ||
+        currentOrigin.includes('preview.emergentagent.com')) {
+      // In preview environments, backend is on same origin
+      return currentOrigin.replace(':3000', ':8001').replace('3000-', '8001-');
+    }
+  }
+  
+  // Default to localhost for local development
+  return 'http://localhost:8001';
+}
+
+const API_BASE_URL = getApiBaseUrl();
+
+console.log('API Base URL:', API_BASE_URL);
 
 // Generic fetch wrapper with error handling
 export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
