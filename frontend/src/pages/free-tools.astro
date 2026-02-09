@@ -14,8 +14,10 @@ const metadata = {
 let freeTools: any[] = [];
 let errorMessage = '';
 
+// For SSR/build time, use backend internal URL
+const API_BASE_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8001';
+
 try {
-  const API_BASE_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8001';
   const response = await fetch(`${API_BASE_URL}/api/free-tools`);
   if (response.ok) {
     freeTools = await response.json();
