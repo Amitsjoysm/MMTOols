@@ -516,7 +516,7 @@ def get_user_routes():
         current_user: User = Depends(get_current_user),
         db: Session = Depends(get_db)
     ):
-        """Publish a blog by current user"""
+        """Publish a blog by current user with automatic SEO and JSON-LD"""
         blog = db.query(Blog).filter(
             Blog.id == blog_id,
             Blog.author_id == current_user.id
@@ -525,12 +525,65 @@ def get_user_routes():
         if not blog:
             raise HTTPException(status_code=404, detail="Blog not found")
         
+        # Auto-generate SEO if not provided
+        if not blog.seo_title:
+            blog.seo_title = blog.title
+        
+        if not blog.seo_description:
+            blog.seo_description = blog.excerpt or blog.content[:160]
+        
+        # Auto-generate JSON-LD for blog article
+        if not blog.json_ld:
+            blog.json_ld = {
+                "@context": "https://schema.org",
+                "@type": "BlogPosting",
+                "headline": blog.title,
+                "description": blog.excerpt or blog.content[:200],
+                "image": blog.featured_image or "https://marketmindai.com/default-blog.jpg",
+                "author": {
+                    "@type": "Person",
+                    "name": current_user.full_name or current_user.username,
+                    "url": f"https://marketmindai.com/author/{current_user.username}"
+                },
+                "publisher": {
+                    "@type": "Organization",
+                    "name": "MarketMindAI",
+                    "logo": {
+                        "@type": "ImageObject",
+                        "url": "https://marketmindai.com/logo.png"
+                    }
+                },
+                "datePublished": datetime.utcnow().isoformat(),
+                "dateModified": datetime.utcnow().isoformat(),
+                "mainEntityOfPage": {
+                    "@type": "WebPage",
+                    "@id": f"https://marketmindai.com/blogs/{blog.slug}"
+                },
+                "keywords": blog.seo_keywords or blog.tags,
+                "articleBody": blog.content[:500]
+            }
+        
         blog.status = "published"
         blog.published_at = datetime.utcnow()
         blog.updated_at = datetime.utcnow()
         
         db.commit()
+        db.refresh(blog)
         
-        return {"message": "Blog published successfully"}
+        return {
+            "message": "Blog published successfully with SEO optimization",
+            "seo_generated": True,
+            "json_ld_generated": True,
+            "blog": {
+                "id": blog.id,
+                "title": blog.title,
+                "slug": blog.slug,
+                "status": blog.status,
+                "published_at": blog.published_at,
+                "seo_title": blog.seo_title,
+                "seo_description": blog.seo_description,
+                "json_ld": blog.json_ld
+            }
+        }
     
     return router
