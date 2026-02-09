@@ -33,7 +33,20 @@ const likeId = `like-${contentType}-${contentSlug}`;
 </div>
 
 <script define:vars={{ contentSlug, contentType }}>
-  const API_BASE_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8001';
+  // Dynamic API URL detection
+  function getApiBaseUrl() {
+    if (typeof window !== 'undefined') {
+      const currentOrigin = window.location.origin;
+      if (currentOrigin.includes('preview.app.github.dev') || 
+          currentOrigin.includes('github.dev') ||
+          currentOrigin.includes('preview.emergentagent.com')) {
+        return currentOrigin.replace(':3000', ':8001').replace('3000-', '8001-');
+      }
+    }
+    return 'http://localhost:8001';
+  }
+  
+  const API_BASE_URL = getApiBaseUrl();
   const isAuthenticated = !!localStorage.getItem('auth_token');
   
   const likeButton = document.querySelector(`#like-${contentType}-${contentSlug} .like-button`) as HTMLButtonElement;
