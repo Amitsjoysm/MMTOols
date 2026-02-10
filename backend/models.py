@@ -145,6 +145,7 @@ class Blog(Base):
     content = Column(Text)
     excerpt = Column(Text)
     featured_image = Column(String)
+    featured_image_alt = Column(String)  # Alt text for featured image
     author_id = Column(String, ForeignKey('users.id'), nullable=False)
     status = Column(String, default="draft")  # draft, published, archived
     view_count = Column(Integer, default=0)
@@ -155,10 +156,23 @@ class Blog(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     published_at = Column(DateTime)
+    
+    # SEO Fields
     seo_title = Column(String)
     seo_description = Column(Text)
     seo_keywords = Column(String)
     json_ld = Column(JSON)
+    
+    # Enhanced SEO Fields
+    og_title = Column(String)  # Open Graph title
+    og_description = Column(Text)  # Open Graph description
+    og_image = Column(String)  # Open Graph image (can be different from featured_image)
+    twitter_title = Column(String)  # Twitter card title
+    twitter_description = Column(Text)  # Twitter card description
+    twitter_image = Column(String)  # Twitter card image
+    canonical_url = Column(String)  # Canonical URL
+    meta_robots = Column(String, default="index, follow")  # Meta robots tag
+    focus_keywords = Column(JSON)  # Focus keywords for SEO
     
     # Relationships
     author = relationship("User", back_populates="blogs")
