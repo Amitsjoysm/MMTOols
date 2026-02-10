@@ -497,6 +497,15 @@ async def serve_blog_image(filename: str):
     else:
         raise HTTPException(status_code=404, detail="Image not found")
 
+@router.post("/api/blogs/validate-video")
+async def validate_video(
+    video_url: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Validate video URL and return embed information"""
+    result = validate_video_url(video_url)
+    return result
+
 # Comment endpoints
 @router.post("/api/blogs/{blog_slug}/comments", response_model=CommentResponse)
 async def create_comment(
