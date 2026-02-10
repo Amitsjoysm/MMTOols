@@ -104,6 +104,9 @@ async def create_blog(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    # Process and sanitize rich text content
+    processed_content = process_blog_content(blog.content, optimize=True)
+    
     # Generate slug
     base_slug = generate_slug(blog.title)
     slug = base_slug
@@ -114,23 +117,31 @@ async def create_blog(
         slug = f"{base_slug}-{counter}"
         counter += 1
     
-    # Calculate reading time
-    reading_time = calculate_reading_time(blog.content)
+    # Calculate reading time from processed content
+    reading_time = calculate_reading_time(processed_content)
+    
+    # Generate SEO metadata if not provided
+    seo_metadata = generate_seo_metadata(blog.title, processed_content, blog.excerpt)
+    
+    # Extract featured image from content if not provided
+    featured_image = blog.featured_image
+    if not featured_image:
+        featured_image = extract_first_image(processed_content)
     
     # Create blog
     db_blog = Blog(
         id=str(uuid.uuid4()),
         title=blog.title,
         slug=slug,
-        content=blog.content,
-        excerpt=blog.excerpt or blog.content[:200] + "...",
-        featured_image=blog.featured_image,
+        content=processed_content,
+        excerpt=blog.excerpt or seo_metadata['seo_description'],
+        featured_image=featured_image,
         author_id=current_user.id,
         reading_time=reading_time,
         tags=blog.tags,
-        seo_title=blog.seo_title or blog.title,
-        seo_description=blog.seo_description or blog.excerpt,
-        seo_keywords=blog.seo_keywords,
+        seo_title=blog.seo_title or seo_metadata['seo_title'],
+        seo_description=blog.seo_description or seo_metadata['seo_description'],
+        seo_keywords=blog.seo_keywords or seo_metadata['seo_keywords'],
         json_ld=blog.json_ld
     )
     
