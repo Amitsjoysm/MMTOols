@@ -1,6 +1,6 @@
 /**
- * Rich Text Editor Initialization using TipTap
- * Handles editor setup, toolbar actions, and content management
+ * Enhanced Rich Text Editor Initialization using TipTap
+ * Features: Images, Videos, Code Blocks, Links, Tables, Text Formatting, Colors, Alignment
  */
 
 import { Editor } from '@tiptap/core';
@@ -9,6 +9,16 @@ import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import Underline from '@tiptap/extension-underline';
+import TextAlign from '@tiptap/extension-text-align';
+import TextStyle from '@tiptap/extension-text-style';
+import { Color } from '@tiptap/extension-color';
+import Highlight from '@tiptap/extension-highlight';
+import Table from '@tiptap/extension-table';
+import TableRow from '@tiptap/extension-table-row';
+import TableHeader from '@tiptap/extension-table-header';
+import TableCell from '@tiptap/extension-table-cell';
+import HorizontalRule from '@tiptap/extension-horizontal-rule';
+import Youtube from '@tiptap/extension-youtube';
 import { lowlight } from 'lowlight';
 
 // Import languages for syntax highlighting
@@ -39,7 +49,7 @@ export function initRichTextEditor(initialContent: string = ''): Editor {
     throw new Error('Editor container not found');
   }
 
-  // Initialize TipTap editor
+  // Initialize TipTap editor with all extensions
   editor = new Editor({
     element: editorElement,
     extensions: [
@@ -47,6 +57,14 @@ export function initRichTextEditor(initialContent: string = ''): Editor {
         codeBlock: false, // We'll use CodeBlockLowlight instead
       }),
       Underline,
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
+      }),
+      TextStyle,
+      Color,
+      Highlight.configure({
+        multicolor: true,
+      }),
       Image.configure({
         inline: true,
         allowBase64: true,
@@ -65,6 +83,22 @@ export function initRichTextEditor(initialContent: string = ''): Editor {
       CodeBlockLowlight.configure({
         lowlight,
         defaultLanguage: 'javascript',
+      }),
+      Table.configure({
+        resizable: true,
+        HTMLAttributes: {
+          class: 'editor-table',
+        },
+      }),
+      TableRow,
+      TableHeader,
+      TableCell,
+      HorizontalRule,
+      Youtube.configure({
+        controls: true,
+        nocookie: true,
+        width: 640,
+        height: 360,
       }),
     ],
     content: initialContent,
@@ -108,7 +142,8 @@ function setupToolbar(editor: Editor) {
     });
 
     // Update active state for formatting buttons
-    if (['bold', 'italic', 'underline', 'strike', 'bulletList', 'orderedList', 'blockquote'].includes(command)) {
+    const activeCommands = ['bold', 'italic', 'underline', 'strike', 'bulletList', 'orderedList', 'blockquote', 'codeBlock'];
+    if (activeCommands.includes(command)) {
       editor.on('selectionUpdate', () => {
         updateButtonState(button as HTMLElement, editor, command);
       });
@@ -127,6 +162,21 @@ function setupToolbar(editor: Editor) {
         const isActive = editor.isActive('heading', { level: parseInt(level) });
         button.classList.toggle('is-active', isActive);
       });
+    }
+
+    // Update active state for alignments
+    if (command === 'textAlign') {
+      const alignment = button.getAttribute('data-alignment');
+      if (alignment) {
+        editor.on('selectionUpdate', () => {
+          const isActive = editor.isActive({ textAlign: alignment });
+          button.classList.toggle('is-active', isActive);
+        });
+        editor.on('transaction', () => {
+          const isActive = editor.isActive({ textAlign: alignment });
+          button.classList.toggle('is-active', isActive);
+        });
+      }
     }
   });
 }
@@ -173,6 +223,48 @@ async function handleToolbarCommand(editor: Editor, command: string, level?: str
     case 'image':
       await handleInsertImage(editor);
       break;
+    case 'video':
+      await handleInsertVideo(editor);
+      break;
+    case 'textAlign':
+      const alignment = (event?.target as HTMLElement)?.closest('[data-alignment]')?.getAttribute('data-alignment');
+      if (alignment) {
+        editor.chain().focus().setTextAlign(alignment).run();
+      }
+      break;
+    case 'textColor':
+      await handleTextColor(editor);
+      break;
+    case 'highlightColor':
+      await handleHighlightColor(editor);
+      break;
+    case 'table':
+      editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+      break;
+    case 'deleteTable':
+      editor.chain().focus().deleteTable().run();
+      break;
+    case 'addRowBefore':
+      editor.chain().focus().addRowBefore().run();
+      break;
+    case 'addRowAfter':
+      editor.chain().focus().addRowAfter().run();
+      break;
+    case 'addColumnBefore':
+      editor.chain().focus().addColumnBefore().run();
+      break;
+    case 'addColumnAfter':
+      editor.chain().focus().addColumnAfter().run();
+      break;
+    case 'deleteRow':
+      editor.chain().focus().deleteRow().run();
+      break;
+    case 'deleteColumn':
+      editor.chain().focus().deleteColumn().run();
+      break;
+    case 'horizontalRule':
+      editor.chain().focus().setHorizontalRule().run();
+      break;
     case 'undo':
       editor.chain().focus().undo().run();
       break;
@@ -208,7 +300,7 @@ async function handleInsertImage(editor: Editor) {
     // Upload image
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = 'image/*';
+    input.accept = 'image/*,.gif';
     input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) return;
@@ -217,7 +309,7 @@ async function handleInsertImage(editor: Editor) {
         // Show loading state
         const loadingMsg = document.createElement('div');
         loadingMsg.textContent = 'Uploading image...';
-        loadingMsg.className = 'fixed top-4 right-4 bg-blue-600 text-white px-4 py-2 rounded shadow-lg';
+        loadingMsg.className = 'fixed top-4 right-4 bg-blue-600 text-white px-4 py-2 rounded shadow-lg z-50';
         document.body.appendChild(loadingMsg);
 
         // Upload to backend
@@ -225,7 +317,11 @@ async function handleInsertImage(editor: Editor) {
         formData.append('file', file);
 
         const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
-        const response = await fetch('/api/blogs/upload-image', {
+        
+        // Get API base URL
+        const apiUrl = getApiBaseUrl();
+        
+        const response = await fetch(`${apiUrl}/api/blogs/upload-image`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -242,10 +338,16 @@ async function handleInsertImage(editor: Editor) {
         // Remove loading message
         document.body.removeChild(loadingMsg);
 
-        // Insert image into editor
-        editor.chain().focus().setImage({ src: result.image_url }).run();
+        // Ask for alt text
+        const altText = window.prompt('Enter alt text for accessibility (optional):', file.name.split('.')[0]);
 
-        alert('Image uploaded and optimized successfully!');
+        // Insert image into editor
+        editor.chain().focus().setImage({ 
+          src: result.image_url,
+          alt: altText || ''
+        }).run();
+
+        alert('Image uploaded successfully!');
       } catch (error) {
         console.error('Error uploading image:', error);
         alert('Failed to upload image. Please try again.');
@@ -256,9 +358,81 @@ async function handleInsertImage(editor: Editor) {
     // Enter URL
     const url = window.prompt('Enter image URL:', 'https://');
     if (url && url !== 'https://') {
-      editor.chain().focus().setImage({ src: url }).run();
+      const altText = window.prompt('Enter alt text for accessibility (optional):', '');
+      editor.chain().focus().setImage({ src: url, alt: altText || '' }).run();
     }
   }
+}
+
+async function handleInsertVideo(editor: Editor) {
+  const url = window.prompt('Enter YouTube or Vimeo video URL:', 'https://');
+  
+  if (!url || url === 'https://') {
+    return;
+  }
+
+  try {
+    // Validate video URL with backend
+    const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
+    const apiUrl = getApiBaseUrl();
+    
+    const response = await fetch(`${apiUrl}/api/blogs/validate-video?video_url=${encodeURIComponent(url)}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const result = await response.json();
+
+    if (result.valid) {
+      if (result.platform === 'youtube') {
+        // Use TipTap YouTube extension
+        editor.chain().focus().setYoutubeVideo({
+          src: url,
+          width: 640,
+          height: 360,
+        }).run();
+      } else if (result.platform === 'vimeo') {
+        // Insert Vimeo iframe
+        const iframe = `<iframe src="${result.embed_url}" width="640" height="360" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen loading="lazy"></iframe>`;
+        editor.chain().focus().insertContent(iframe).run();
+      }
+      alert('Video embedded successfully!');
+    } else {
+      alert(result.error || 'Invalid video URL. Only YouTube and Vimeo are supported.');
+    }
+  } catch (error) {
+    console.error('Error validating video:', error);
+    alert('Failed to validate video URL. Please try again.');
+  }
+}
+
+async function handleTextColor(editor: Editor) {
+  const color = window.prompt('Enter text color (hex code or name):', '#000000');
+  if (color) {
+    editor.chain().focus().setColor(color).run();
+  }
+}
+
+async function handleHighlightColor(editor: Editor) {
+  const color = window.prompt('Enter highlight color (hex code or name):', '#ffff00');
+  if (color) {
+    editor.chain().focus().setHighlight({ color }).run();
+  }
+}
+
+function getApiBaseUrl() {
+  if (typeof window !== 'undefined') {
+    const currentOrigin = window.location.origin;
+    if (currentOrigin.includes('preview.app.github.dev') || 
+        currentOrigin.includes('github.dev') ||
+        currentOrigin.includes('preview.emergentagent.com')) {
+      return currentOrigin.replace(':3000', ':8001').replace('3000-', '8001-');
+    }
+  }
+  return 'http://localhost:8001';
 }
 
 export function getEditorContent(): string {
