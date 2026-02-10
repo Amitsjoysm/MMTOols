@@ -252,6 +252,179 @@ def ensure_external_links_security(html_content: str) -> str:
     return html_content
 
 
+def extract_video_id(url: str, platform: str) -> Optional[str]:
+    """
+    Extract video ID from YouTube or Vimeo URL
+    """
+    if platform == 'youtube':
+        # Handle various YouTube URL formats
+        patterns = [
+            r'(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)',
+            r'youtube\.com\/embed\/([a-zA-Z0-9_-]+)',
+            r'youtube\.com\/v\/([a-zA-Z0-9_-]+)',
+        ]
+        for pattern in patterns:
+            match = re.search(pattern, url)
+            if match:
+                return match.group(1)
+    elif platform == 'vimeo':
+        # Handle Vimeo URL formats
+        match = re.search(r'vimeo\.com\/(?:video\/)?(\d+)', url)
+        if match:
+            return match.group(1)
+    return None
+
+
+def validate_video_url(url: str) -> dict:
+    """
+    Validate and parse video URL
+    Returns dict with platform and video_id
+    """
+    if not url:
+        return {'valid': False, 'error': 'No URL provided'}
+    
+    # Check for YouTube
+    if 'youtube.com' in url or 'youtu.be' in url:
+        video_id = extract_video_id(url, 'youtube')
+        if video_id:
+            return {
+                'valid': True,
+                'platform': 'youtube',
+                'video_id': video_id,
+                'embed_url': f'https://www.youtube.com/embed/{video_id}'
+            }
+    
+    # Check for Vimeo
+    if 'vimeo.com' in url:
+        video_id = extract_video_id(url, 'vimeo')
+        if video_id:
+            return {
+                'valid': True,
+                'platform': 'vimeo',
+                'video_id': video_id,
+                'embed_url': f'https://player.vimeo.com/video/{video_id}'
+            }
+    
+    return {'valid': False, 'error': 'Unsupported video platform. Only YouTube and Vimeo are supported.'}
+
+
+def process_video_embeds(html_content: str) -> str:
+    """
+    Process and optimize video embeds
+    """
+    # Add lazy loading to iframes
+    html_content = re.sub(
+        r'<iframe(?![^>]*loading=)([^>]*)>',
+        r'<iframe loading="lazy"\1>',
+        html_content,
+        flags=re.IGNORECASE
+    )
+    
+    return html_content
+
+
+def generate_open_graph_tags(blog_data: Dict) -> Dict:
+    """
+    Generate Open Graph meta tags for social sharing
+    """
+    og_tags = {
+        'og:type': 'article',
+        'og:title': blog_data.get('title', ''),
+        'og:description': blog_data.get('seo_description', ''),
+        'og:url': blog_data.get('url', ''),
+    }
+    
+    if blog_data.get('featured_image'):
+        og_tags['og:image'] = blog_data['featured_image']
+        og_tags['og:image:alt'] = blog_data.get('title', '')
+    
+    if blog_data.get('published_at'):
+        og_tags['article:published_time'] = blog_data['published_at']
+    
+    if blog_data.get('updated_at'):
+        og_tags['article:modified_time'] = blog_data['updated_at']
+    
+    if blog_data.get('author_name'):
+        og_tags['article:author'] = blog_data['author_name']
+    
+    if blog_data.get('tags'):
+        og_tags['article:tag'] = blog_data['tags']
+    
+    return og_tags
+
+
+def generate_twitter_card_tags(blog_data: Dict) -> Dict:
+    """
+    Generate Twitter Card meta tags
+    """
+    twitter_tags = {
+        'twitter:card': 'summary_large_image',
+        'twitter:title': blog_data.get('title', ''),
+        'twitter:description': blog_data.get('seo_description', ''),
+    }
+    
+    if blog_data.get('featured_image'):
+        twitter_tags['twitter:image'] = blog_data['featured_image']
+        twitter_tags['twitter:image:alt'] = blog_data.get('title', '')
+    
+    return twitter_tags
+
+
+def enhance_json_ld(blog_data: Dict) -> Dict:
+    """
+    Generate enhanced JSON-LD structured data for SEO
+    """
+    json_ld = {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": blog_data.get('title', ''),
+        "description": blog_data.get('seo_description', ''),
+        "author": {
+            "@type": "Person",
+            "name": blog_data.get('author_name', 'Anonymous')
+        },
+        "datePublished": blog_data.get('published_at', blog_data.get('created_at', '')),
+        "dateModified": blog_data.get('updated_at', ''),
+    }
+    
+    # Add image with required properties
+    if blog_data.get('featured_image'):
+        json_ld['image'] = {
+            "@type": "ImageObject",
+            "url": blog_data['featured_image'],
+            "width": 1200,
+            "height": 630
+        }
+    
+    # Add keywords
+    if blog_data.get('seo_keywords'):
+        json_ld['keywords'] = blog_data['seo_keywords']
+    
+    # Add reading time
+    if blog_data.get('reading_time'):
+        json_ld['timeRequired'] = f"PT{blog_data['reading_time']}M"
+    
+    # Add view count as interaction statistic
+    if blog_data.get('view_count'):
+        json_ld['interactionStatistic'] = {
+            "@type": "InteractionCounter",
+            "interactionType": "https://schema.org/ReadAction",
+            "userInteractionCount": blog_data['view_count']
+        }
+    
+    # Add publisher info
+    json_ld['publisher'] = {
+        "@type": "Organization",
+        "name": "MarketMindAI",
+        "logo": {
+            "@type": "ImageObject",
+            "url": "https://marketmindai.com/logo.png"
+        }
+    }
+    
+    return json_ld
+
+
 def process_blog_content(content: str, optimize: bool = True) -> str:
     """
     Process blog content: sanitize, optimize for performance and SEO
@@ -262,6 +435,9 @@ def process_blog_content(content: str, optimize: bool = True) -> str:
     if optimize:
         # Add lazy loading to images
         content = add_lazy_loading_to_images(content)
+        
+        # Process video embeds
+        content = process_video_embeds(content)
         
         # Ensure external links are secure
         content = ensure_external_links_security(content)
