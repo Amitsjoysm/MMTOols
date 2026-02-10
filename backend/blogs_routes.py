@@ -451,11 +451,20 @@ async def upload_blog_image(
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_user)
 ):
+    # Validate file type
+    allowed_extensions = {'jpg', 'jpeg', 'png', 'gif', 'webp'}
+    file_extension = file.filename.split(".")[-1].lower()
+    
+    if file_extension not in allowed_extensions:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"File type not allowed. Allowed types: {', '.join(allowed_extensions)}"
+        )
+    
     # Create uploads directory if it doesn't exist
     os.makedirs("uploads/blog-images", exist_ok=True)
     
     # Generate unique filename
-    file_extension = file.filename.split(".")[-1]
     filename = f"{uuid.uuid4()}.{file_extension}"
     file_path = f"uploads/blog-images/{filename}"
     
@@ -463,7 +472,15 @@ async def upload_blog_image(
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
     
-    return {"message": "Image uploaded successfully", "image_url": f"/api/uploads/blog-images/{filename}"}
+    # Optimize image for web performance (except GIFs)
+    if file_extension != 'gif':
+        optimize_image(file_path, max_width=1200, quality=85)
+    
+    return {
+        "message": "Image uploaded and optimized successfully", 
+        "image_url": f"/api/uploads/blog-images/{filename}",
+        "filename": filename
+    }
 
 @router.get("/api/uploads/blog-images/{filename}")
 async def serve_blog_image(filename: str):
