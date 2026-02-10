@@ -1,103 +1,173 @@
 ---
 /**
- * Rich Text Editor Component using TipTap
- * Supports: Images, Videos, Code Blocks, Links, and Rich Formatting
+ * Enhanced Rich Text Editor Component using TipTap
+ * Full Features: Images, GIFs, Videos, Code Blocks, Links, Tables, Text Formatting, Colors, Alignment
  */
 ---
 
 <div id="rich-text-editor-container" class="rich-editor-wrapper">
   <!-- Toolbar -->
-  <div id="editor-toolbar" class="editor-toolbar bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-t-lg p-2 flex flex-wrap gap-1">
-    <!-- Formatting Tools -->
-    <button type="button" data-command="bold" class="editor-btn" title="Bold (Ctrl+B)">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 4h8a4 4 0 014 4 4 4 0 01-4 4H6V4zm0 8h9a4 4 0 014 4 4 4 0 01-4 4H6v-8z"></path>
-      </svg>
-    </button>
+  <div id="editor-toolbar" class="editor-toolbar bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-t-lg p-2 flex flex-wrap gap-1 sticky top-0 z-10">
     
-    <button type="button" data-command="italic" class="editor-btn" title="Italic (Ctrl+I)">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 4l4 16m-8-8h8"></path>
-      </svg>
-    </button>
+    <!-- Text Formatting -->
+    <div class="flex gap-1 items-center">
+      <button type="button" data-command="bold" class="editor-btn" title="Bold (Ctrl+B)">
+        <strong>B</strong>
+      </button>
+      
+      <button type="button" data-command="italic" class="editor-btn" title="Italic (Ctrl+I)">
+        <em>I</em>
+      </button>
+      
+      <button type="button" data-command="underline" class="editor-btn" title="Underline (Ctrl+U)">
+        <u>U</u>
+      </button>
+      
+      <button type="button" data-command="strike" class="editor-btn" title="Strikethrough">
+        <s>S</s>
+      </button>
+    </div>
     
-    <button type="button" data-command="underline" class="editor-btn" title="Underline (Ctrl+U)">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 3v9a5 5 0 0010 0V3M5 21h14"></path>
-      </svg>
-    </button>
+    <div class="border-l border-gray-400 h-8"></div>
     
-    <button type="button" data-command="strike" class="editor-btn" title="Strikethrough">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M17 8c-3-2-8-2-11 0M17 16c-3 2-8 2-11 0"></path>
-      </svg>
-    </button>
+    <!-- Headings -->
+    <div class="flex gap-1 items-center">
+      <button type="button" data-command="heading" data-level="1" class="editor-btn" title="Heading 1">H1</button>
+      <button type="button" data-command="heading" data-level="2" class="editor-btn" title="Heading 2">H2</button>
+      <button type="button" data-command="heading" data-level="3" class="editor-btn" title="Heading 3">H3</button>
+    </div>
     
-    <div class="border-l border-gray-400 mx-2"></div>
-    
-    <!-- Heading Buttons -->
-    <button type="button" data-command="heading" data-level="1" class="editor-btn" title="Heading 1">H1</button>
-    <button type="button" data-command="heading" data-level="2" class="editor-btn" title="Heading 2">H2</button>
-    <button type="button" data-command="heading" data-level="3" class="editor-btn" title="Heading 3">H3</button>
-    
-    <div class="border-l border-gray-400 mx-2"></div>
+    <div class="border-l border-gray-400 h-8"></div>
     
     <!-- Lists -->
-    <button type="button" data-command="bulletList" class="editor-btn" title="Bullet List">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-      </svg>
-    </button>
+    <div class="flex gap-1 items-center">
+      <button type="button" data-command="bulletList" class="editor-btn" title="Bullet List">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+      </button>
+      
+      <button type="button" data-command="orderedList" class="editor-btn" title="Numbered List">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h2v2H3V4zm0 6h2v2H3v-2zm0 6h2v2H3v-2zm5-12h13M8 10h13M8 16h13"></path>
+        </svg>
+      </button>
+      
+      <button type="button" data-command="blockquote" class="editor-btn" title="Quote">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H7a2 2 0 00-2 2v10a2 2 0 002 2h3m7-12h3a2 2 0 012 2v10a2 2 0 01-2 2h-3m-7 0h7"></path>
+        </svg>
+      </button>
+    </div>
     
-    <button type="button" data-command="orderedList" class="editor-btn" title="Numbered List">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h2v2H3V4zm0 6h2v2H3v-2zm0 6h2v2H3v-2zm5-12h13M8 10h13M8 16h13"></path>
-      </svg>
-    </button>
+    <div class="border-l border-gray-400 h-8"></div>
     
-    <button type="button" data-command="blockquote" class="editor-btn" title="Quote">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H7a2 2 0 00-2 2v10a2 2 0 002 2h3m7-12h3a2 2 0 012 2v10a2 2 0 01-2 2h-3m-7 0h7"></path>
-      </svg>
-    </button>
+    <!-- Text Alignment -->
+    <div class="flex gap-1 items-center">
+      <button type="button" data-command="textAlign" data-alignment="left" class="editor-btn" title="Align Left">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h10M4 18h16"></path>
+        </svg>
+      </button>
+      
+      <button type="button" data-command="textAlign" data-alignment="center" class="editor-btn" title="Align Center">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M7 12h10M4 18h16"></path>
+        </svg>
+      </button>
+      
+      <button type="button" data-command="textAlign" data-alignment="right" class="editor-btn" title="Align Right">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M10 12h10M4 18h16"></path>
+        </svg>
+      </button>
+      
+      <button type="button" data-command="textAlign" data-alignment="justify" class="editor-btn" title="Justify">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+      </button>
+    </div>
     
-    <div class="border-l border-gray-400 mx-2"></div>
+    <div class="border-l border-gray-400 h-8"></div>
     
-    <!-- Link -->
-    <button type="button" data-command="link" class="editor-btn" title="Insert Link">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
-      </svg>
-    </button>
+    <!-- Colors -->
+    <div class="flex gap-1 items-center">
+      <button type="button" data-command="textColor" class="editor-btn" title="Text Color">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path>
+        </svg>
+      </button>
+      
+      <button type="button" data-command="highlightColor" class="editor-btn" title="Highlight Color">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M17.75 3A3.25 3.25 0 0121 6.25v11.5A3.25 3.25 0 0117.75 21H6.25A3.25 3.25 0 013 17.75V6.25A3.25 3.25 0 016.25 3h11.5z"></path>
+        </svg>
+      </button>
+    </div>
     
-    <!-- Image -->
-    <button type="button" data-command="image" class="editor-btn" title="Insert Image">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-      </svg>
-    </button>
+    <div class="border-l border-gray-400 h-8"></div>
     
-    <!-- Code Block -->
-    <button type="button" data-command="codeBlock" class="editor-btn" title="Code Block">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
-      </svg>
-    </button>
+    <!-- Media -->
+    <div class="flex gap-1 items-center">
+      <button type="button" data-command="link" class="editor-btn" title="Insert Link">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+        </svg>
+      </button>
+      
+      <button type="button" data-command="image" class="editor-btn" title="Insert Image/GIF">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+        </svg>
+      </button>
+      
+      <button type="button" data-command="video" class="editor-btn" title="Insert Video (YouTube/Vimeo)">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+        </svg>
+      </button>
+    </div>
     
-    <div class="border-l border-gray-400 mx-2"></div>
+    <div class="border-l border-gray-400 h-8"></div>
+    
+    <!-- Code & Table -->
+    <div class="flex gap-1 items-center">
+      <button type="button" data-command="codeBlock" class="editor-btn" title="Code Block">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+        </svg>
+      </button>
+      
+      <button type="button" data-command="table" class="editor-btn" title="Insert Table">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+        </svg>
+      </button>
+      
+      <button type="button" data-command="horizontalRule" class="editor-btn" title="Horizontal Line">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14"></path>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="border-l border-gray-400 h-8"></div>
     
     <!-- Undo/Redo -->
-    <button type="button" data-command="undo" class="editor-btn" title="Undo (Ctrl+Z)">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
-      </svg>
-    </button>
-    
-    <button type="button" data-command="redo" class="editor-btn" title="Redo (Ctrl+Y)">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 10H11a8 8 0 00-8 8v2m18-10l-6 6m6-6l-6-6"></path>
-      </svg>
-    </button>
+    <div class="flex gap-1 items-center">
+      <button type="button" data-command="undo" class="editor-btn" title="Undo (Ctrl+Z)">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
+        </svg>
+      </button>
+      
+      <button type="button" data-command="redo" class="editor-btn" title="Redo (Ctrl+Y)">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 10H11a8 8 0 00-8 8v2m18-10l-6 6m6-6l-6-6"></path>
+        </svg>
+      </button>
+    </div>
   </div>
 
   <!-- Editor Content Area -->
@@ -125,7 +195,7 @@
   }
 
   .editor-btn {
-    @apply px-3 py-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300 font-medium;
+    @apply px-2 py-1 min-w-[32px] rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300 font-medium text-sm flex items-center justify-center;
   }
 
   .editor-btn.is-active {
@@ -198,10 +268,45 @@
     @apply my-6 border-gray-300 dark:border-gray-700;
   }
 
+  /* Table Styles */
+  .editor-content .ProseMirror table {
+    @apply border-collapse table-auto w-full my-4;
+  }
+
+  .editor-content .ProseMirror th {
+    @apply border border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 px-4 py-2 font-semibold text-left;
+  }
+
+  .editor-content .ProseMirror td {
+    @apply border border-gray-300 dark:border-gray-700 px-4 py-2;
+  }
+
+  /* YouTube embed */
+  .editor-content .ProseMirror iframe {
+    @apply my-4 rounded-lg max-w-full;
+  }
+
   /* Placeholder */
   .editor-content .ProseMirror p.is-editor-empty:first-child::before {
-    content: "Start writing your blog content here... You can add images, code blocks, links, and more!";
+    content: "Start writing your blog content... Add images, videos, code blocks, tables, and more!";
     @apply text-gray-400 float-left h-0 pointer-events-none;
+  }
+
+  /* Text alignment */
+  .editor-content .ProseMirror .text-left {
+    text-align: left;
+  }
+
+  .editor-content .ProseMirror .text-center {
+    text-align: center;
+  }
+
+  .editor-content .ProseMirror .text-right {
+    text-align: right;
+  }
+
+  .editor-content .ProseMirror .text-justify {
+    text-align: justify;
   }
 </style>
 
@@ -209,6 +314,6 @@
   // This script will be initialized from the parent page
   // Export setup function for external initialization
   window.initRichTextEditor = function() {
-    console.log('Rich text editor component loaded');
+    console.log('Enhanced rich text editor component loaded');
   };
 </script>
