@@ -7,6 +7,15 @@ from typing import List, Optional
 from database import get_db
 from models import Blog, User, BlogComment, BlogLike, BlogBookmark
 from auth import get_current_user, get_current_admin
+from rich_text_utils import (
+    sanitize_html, 
+    calculate_reading_time, 
+    generate_seo_metadata,
+    generate_json_ld,
+    process_blog_content,
+    extract_first_image,
+    optimize_image
+)
 import uuid
 from datetime import datetime
 import os
