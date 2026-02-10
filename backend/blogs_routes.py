@@ -98,11 +98,6 @@ def generate_slug(title: str) -> str:
     slug = re.sub(r'[-\s]+', '-', slug)
     return slug.strip('-')
 
-def calculate_reading_time(content: str) -> int:
-    """Calculate estimated reading time in minutes"""
-    word_count = len(content.split())
-    return max(1, word_count // 200)  # Assume 200 words per minute
-
 @router.post("/api/blogs", response_model=BlogResponse)
 async def create_blog(
     blog: BlogCreate,
