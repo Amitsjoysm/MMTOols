@@ -107,6 +107,8 @@ export function initRichTextEditor(initialContent: string = ''): Editor {
       if (hiddenTextarea) {
         hiddenTextarea.value = editor.getHTML();
       }
+      // Update character and word counts
+      updateCounts(editor);
     },
     editorProps: {
       attributes: {
@@ -123,7 +125,26 @@ export function initRichTextEditor(initialContent: string = ''): Editor {
     hiddenTextarea.value = editor.getHTML();
   }
 
+  // Initialize counts
+  updateCounts(editor);
+
   return editor;
+}
+
+function updateCounts(editor: Editor) {
+  const text = editor.getText();
+  const charCount = text.length;
+  const wordCount = text.trim().split(/\s+/).filter(w => w).length;
+  
+  const charCountEl = document.getElementById('char-count');
+  const wordCountEl = document.getElementById('word-count');
+  
+  if (charCountEl) {
+    charCountEl.textContent = `${charCount} characters`;
+  }
+  if (wordCountEl) {
+    wordCountEl.textContent = `${wordCount} words`;
+  }
 }
 
 function setupToolbar(editor: Editor) {
