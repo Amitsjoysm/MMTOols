@@ -293,34 +293,116 @@ async function handleInsertLink(editor: Editor) {
 }
 
 async function handleInsertImage(editor: Editor) {
-  // Ask user if they want to upload or provide URL
-  const choice = window.confirm('Click OK to upload an image, or Cancel to enter an image URL');
+  // Show image upload modal
+  const modal = document.getElementById('image-upload-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    setupImageUploadModal(editor);
+  } else {
+    // Fallback to simple prompt if modal not found
+    const url = window.prompt('Enter image URL:', 'https://');
+    if (url && url !== 'https://') {
+      const altText = window.prompt('Enter alt text for accessibility (optional):', '');
+      editor.chain().focus().setImage({ src: url, alt: altText || '' }).run();
+    }
+  }
+}
 
-  if (choice) {
-    // Upload image
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*,.gif';
-    input.onchange = async (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (!file) return;
+function setupImageUploadModal(editor: Editor) {
+  const modal = document.getElementById('image-upload-modal')!;
+  const uploadTab = document.getElementById('upload-tab')!;
+  const urlTab = document.getElementById('url-tab')!;
+  const uploadSection = document.getElementById('upload-section')!;
+  const urlSection = document.getElementById('url-section')!;
+  const fileInput = document.getElementById('image-file-input') as HTMLInputElement;
+  const insertBtn = document.getElementById('insert-image-btn')!;
+  const cancelBtn = document.getElementById('cancel-image-btn')!;
+  const previewContainer = document.getElementById('image-preview-container')!;
+  const preview = document.getElementById('image-preview') as HTMLImageElement;
+  const fileSizeInfo = document.getElementById('file-size-info')!;
+
+  let currentMode = 'upload';
+  let uploadedImageUrl = '';
+  let selectedFile: File | null = null;
+
+  // Tab switching
+  uploadTab.addEventListener('click', () => {
+    currentMode = 'upload';
+    uploadTab.classList.add('bg-blue-600', 'text-white');
+    uploadTab.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'text-gray-900', 'dark:text-white');
+    urlTab.classList.remove('bg-blue-600', 'text-white');
+    urlTab.classList.add('bg-gray-200', 'dark:bg-gray-700', 'text-gray-900', 'dark:text-white');
+    uploadSection.classList.remove('hidden');
+    urlSection.classList.add('hidden');
+  });
+
+  urlTab.addEventListener('click', () => {
+    currentMode = 'url';
+    urlTab.classList.add('bg-blue-600', 'text-white');
+    urlTab.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'text-gray-900', 'dark:text-white');
+    uploadTab.classList.remove('bg-blue-600', 'text-white');
+    uploadTab.classList.add('bg-gray-200', 'dark:bg-gray-700', 'text-gray-900', 'dark:text-white');
+    urlSection.classList.remove('hidden');
+    uploadSection.classList.add('hidden');
+  });
+
+  // File selection and validation
+  fileInput.addEventListener('change', async (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+
+    // Validate file size (max 1MB)
+    const maxSize = 1024 * 1024; // 1MB in bytes
+    if (file.size > maxSize) {
+      alert(`File size (${(file.size / 1024 / 1024).toFixed(2)}MB) exceeds the maximum limit of 1MB. Please choose a smaller image.`);
+      fileInput.value = '';
+      return;
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select a valid image file.');
+      fileInput.value = '';
+      return;
+    }
+
+    selectedFile = file;
+
+    // Show preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      preview.src = e.target?.result as string;
+      previewContainer.classList.remove('hidden');
+      fileSizeInfo.textContent = `File size: ${(file.size / 1024).toFixed(2)} KB`;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Insert image
+  insertBtn.addEventListener('click', async () => {
+    if (currentMode === 'upload') {
+      if (!selectedFile) {
+        alert('Please select an image file first.');
+        return;
+      }
+
+      // Show progress
+      const progressDiv = document.getElementById('upload-progress')!;
+      const progressBar = document.getElementById('upload-progress-bar')!;
+      const statusText = document.getElementById('upload-status')!;
+      progressDiv.classList.remove('hidden');
+      insertBtn.disabled = true;
 
       try {
-        // Show loading state
-        const loadingMsg = document.createElement('div');
-        loadingMsg.textContent = 'Uploading image...';
-        loadingMsg.className = 'fixed top-4 right-4 bg-blue-600 text-white px-4 py-2 rounded shadow-lg z-50';
-        document.body.appendChild(loadingMsg);
-
-        // Upload to backend
         const formData = new FormData();
-        formData.append('file', file);
+        formData.append('file', selectedFile);
 
         const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
-        
-        // Get API base URL
         const apiUrl = getApiBaseUrl();
-        
+
+        progressBar.style.width = '50%';
+        statusText.textContent = 'Uploading...';
+
         const response = await fetch(`${apiUrl}/api/blogs/upload-image`, {
           method: 'POST',
           headers: {
@@ -330,37 +412,72 @@ async function handleInsertImage(editor: Editor) {
         });
 
         if (!response.ok) {
-          throw new Error('Failed to upload image');
+          const error = await response.json();
+          throw new Error(error.detail || 'Failed to upload image');
         }
 
         const result = await response.json();
-        
-        // Remove loading message
-        document.body.removeChild(loadingMsg);
+        uploadedImageUrl = result.image_url;
 
-        // Ask for alt text
-        const altText = window.prompt('Enter alt text for accessibility (optional):', file.name.split('.')[0]);
+        progressBar.style.width = '100%';
+        statusText.textContent = 'Upload complete!';
 
-        // Insert image into editor
-        editor.chain().focus().setImage({ 
-          src: result.image_url,
-          alt: altText || ''
-        }).run();
+        // Get dimension controls
+        const maxWidth = parseInt((document.getElementById('image-max-width') as HTMLInputElement).value);
+        const maxHeight = parseInt((document.getElementById('image-max-height') as HTMLInputElement).value);
+        const altText = (document.getElementById('upload-image-alt') as HTMLInputElement).value || selectedFile.name.split('.')[0];
 
-        alert('Image uploaded successfully!');
+        // Insert image with size constraints
+        const imgHtml = `<img src="${uploadedImageUrl}" alt="${altText}" style="max-width: ${maxWidth}px; max-height: ${maxHeight}px; width: auto; height: auto;" loading="lazy" />`;
+        editor.chain().focus().insertContent(imgHtml).run();
+
+        // Close modal
+        modal.classList.add('hidden');
+        resetModal();
       } catch (error) {
         console.error('Error uploading image:', error);
-        alert('Failed to upload image. Please try again.');
+        alert(`Failed to upload image: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      } finally {
+        progressDiv.classList.add('hidden');
+        insertBtn.disabled = false;
+        progressBar.style.width = '0%';
       }
-    };
-    input.click();
-  } else {
-    // Enter URL
-    const url = window.prompt('Enter image URL:', 'https://');
-    if (url && url !== 'https://') {
-      const altText = window.prompt('Enter alt text for accessibility (optional):', '');
-      editor.chain().focus().setImage({ src: url, alt: altText || '' }).run();
+    } else {
+      // URL mode
+      const url = (document.getElementById('image-url-input') as HTMLInputElement).value;
+      if (!url || url === 'https://') {
+        alert('Please enter a valid image URL.');
+        return;
+      }
+
+      const maxWidth = parseInt((document.getElementById('url-image-width') as HTMLInputElement).value);
+      const maxHeight = parseInt((document.getElementById('url-image-height') as HTMLInputElement).value);
+      const altText = (document.getElementById('url-image-alt') as HTMLInputElement).value || 'Image';
+
+      // Insert image with size constraints
+      const imgHtml = `<img src="${url}" alt="${altText}" style="max-width: ${maxWidth}px; max-height: ${maxHeight}px; width: auto; height: auto;" loading="lazy" />`;
+      editor.chain().focus().insertContent(imgHtml).run();
+
+      // Close modal
+      modal.classList.add('hidden');
+      resetModal();
     }
+  });
+
+  // Cancel button
+  cancelBtn.addEventListener('click', () => {
+    modal.classList.add('hidden');
+    resetModal();
+  });
+
+  function resetModal() {
+    fileInput.value = '';
+    (document.getElementById('image-url-input') as HTMLInputElement).value = '';
+    (document.getElementById('upload-image-alt') as HTMLInputElement).value = '';
+    (document.getElementById('url-image-alt') as HTMLInputElement).value = '';
+    previewContainer.classList.add('hidden');
+    selectedFile = null;
+    uploadedImageUrl = '';
   }
 }
 
