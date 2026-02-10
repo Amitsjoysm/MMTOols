@@ -1,0 +1,293 @@
+---
+/**
+ * Blog Rich Text Editor with Image Upload Support
+ * Features: Images (max 1MB, controllable size), Videos, Code Blocks, Links, Tables, Formatting
+ */
+---
+
+<div class="rich-editor-wrapper">
+  <!-- Editor Toolbar will be injected by TipTap -->
+  <div id="editor-toolbar" class="border border-gray-300 dark:border-gray-600 rounded-t-lg overflow-hidden"></div>
+  
+  <!-- Editor Content Area -->
+  <div 
+    id="editor-content" 
+    class="min-h-[400px] max-h-[600px] overflow-y-auto p-4 border border-t-0 border-gray-300 dark:border-gray-600 rounded-b-lg bg-white dark:bg-gray-800 prose prose-sm sm:prose lg:prose-lg dark:prose-invert max-w-none focus:outline-none"
+  ></div>
+
+  <!-- Hidden textarea for form submission -->
+  <textarea 
+    id="blog-content-html" 
+    name="content" 
+    class="hidden"
+  ></textarea>
+
+  <!-- Character/Word Count -->
+  <div class="mt-2 flex justify-between text-xs text-gray-500 dark:text-gray-400">
+    <span id="char-count">0 characters</span>
+    <span id="word-count">0 words</span>
+  </div>
+</div>
+
+<!-- Image Upload Modal -->
+<div id="image-upload-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Upload Image</h3>
+    
+    <!-- Upload Options -->
+    <div class="mb-4">
+      <div class="flex gap-2">
+        <button type="button" id="upload-tab" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg">Upload File</button>
+        <button type="button" id="url-tab" class="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg">Image URL</button>
+      </div>
+    </div>
+
+    <!-- Upload Section -->
+    <div id="upload-section" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Image (Max 1MB)</label>
+        <input 
+          type="file" 
+          id="image-file-input" 
+          accept="image/*"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+        />
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Supported: JPG, PNG, GIF, WebP (Max: 1MB)</p>
+      </div>
+
+      <!-- Image Preview -->
+      <div id="image-preview-container" class="hidden">
+        <img id="image-preview" src="" alt="Preview" class="w-full rounded-lg border border-gray-300 dark:border-gray-600" />
+        <p id="file-size-info" class="text-xs text-gray-500 dark:text-gray-400 mt-1"></p>
+      </div>
+
+      <!-- Dimension Controls -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Max Width (px)</label>
+          <input 
+            type="number" 
+            id="image-max-width" 
+            value="800"
+            min="200"
+            max="1200"
+            step="50"
+            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Max Height (px)</label>
+          <input 
+            type="number" 
+            id="image-max-height" 
+            value="600"
+            min="200"
+            max="1000"
+            step="50"
+            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Alt Text</label>
+        <input 
+          type="text" 
+          id="upload-image-alt" 
+          placeholder="Describe the image"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+        />
+      </div>
+
+      <!-- Upload Progress -->
+      <div id="upload-progress" class="hidden">
+        <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+          <div id="upload-progress-bar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+        </div>
+        <p id="upload-status" class="text-xs text-gray-500 dark:text-gray-400 mt-1">Uploading...</p>
+      </div>
+    </div>
+
+    <!-- URL Section -->
+    <div id="url-section" class="hidden space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Image URL</label>
+        <input 
+          type="url" 
+          id="image-url-input" 
+          placeholder="https://example.com/image.jpg"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+        />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Alt Text</label>
+        <input 
+          type="text" 
+          id="url-image-alt" 
+          placeholder="Describe the image"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+        />
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Max Width (px)</label>
+          <input 
+            type="number" 
+            id="url-image-width" 
+            value="800"
+            min="200"
+            max="1200"
+            step="50"
+            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Max Height (px)</label>
+          <input 
+            type="number" 
+            id="url-image-height" 
+            value="600"
+            min="200"
+            max="1000"
+            step="50"
+            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex justify-end gap-2 mt-6">
+      <button type="button" id="cancel-image-btn" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300">
+        Cancel
+      </button>
+      <button type="button" id="insert-image-btn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+        Insert Image
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .rich-editor-wrapper :global(.ProseMirror) {
+    min-height: 400px;
+    outline: none;
+  }
+
+  .rich-editor-wrapper :global(.ProseMirror p.is-editor-empty:first-child::before) {
+    color: #adb5bd;
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+    pointer-events: none;
+  }
+
+  .rich-editor-wrapper :global(.ProseMirror img) {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 1rem auto;
+    border-radius: 0.5rem;
+  }
+
+  .rich-editor-wrapper :global(.ProseMirror pre) {
+    background: #1e293b;
+    color: #e2e8f0;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    overflow-x: auto;
+    margin: 1rem 0;
+  }
+
+  .rich-editor-wrapper :global(.ProseMirror code) {
+    background: #f1f5f9;
+    color: #e11d48;
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.25rem;
+    font-size: 0.875em;
+  }
+
+  .rich-editor-wrapper :global(.ProseMirror pre code) {
+    background: transparent;
+    color: inherit;
+    padding: 0;
+  }
+
+  .rich-editor-wrapper :global(.ProseMirror table) {
+    border-collapse: collapse;
+    margin: 1rem 0;
+    width: 100%;
+  }
+
+  .rich-editor-wrapper :global(.ProseMirror th),
+  .rich-editor-wrapper :global(.ProseMirror td) {
+    border: 1px solid #e2e8f0;
+    padding: 0.5rem 1rem;
+  }
+
+  .rich-editor-wrapper :global(.ProseMirror th) {
+    background: #f1f5f9;
+    font-weight: 600;
+  }
+
+  .rich-editor-wrapper :global(.ProseMirror iframe) {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: 0.5rem;
+    margin: 1rem 0;
+  }
+
+  .rich-editor-wrapper :global(.ProseMirror hr) {
+    border: none;
+    border-top: 2px solid #e2e8f0;
+    margin: 2rem 0;
+  }
+
+  .rich-editor-wrapper :global(.ProseMirror blockquote) {
+    border-left: 4px solid #3b82f6;
+    padding-left: 1rem;
+    margin: 1rem 0;
+    font-style: italic;
+    color: #64748b;
+  }
+
+  .rich-editor-wrapper :global(.ProseMirror a) {
+    color: #3b82f6;
+    text-decoration: underline;
+  }
+
+  .rich-editor-wrapper :global(.ProseMirror a:hover) {
+    color: #2563eb;
+  }
+
+  .rich-editor-wrapper :global(.tiptap-button) {
+    @apply p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 transition-colors;
+  }
+
+  .rich-editor-wrapper :global(.tiptap-button.is-active) {
+    @apply bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400;
+  }
+</style>
+
+<script>
+  import { initRichTextEditor } from '~/lib/richTextEditor';
+
+  // Initialize editor when the page loads
+  if (typeof window !== 'undefined') {
+    window.addEventListener('DOMContentLoaded', () => {
+      // Get initial content if editing
+      const contentTextarea = document.getElementById('content') as HTMLTextAreaElement;
+      const initialContent = contentTextarea?.value || '';
+      
+      // Initialize the rich text editor
+      try {
+        const editor = initRichTextEditor(initialContent);
+        console.log('Rich text editor initialized successfully');
+      } catch (error) {
+        console.error('Failed to initialize rich text editor:', error);
+      }
+    });
+  }
+</script>
