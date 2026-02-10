@@ -361,9 +361,19 @@ async def update_blog(
                 counter += 1
             blog.slug = new_slug
         
-        if field == "content":
+        if field == "content" and value:
+            # Process and sanitize rich text content
+            processed_content = process_blog_content(value, optimize=True)
+            value = processed_content
             # Recalculate reading time
-            blog.reading_time = calculate_reading_time(value)
+            blog.reading_time = calculate_reading_time(processed_content)
+            
+            # Auto-generate SEO if not explicitly provided
+            if 'seo_title' not in update_data or not update_data.get('seo_title'):
+                seo_metadata = generate_seo_metadata(blog.title, processed_content, blog.excerpt)
+                blog.seo_title = seo_metadata['seo_title']
+                blog.seo_description = seo_metadata['seo_description']
+                blog.seo_keywords = seo_metadata['seo_keywords']
         
         setattr(blog, field, value)
     
