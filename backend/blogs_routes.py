@@ -14,7 +14,11 @@ from rich_text_utils import (
     generate_json_ld,
     process_blog_content,
     extract_first_image,
-    optimize_image
+    optimize_image,
+    validate_video_url,
+    generate_open_graph_tags,
+    generate_twitter_card_tags,
+    enhance_json_ld
 )
 import uuid
 from datetime import datetime
