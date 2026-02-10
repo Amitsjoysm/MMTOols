@@ -1,0 +1,214 @@
+---
+/**
+ * Rich Text Editor Component using TipTap
+ * Supports: Images, Videos, Code Blocks, Links, and Rich Formatting
+ */
+---
+
+<div id="rich-text-editor-container" class="rich-editor-wrapper">
+  <!-- Toolbar -->
+  <div id="editor-toolbar" class="editor-toolbar bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-t-lg p-2 flex flex-wrap gap-1">
+    <!-- Formatting Tools -->
+    <button type="button" data-command="bold" class="editor-btn" title="Bold (Ctrl+B)">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 4h8a4 4 0 014 4 4 4 0 01-4 4H6V4zm0 8h9a4 4 0 014 4 4 4 0 01-4 4H6v-8z"></path>
+      </svg>
+    </button>
+    
+    <button type="button" data-command="italic" class="editor-btn" title="Italic (Ctrl+I)">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 4l4 16m-8-8h8"></path>
+      </svg>
+    </button>
+    
+    <button type="button" data-command="underline" class="editor-btn" title="Underline (Ctrl+U)">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 3v9a5 5 0 0010 0V3M5 21h14"></path>
+      </svg>
+    </button>
+    
+    <button type="button" data-command="strike" class="editor-btn" title="Strikethrough">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M17 8c-3-2-8-2-11 0M17 16c-3 2-8 2-11 0"></path>
+      </svg>
+    </button>
+    
+    <div class="border-l border-gray-400 mx-2"></div>
+    
+    <!-- Heading Buttons -->
+    <button type="button" data-command="heading" data-level="1" class="editor-btn" title="Heading 1">H1</button>
+    <button type="button" data-command="heading" data-level="2" class="editor-btn" title="Heading 2">H2</button>
+    <button type="button" data-command="heading" data-level="3" class="editor-btn" title="Heading 3">H3</button>
+    
+    <div class="border-l border-gray-400 mx-2"></div>
+    
+    <!-- Lists -->
+    <button type="button" data-command="bulletList" class="editor-btn" title="Bullet List">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+      </svg>
+    </button>
+    
+    <button type="button" data-command="orderedList" class="editor-btn" title="Numbered List">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h2v2H3V4zm0 6h2v2H3v-2zm0 6h2v2H3v-2zm5-12h13M8 10h13M8 16h13"></path>
+      </svg>
+    </button>
+    
+    <button type="button" data-command="blockquote" class="editor-btn" title="Quote">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H7a2 2 0 00-2 2v10a2 2 0 002 2h3m7-12h3a2 2 0 012 2v10a2 2 0 01-2 2h-3m-7 0h7"></path>
+      </svg>
+    </button>
+    
+    <div class="border-l border-gray-400 mx-2"></div>
+    
+    <!-- Link -->
+    <button type="button" data-command="link" class="editor-btn" title="Insert Link">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+      </svg>
+    </button>
+    
+    <!-- Image -->
+    <button type="button" data-command="image" class="editor-btn" title="Insert Image">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+      </svg>
+    </button>
+    
+    <!-- Code Block -->
+    <button type="button" data-command="codeBlock" class="editor-btn" title="Code Block">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+      </svg>
+    </button>
+    
+    <div class="border-l border-gray-400 mx-2"></div>
+    
+    <!-- Undo/Redo -->
+    <button type="button" data-command="undo" class="editor-btn" title="Undo (Ctrl+Z)">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
+      </svg>
+    </button>
+    
+    <button type="button" data-command="redo" class="editor-btn" title="Redo (Ctrl+Y)">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 10H11a8 8 0 00-8 8v2m18-10l-6 6m6-6l-6-6"></path>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Editor Content Area -->
+  <div 
+    id="editor-content" 
+    class="editor-content min-h-[400px] max-h-[600px] overflow-y-auto p-4 border border-t-0 border-gray-300 dark:border-gray-700 rounded-b-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white prose prose-sm max-w-none dark:prose-invert"
+  ></div>
+
+  <!-- Hidden textarea for form submission -->
+  <textarea 
+    id="blog-content-html" 
+    name="content" 
+    class="hidden"
+  ></textarea>
+</div>
+
+<style>
+  .editor-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .editor-btn {
+    @apply px-3 py-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300 font-medium;
+  }
+
+  .editor-btn.is-active {
+    @apply bg-blue-600 text-white hover:bg-blue-700;
+  }
+
+  .editor-content {
+    @apply focus:outline-none focus:ring-2 focus:ring-blue-500;
+  }
+
+  /* TipTap Editor Styles */
+  .editor-content .ProseMirror {
+    @apply outline-none min-h-[400px];
+  }
+
+  .editor-content .ProseMirror p {
+    @apply my-3;
+  }
+
+  .editor-content .ProseMirror h1 {
+    @apply text-3xl font-bold my-4;
+  }
+
+  .editor-content .ProseMirror h2 {
+    @apply text-2xl font-bold my-3;
+  }
+
+  .editor-content .ProseMirror h3 {
+    @apply text-xl font-bold my-2;
+  }
+
+  .editor-content .ProseMirror ul,
+  .editor-content .ProseMirror ol {
+    @apply my-3 pl-6;
+  }
+
+  .editor-content .ProseMirror ul li {
+    @apply list-disc;
+  }
+
+  .editor-content .ProseMirror ol li {
+    @apply list-decimal;
+  }
+
+  .editor-content .ProseMirror blockquote {
+    @apply border-l-4 border-gray-400 dark:border-gray-600 pl-4 italic my-4;
+  }
+
+  .editor-content .ProseMirror code {
+    @apply bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded text-sm font-mono;
+  }
+
+  .editor-content .ProseMirror pre {
+    @apply bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto my-4;
+  }
+
+  .editor-content .ProseMirror pre code {
+    @apply bg-transparent p-0;
+  }
+
+  .editor-content .ProseMirror img {
+    @apply max-w-full h-auto rounded-lg my-4;
+  }
+
+  .editor-content .ProseMirror a {
+    @apply text-blue-600 dark:text-blue-400 underline hover:text-blue-800 dark:hover:text-blue-300;
+  }
+
+  .editor-content .ProseMirror hr {
+    @apply my-6 border-gray-300 dark:border-gray-700;
+  }
+
+  /* Placeholder */
+  .editor-content .ProseMirror p.is-editor-empty:first-child::before {
+    content: "Start writing your blog content here... You can add images, code blocks, links, and more!";
+    @apply text-gray-400 float-left h-0 pointer-events-none;
+  }
+</style>
+
+<script>
+  // This script will be initialized from the parent page
+  // Export setup function for external initialization
+  window.initRichTextEditor = function() {
+    console.log('Rich text editor component loaded');
+  };
+</script>
