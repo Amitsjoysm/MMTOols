@@ -349,7 +349,7 @@ const metadata = {
       const token = getAuthToken();
 
       try {
-        const response = await fetch(`${API_URL}/api/site-settings/logo`, {
+        const response = await fetch(`${API_URL}/api/superadmin/site-settings/logo`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`
