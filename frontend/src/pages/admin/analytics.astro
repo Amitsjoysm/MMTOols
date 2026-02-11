@@ -79,7 +79,10 @@ const metadata = {
 </AdminLayout>
 
 <script>
-  import { adminApi } from '~/utils/api';
+  import { superAdminApi } from '~/utils/api';
+  import { requireAdmin } from '~/utils/auth';
+
+  requireAdmin();
 
   async function loadAnalytics(days: number = 30) {
     const loading = document.getElementById('loading')!;
@@ -91,7 +94,8 @@ const metadata = {
       content.classList.add('hidden');
       error.classList.add('hidden');
 
-      const analytics = await adminApi.getAnalytics(days);
+      // Use SuperAdmin dashboard analytics for real-time data
+      const analytics = await superAdminApi.getDashboardAnalytics(days);
       
       loading.classList.add('hidden');
       content.classList.remove('hidden');
