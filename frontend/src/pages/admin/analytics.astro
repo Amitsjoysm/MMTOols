@@ -116,28 +116,32 @@ const metadata = {
     
     const stats = [
       {
-        title: 'Total Blog Views',
-        value: analytics.analytics.blog_views.toLocaleString(),
-        icon: '📊',
-        color: 'blue'
+        title: 'Total Users',
+        value: analytics.total_users?.toLocaleString() || '0',
+        icon: '👥',
+        color: 'blue',
+        growth: analytics.users_growth || 0
       },
       {
-        title: 'New Blogs',
-        value: analytics.analytics.new_blogs.toLocaleString(),
-        icon: '📝',
-        color: 'green'
-      },
-      {
-        title: 'Tool Views',
-        value: analytics.analytics.tool_views.toLocaleString(),
+        title: 'Total Tools',
+        value: analytics.total_tools?.toLocaleString() || '0',
         icon: '🔧',
-        color: 'purple'
+        color: 'green',
+        growth: analytics.tools_growth || 0
       },
       {
-        title: 'New Reviews',
-        value: analytics.analytics.new_reviews.toLocaleString(),
+        title: 'Total Blogs',
+        value: analytics.total_blogs?.toLocaleString() || '0',
+        icon: '📝',
+        color: 'purple',
+        growth: analytics.blogs_growth || 0
+      },
+      {
+        title: 'Total Reviews',
+        value: analytics.total_reviews?.toLocaleString() || '0',
         icon: '⭐',
-        color: 'yellow'
+        color: 'yellow',
+        growth: analytics.reviews_growth || 0
       }
     ];
 
