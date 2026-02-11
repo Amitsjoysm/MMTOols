@@ -1682,6 +1682,64 @@ async def get_dashboard_analytics(
             detail=f"Failed to fetch dashboard analytics: {str(e)}"
         )
 
+
+# Tool Assignment to Admin
+@router.put("/api/superadmin/tools/{tool_id}/assign-admin")
+async def assign_tool_to_admin(
+    tool_id: str,
+    admin_id: Optional[str] = None,
+    current_superadmin: User = Depends(get_current_superadmin),
+    db: Session = Depends(get_db)
+):
+    """Assign or unassign a tool to an admin for management"""
+    
+    tool = db.query(Tool).filter(Tool.id == tool_id).first()
+    if not tool:
+        raise HTTPException(status_code=404, detail="Tool not found")
+    
+    if admin_id:
+        # Verify the admin exists and has admin role
+        admin = db.query(User).filter(User.id == admin_id).first()
+        if not admin:
+            raise HTTPException(status_code=404, detail="Admin user not found")
+        
+        if admin.role not in ['admin', 'superadmin']:
+            raise HTTPException(status_code=400, detail="User must have admin or superadmin role")
+        
+        tool.assigned_admin_id = admin_id
+    else:
+        # Unassign
+        tool.assigned_admin_id = None
+    
+    db.commit()
+    
+    return {
+        "message": "Tool assignment updated successfully",
+        "tool_id": tool_id,
+        "assigned_admin_id": tool.assigned_admin_id
+    }
+
+@router.get("/api/superadmin/admins")
+async def get_all_admins(
+    current_superadmin: User = Depends(get_current_superadmin),
+    db: Session = Depends(get_db)
+):
+    """Get all users with admin or superadmin role for assignment"""
+    
+    admins = db.query(User).filter(
+        or_(User.role == 'admin', User.role == 'superadmin')
+    ).order_by(User.full_name).all()
+    
+    return [
+        {
+            "id": admin.id,
+            "username": admin.username,
+            "full_name": admin.full_name,
+            "email": admin.email,
+            "role": admin.role
+        } for admin in admins
+    ]
+
 # Export Functionality for Newsletter Subscribers and Contact Submissions
 @router.get("/api/superadmin/export/newsletter-subscribers")
 async def export_newsletter_subscribers(
