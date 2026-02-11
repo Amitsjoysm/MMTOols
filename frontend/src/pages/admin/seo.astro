@@ -135,6 +135,47 @@ const metadata = {
     }
   }
 
+  async function generateSitemap() {
+    const loading = document.getElementById('loading')!;
+    loading.classList.remove('hidden');
+
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`${getApiBaseUrl()}/api/admin/sitemap/save-to-production`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Failed to generate sitemap');
+      }
+      
+      const result = await response.json();
+      alert(`Sitemap generated successfully!\n\nTotal URLs: ${result.total_urls}\nBlogs: ${result.breakdown.blogs}\nTools: ${result.breakdown.tools}\nCategories: ${result.breakdown.categories}\nLocation Pages: ${result.breakdown.location_pages}\n\nSaved to: ${result.path}`);
+    } catch (error: any) {
+      console.error('Error generating sitemap:', error);
+      alert('Failed to generate sitemap: ' + (error.message || 'Unknown error'));
+    } finally {
+      loading.classList.add('hidden');
+    }
+  }
+
+  function getApiBaseUrl(): string {
+    if (typeof window !== 'undefined') {
+      const currentOrigin = window.location.origin;
+      if (currentOrigin.includes('preview.app.github.dev') || 
+          currentOrigin.includes('github.dev') ||
+          currentOrigin.includes('preview.emergentagent.com')) {
+        return currentOrigin.replace(':3000', ':8001').replace('3000-', '8001-');
+      }
+    }
+    return 'http://localhost:8001';
+  }
+
   async function generateJsonLd() {
     const loading = document.getElementById('loading')!;
     loading.classList.remove('hidden');
