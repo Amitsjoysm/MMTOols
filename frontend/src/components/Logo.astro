@@ -13,6 +13,13 @@ import { Icon } from 'astro-icon/components';
     try {
       // Get API base URL dynamically
       function getApiBaseUrl() {
+        // Priority 1: Check environment variable
+        const envApiUrl = import.meta.env.PUBLIC_API_URL;
+        if (envApiUrl) {
+          return envApiUrl;
+        }
+        
+        // Priority 2: For Codespaces/Preview environments
         if (typeof window !== 'undefined') {
           const currentOrigin = window.location.origin;
           if (currentOrigin.includes('preview.app.github.dev') || 
@@ -21,6 +28,8 @@ import { Icon } from 'astro-icon/components';
             return currentOrigin.replace(':3000', ':8001').replace('3000-', '8001-');
           }
         }
+        
+        // Priority 3: Default to localhost
         return 'http://localhost:8001';
       }
       
