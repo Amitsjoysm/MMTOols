@@ -224,21 +224,24 @@ const metadata = {
   function renderDetailedStats(analytics: any) {
     const detailedDiv = document.getElementById('detailed-stats')!;
     
+    const overview = analytics.overview || analytics;
+    const recentActivity = analytics.recent_activity || {};
+    
     detailedDiv.innerHTML = `
       <div class="space-y-3">
         <h4 class="font-semibold text-gray-900 dark:text-white">Platform Overview</h4>
         <div class="space-y-2">
           <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
             <span class="text-gray-700 dark:text-gray-300">Total Users</span>
-            <span class="font-bold text-gray-900 dark:text-white">${analytics.total_users?.toLocaleString() || '0'}</span>
+            <span class="font-bold text-gray-900 dark:text-white">${overview.total_users?.toLocaleString() || '0'}</span>
           </div>
           <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
             <span class="text-gray-700 dark:text-gray-300">Total Tools</span>
-            <span class="font-bold text-gray-900 dark:text-white">${analytics.total_tools?.toLocaleString() || '0'}</span>
+            <span class="font-bold text-gray-900 dark:text-white">${overview.total_tools?.toLocaleString() || '0'}</span>
           </div>
           <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
             <span class="text-gray-700 dark:text-gray-300">Total Blogs</span>
-            <span class="font-bold text-gray-900 dark:text-white">${analytics.total_blogs?.toLocaleString() || '0'}</span>
+            <span class="font-bold text-gray-900 dark:text-white">${overview.total_blogs?.toLocaleString() || '0'}</span>
           </div>
         </div>
       </div>
@@ -248,19 +251,19 @@ const metadata = {
         <div class="space-y-2">
           <div class="flex justify-between items-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
             <span class="text-gray-700 dark:text-gray-300">New Users Today</span>
-            <span class="font-bold text-green-900 dark:text-green-100">${analytics.new_users_today || 0}</span>
+            <span class="font-bold text-green-900 dark:text-green-100">${recentActivity.new_users_today || 0}</span>
           </div>
           <div class="flex justify-between items-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
             <span class="text-gray-700 dark:text-gray-300">New Tools Today</span>
-            <span class="font-bold text-green-900 dark:text-green-100">${analytics.new_tools_today || 0}</span>
+            <span class="font-bold text-green-900 dark:text-green-100">${recentActivity.new_tools_today || 0}</span>
           </div>
           <div class="flex justify-between items-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
             <span class="text-gray-700 dark:text-gray-300">New Blogs Today</span>
-            <span class="font-bold text-green-900 dark:text-green-100">${analytics.new_blogs_today || 0}</span>
+            <span class="font-bold text-green-900 dark:text-green-100">${recentActivity.new_blogs_today || 0}</span>
           </div>
           <div class="flex justify-between items-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
             <span class="text-gray-700 dark:text-gray-300">New Reviews Today</span>
-            <span class="font-bold text-green-900 dark:text-green-100">${analytics.new_reviews_today || 0}</span>
+            <span class="font-bold text-green-900 dark:text-green-100">${recentActivity.new_reviews_today || 0}</span>
           </div>
         </div>
       </div>
