@@ -145,16 +145,20 @@ const metadata = {
       }
     ];
 
-    statsGrid.innerHTML = stats.map(stat => `
+    statsGrid.innerHTML = stats.map(stat => {
+      const growthColor = stat.growth >= 0 ? 'text-green-600' : 'text-red-600';
+      const growthIcon = stat.growth >= 0 ? '↑' : '↓';
+      return `
       <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6" data-testid="stat-card-${stat.title.toLowerCase().replace(/ /g, '-')}">
         <div class="flex items-center justify-between mb-2">
           <span class="text-2xl">${stat.icon}</span>
+          <span class="${growthColor} text-sm font-semibold">${growthIcon} ${Math.abs(stat.growth).toFixed(1)}%</span>
         </div>
         <h3 class="text-3xl font-bold text-gray-900 dark:text-white mb-1">${stat.value}</h3>
         <p class="text-sm text-gray-600 dark:text-gray-400">${stat.title}</p>
-        <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">Last ${days} days</p>
+        <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">Last ${days} days growth</p>
       </div>
-    `).join('');
+    `}).join('');
   }
 
   function renderActivityChart(analytics: any) {
