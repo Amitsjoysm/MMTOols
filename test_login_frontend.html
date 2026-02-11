@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SuperAdmin Login Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .message {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid #007bff;
+            padding-left: 10px;
+        }
+        .log-entry.success {
+            border-left-color: #28a745;
+        }
+        .log-entry.error {
+            border-left-color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 SuperAdmin Login Flow Test</h1>
+        
+        <div class="form-group">
+            <label>API URL:</label>
+            <input type="text" id="apiUrl" value="https://superadmin-login-fix.preview.emergentagent.com" />
+        </div>
+
+        <div class="form-group">
+            <label>Email:</label>
+            <input type="email" id="email" value="admin@marketmindai.com" />
+        </div>
+
+        <div class="form-group">
+            <label>Password:</label>
+            <input type="password" id="password" value="admin123" />
+        </div>
+
+        <button id="loginBtn" onclick="testLogin()">Test Login & Redirect</button>
+
+        <div id="message" class="message"></div>
+
+        <div class="log" id="log"></div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            const timestamp = new Date().toLocaleTimeString();
+            entry.textContent = `[${timestamp}] ${message}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+        }
+
+        async function testLogin() {
+            const btn = document.getElementById('loginBtn');
+            btn.disabled = true;
+            btn.textContent = 'Testing...';
+            document.getElementById('log').innerHTML = '';
+
+            const apiUrl = document.getElementById('apiUrl').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            log(`Starting login test for ${email}...`, 'info');
+            log(`API URL: ${apiUrl}`, 'info');
+
+            try {
+                // Step 1: Login
+                log('Step 1: Attempting login...', 'info');
+                const loginResponse = await fetch(`${apiUrl}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                log(`Login response status: ${loginResponse.status}`, 'info');
+
+                if (!loginResponse.ok) {
+                    const errorData = await loginResponse.json();
+                    throw new Error(errorData.detail || 'Login failed');
+                }
+
+                const loginData = await loginResponse.json();
+                log(`✅ Login successful!`, 'success');
+                log(`   Token type: ${loginData.token_type}`, 'success');
+                log(`   User role: ${loginData.user.role}`, 'success');
+                log(`   User email: ${loginData.user.email}`, 'success');
+
+                // Store tokens
+                localStorage.setItem('auth_token', loginData.access_token);
+                localStorage.setItem('token', loginData.access_token);
+                localStorage.setItem('user_data', JSON.stringify(loginData.user));
+                log('✅ Tokens stored in localStorage', 'success');
+
+                // Step 2: Verify token with /api/auth/me
+                log('Step 2: Verifying token with /api/auth/me...', 'info');
+                const meResponse = await fetch(`${apiUrl}/api/auth/me`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${loginData.access_token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                log(`Token verification response status: ${meResponse.status}`, 'info');
+
+                if (!meResponse.ok) {
+                    throw new Error('Token verification failed');
+                }
+
+                const userData = await meResponse.json();
+                log(`✅ Token verified successfully!`, 'success');
+                log(`   User ID: ${userData.id}`, 'success');
+                log(`   Role: ${userData.role}`, 'success');
+
+                // Check role
+                if (userData.role === 'superadmin' || userData.role === 'admin') {
+                    log(`✅ User has admin privileges (${userData.role})`, 'success');
+                    log('Step 3: Simulating redirect to /admin...', 'info');
+                    
+                    showMessage(`✅ All tests passed! User would be redirected to /admin dashboard.`, 'success');
+                    
+                    log('🎉 Complete! The login flow is working correctly!', 'success');
+                    log('   - Login successful', 'success');
+                    log('   - Token stored', 'success');
+                    log('   - Token verification passed', 'success');
+                    log('   - Role check passed', 'success');
+                    log('   - Ready to redirect to /admin', 'success');
+                    
+                    // Uncomment to actually redirect
+                    // setTimeout(() => {
+                    //     window.location.href = '/admin';
+                    // }, 2000);
+                } else {
+                    throw new Error(`User role is '${userData.role}', not admin/superadmin`);
+                }
+
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, 'error');
+                showMessage(`❌ Test failed: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Test Login & Redirect';
+            }
+        }
+
+        // Auto-run on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            log('Test page loaded. Click the button to test login flow.', 'info');
+        });
+    </script>
+</body>
+</html>
