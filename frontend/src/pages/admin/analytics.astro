@@ -190,9 +190,12 @@ const metadata = {
   function renderPerformanceChart(analytics: any) {
     const chartDiv = document.getElementById('performance-chart')!;
     
+    const totalViews = analytics.total_views || 0;
+    const avgRating = analytics.avg_tool_rating || 0;
+    
     const data = [
-      { label: 'Blog Views', value: analytics.analytics.blog_views, max: Math.max(analytics.analytics.blog_views, 100) },
-      { label: 'Tool Views', value: analytics.analytics.tool_views, max: Math.max(analytics.analytics.tool_views, 100) }
+      { label: 'Total Views', value: totalViews, max: Math.max(totalViews, 100), displayValue: totalViews.toLocaleString() },
+      { label: 'Avg Tool Rating', value: avgRating, max: 5, displayValue: avgRating.toFixed(2) + ' / 5.0' }
     ];
 
     chartDiv.innerHTML = data.map(item => `
