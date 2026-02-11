@@ -229,6 +229,7 @@ class="px-3 py-1 text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:
       (document.getElementById('category-id') as HTMLInputElement).value = category.id;
       (document.getElementById('category-name') as HTMLInputElement).value = category.name;
       (document.getElementById('category-description') as HTMLTextAreaElement).value = category.description || '';
+      (document.getElementById('category-parent') as HTMLSelectElement).value = category.parent_id || '';
       (document.getElementById('category-seo-title') as HTMLInputElement).value = category.seo_title || '';
       (document.getElementById('category-seo-description') as HTMLTextAreaElement).value = category.seo_description || '';
       (document.getElementById('category-seo-keywords') as HTMLInputElement).value = category.seo_keywords || '';
