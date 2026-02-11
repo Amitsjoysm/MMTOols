@@ -337,6 +337,50 @@ const metadata = {
     }
   }
 
+
+  async function loadAdmins() {
+    try {
+      const response = await fetch(getApiBaseUrl() + '/api/superadmin/admins', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        }
+      });
+      
+      if (response.ok) {
+        allAdmins = await response.json();
+        
+        // Populate admin assignment dropdown
+        const adminSelect = document.getElementById('tool-assigned-admin') as HTMLSelectElement;
+        // Keep the first "Not Assigned" option
+        while (adminSelect.options.length > 1) {
+          adminSelect.remove(1);
+        }
+        
+        allAdmins.forEach(admin => {
+          const option = document.createElement('option');
+          option.value = admin.id;
+          option.textContent = `${admin.full_name || admin.username} (${admin.role})`;
+          adminSelect.appendChild(option);
+        });
+      }
+    } catch (error) {
+      console.error('Error loading admins:', error);
+    }
+  }
+
+  function getApiBaseUrl(): string {
+    if (typeof window !== 'undefined') {
+      const currentOrigin = window.location.origin;
+      if (currentOrigin.includes('preview.app.github.dev') || 
+          currentOrigin.includes('github.dev') ||
+          currentOrigin.includes('preview.emergentagent.com')) {
+        return currentOrigin.replace(':3000', ':8001').replace('3000-', '8001-');
+      }
+    }
+    return 'http://localhost:8001';
+  }
+
+
   async function loadTools() {
     const loading = document.getElementById('loading')!;
     const tableContainer = document.getElementById('tools-table-container')!;
