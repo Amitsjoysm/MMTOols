@@ -209,7 +209,9 @@ const metadata = {
       loadUsers();
     } catch (error: any) {
       console.error('Error updating user:', error);
-
+      alert('Failed to update user: ' + (error.message || 'Unknown error'));
+    }
+  };
 
   (window as any).changeUserRole = async function(userId: string, currentRole: string) {
     const roles = ['user', 'admin', 'superadmin'];
