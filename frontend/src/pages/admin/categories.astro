@@ -252,9 +252,12 @@ class="px-3 py-1 text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:
     submitBtn.textContent = 'Saving...';
 
     try {
+      const parentValue = (document.getElementById('category-parent') as HTMLSelectElement).value;
+      
       const categoryData = {
         name: (document.getElementById('category-name') as HTMLInputElement).value,
         description: (document.getElementById('category-description') as HTMLTextAreaElement).value,
+        parent_id: parentValue || null,
         seo_title: (document.getElementById('category-seo-title') as HTMLInputElement).value,
         seo_description: (document.getElementById('category-seo-description') as HTMLTextAreaElement).value,
         seo_keywords: (document.getElementById('category-seo-keywords') as HTMLInputElement).value,
