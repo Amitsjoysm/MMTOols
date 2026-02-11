@@ -300,11 +300,13 @@ const metadata = {
   let currentSkip = 0;
   const limit = 20;
   let allCategories: any[] = [];
+  let allAdmins: any[] = [];
   let editingToolId: string | null = null;
 
   // Initialize
   async function init() {
     await loadCategories();
+    await loadAdmins();
     await loadTools();
     setupEventListeners();
   }
