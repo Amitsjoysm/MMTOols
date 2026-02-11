@@ -16,84 +16,199 @@
     
     // Not logged in - redirect immediately
     if (!token) {
+      console.warn('No authentication token found');
       window.location.replace('/admin/login?redirect=' + encodeURIComponent(window.location.pathname));
       return;
     }
     
-    // Get API base URL
+    // Get API base URL - consistent with api.ts
     function getApiBaseUrl() {
+      // Priority 1: Check environment variable (production/preview)
+      const envApiUrl = import.meta.env.PUBLIC_API_URL;
+      if (envApiUrl) {
+        console.log('Using PUBLIC_API_URL from environment:', envApiUrl);
+        return envApiUrl;
+      }
+      
+      // Priority 2: For Codespaces/Preview environments
       if (typeof window !== 'undefined') {
         const currentOrigin = window.location.origin;
+        
         if (currentOrigin.includes('preview.app.github.dev') || 
             currentOrigin.includes('github.dev') ||
             currentOrigin.includes('preview.emergentagent.com')) {
-          return currentOrigin.replace(':3000', ':8001').replace('3000-', '8001-');
+          // In preview environments, backend is on same origin
+          const apiUrl = currentOrigin.replace(':3000', ':8001').replace('3000-', '8001-');
+          console.log('Detected preview environment, using:', apiUrl);
+          return apiUrl;
         }
       }
+      
+      // Priority 3: Default to localhost for local development
+      console.log('Using default localhost API URL');
       return 'http://localhost:8001';
     }
     
     const API_URL = getApiBaseUrl();
+    console.log('API URL for admin verification:', API_URL);
     
-    try {
-      // Verify token and get user info from backend
-      const response = await fetch(`${API_URL}/api/auth/me`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+    // Retry configuration for transient failures
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY = 1000; // 1 second
+    
+    async function verifyWithRetry(attempt = 1) {
+      try {
+        console.log(`Auth verification attempt ${attempt}/${MAX_RETRIES}`);
+        
+        // Verify token and get user info from backend
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+        
+        const response = await fetch(`${API_URL}/api/auth/me`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          signal: controller.signal,
+          credentials: 'include'
+        });
+        
+        clearTimeout(timeoutId);
+        
+        // Handle different response statuses
+        if (response.status === 401) {
+          // Unauthorized - token invalid or expired
+          console.error('Authentication failed: Invalid or expired token');
+          localStorage.removeItem('token');
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('user_data');
+          window.location.replace('/admin/login?error=session_expired');
+          return;
         }
-      });
-      
-      if (!response.ok) {
-        // Token invalid or expired
-        localStorage.removeItem('token');
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('user_data');
-        window.location.replace('/admin/login?error=session_expired');
-        return;
+        
+        if (response.status === 403) {
+          // Forbidden - user doesn't have permission
+          console.error('Access denied: Insufficient permissions');
+          const user = await response.json().catch(() => null);
+          showAccessDenied(user);
+          return;
+        }
+        
+        if (response.status === 500 || response.status === 502 || response.status === 503) {
+          // Server errors - retry
+          throw new Error(`Server error: ${response.status}`);
+        }
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error ${response.status}`);
+        }
+        
+        const user = await response.json();
+        console.log('User authenticated:', user.email, 'Role:', user.role);
+        
+        // Validate user object
+        if (!user || !user.role || !user.email) {
+          throw new Error('Invalid user data received from server');
+        }
+        
+        // Validate role - ONLY admin or superadmin allowed
+        if (user.role !== 'admin' && user.role !== 'superadmin') {
+          console.error('Access denied: User role is', user.role);
+          showAccessDenied(user);
+          return;
+        }
+        
+        // Additional security check: verify user is active
+        if (user.is_active === false) {
+          console.error('Access denied: User account is inactive');
+          localStorage.removeItem('token');
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('user_data');
+          window.location.replace('/admin/login?error=account_inactive');
+          return;
+        }
+        
+        // Store validated user data
+        localStorage.setItem('user_data', JSON.stringify(user));
+        
+        console.log('Admin access granted successfully');
+        
+        // Access granted - remove overlay with smooth transition
+        if (overlay) {
+          overlay.style.opacity = '0';
+          overlay.style.transition = 'opacity 0.3s ease-out';
+          setTimeout(() => overlay.remove(), 300);
+        }
+        
+      } catch (error) {
+        console.error(`Admin validation error (attempt ${attempt}):`, error);
+        
+        // Retry for transient failures
+        if (attempt < MAX_RETRIES && 
+            (error.name === 'AbortError' || 
+             error.message.includes('Server error') ||
+             error.message.includes('NetworkError') ||
+             error.message.includes('Failed to fetch'))) {
+          
+          console.log(`Retrying in ${RETRY_DELAY}ms...`);
+          await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+          return verifyWithRetry(attempt + 1);
+        }
+        
+        // Max retries exceeded or non-retryable error
+        showConnectionError(error, attempt);
       }
-      
-      const user = await response.json();
-      
-      // Validate role - ONLY admin or superadmin allowed
-      if (user.role !== 'admin' && user.role !== 'superadmin') {
-        // User is authenticated but doesn't have admin privileges
-        overlay.innerHTML = `
-          <div class="text-center text-white p-8">
-            <svg class="w-16 h-16 mx-auto mb-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            <h2 class="text-2xl font-bold mb-2">Access Denied</h2>
-            <p class="mb-6">You don't have permission to access the admin area.</p>
-            <a href="/" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Go to Home</a>
-          </div>
-        `;
-        return;
-      }
-      
-      // Store validated user data
-      localStorage.setItem('user_data', JSON.stringify(user));
-      
-      // Access granted - remove overlay
-      if (overlay) {
-        overlay.remove();
-      }
-      
-    } catch (error) {
-      console.error('Admin validation error:', error);
-      // Network error - show error state
+    }
+    
+    function showAccessDenied(user) {
       overlay.innerHTML = `
-        <div class="text-center text-white p-8">
-          <svg class="w-16 h-16 mx-auto mb-4 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <div class="text-center text-white p-8 max-w-md">
+          <svg class="w-16 h-16 mx-auto mb-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
-          <h2 class="text-2xl font-bold mb-2">Connection Error</h2>
-          <p class="mb-6">Unable to verify your access. Please check your connection and try again.</p>
-          <button onclick="window.location.reload()" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Retry</button>
+          <h2 class="text-2xl font-bold mb-2">Access Denied</h2>
+          <p class="mb-6">You don't have permission to access the admin area.</p>
+          <p class="text-sm text-gray-400 mb-6">${user && user.role ? `Your role: ${user.role}` : 'Admin or SuperAdmin role required'}</p>
+          <div class="space-y-3">
+            <a href="/" class="block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">Go to Home</a>
+            <button onclick="localStorage.clear(); window.location.href='/auth/login';" class="block w-full px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors">Sign Out</button>
+          </div>
         </div>
       `;
     }
+    
+    function showConnectionError(error, attempts) {
+      const isTimeout = error.name === 'AbortError';
+      const isNetworkError = error.message.includes('Failed to fetch') || error.message.includes('NetworkError');
+      
+      overlay.innerHTML = `
+        <div class="text-center text-white p-8 max-w-md">
+          <svg class="w-16 h-16 mx-auto mb-4 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <h2 class="text-2xl font-bold mb-2">${isTimeout ? 'Request Timeout' : 'Connection Error'}</h2>
+          <p class="mb-4">Unable to verify your access${attempts > 1 ? ` after ${attempts} attempts` : ''}.</p>
+          <p class="text-sm text-gray-400 mb-6">
+            ${isTimeout ? 'The server is taking too long to respond.' : 
+              isNetworkError ? 'Please check your internet connection.' : 
+              'There was an error communicating with the server.'}
+          </p>
+          <div class="space-y-3">
+            <button onclick="window.location.reload()" class="block w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              Retry
+            </button>
+            <a href="/admin/login" class="block px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors">
+              Back to Login
+            </a>
+          </div>
+        </div>
+      `;
+    }
+    
+    // Start verification with retry logic
+    verifyWithRetry();
   }
   
   // Run validation immediately
