@@ -114,34 +114,38 @@ const metadata = {
   function renderStats(analytics: any, days: number) {
     const statsGrid = document.getElementById('stats-grid')!;
     
+    const overview = analytics.overview || analytics;
+    const recentActivity = analytics.recent_activity || {};
+    const monthlyGrowth = overview.monthly_growth || {};
+    
     const stats = [
       {
         title: 'Total Users',
-        value: analytics.total_users?.toLocaleString() || '0',
+        value: overview.total_users?.toLocaleString() || '0',
         icon: '👥',
         color: 'blue',
-        growth: analytics.users_growth || 0
+        growth: monthlyGrowth.users || 0
       },
       {
         title: 'Total Tools',
-        value: analytics.total_tools?.toLocaleString() || '0',
+        value: overview.total_tools?.toLocaleString() || '0',
         icon: '🔧',
         color: 'green',
-        growth: analytics.tools_growth || 0
+        growth: monthlyGrowth.tools || 0
       },
       {
         title: 'Total Blogs',
-        value: analytics.total_blogs?.toLocaleString() || '0',
+        value: overview.total_blogs?.toLocaleString() || '0',
         icon: '📝',
         color: 'purple',
-        growth: analytics.blogs_growth || 0
+        growth: monthlyGrowth.blogs || 0
       },
       {
         title: 'Total Reviews',
-        value: analytics.total_reviews?.toLocaleString() || '0',
+        value: overview.total_reviews?.toLocaleString() || '0',
         icon: '⭐',
         color: 'yellow',
-        growth: analytics.reviews_growth || 0
+        growth: monthlyGrowth.reviews || 0
       }
     ];
 
