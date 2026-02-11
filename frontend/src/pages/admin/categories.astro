@@ -136,6 +136,20 @@ const metadata = {
     try {
       allCategories = await superAdminApi.categories.getAll();
 
+      // Populate parent category dropdown
+      const parentSelect = document.getElementById('category-parent') as HTMLSelectElement;
+      // Clear existing options except the first "None" option
+      while (parentSelect.options.length > 1) {
+        parentSelect.remove(1);
+      }
+      // Add all categories as potential parents
+      allCategories.forEach(cat => {
+        const option = document.createElement('option');
+        option.value = cat.id;
+        option.textContent = cat.name;
+        parentSelect.appendChild(option);
+      });
+
       if (allCategories.length === 0) {
         emptyState.classList.remove('hidden');
       } else {
