@@ -31,7 +31,7 @@ class UpdateSiteNameRequest(BaseModel):
     site_name: str
 
 # Public endpoint - Get site logo
-@router.get("/site-settings/logo", response_model=LogoResponse)
+@router.get("/api/site-settings/logo", response_model=LogoResponse)
 async def get_site_logo(db: Session = Depends(get_db)):
     """Get the site logo URL - public endpoint"""
     logo_setting = db.query(SiteSettings).filter(SiteSettings.key == "site_logo_url").first()
@@ -43,7 +43,7 @@ async def get_site_logo(db: Session = Depends(get_db)):
     )
 
 # SuperAdmin endpoint - Update site logo URL
-@router.put("/superadmin/site-settings/logo", response_model=LogoResponse)
+@router.put("/api/superadmin/site-settings/logo", response_model=LogoResponse)
 async def update_site_logo(
     request: UpdateLogoRequest,
     db: Session = Depends(get_db),
@@ -74,7 +74,7 @@ async def update_site_logo(
     )
 
 # SuperAdmin endpoint - Update site name
-@router.put("/superadmin/site-settings/name", response_model=LogoResponse)
+@router.put("/api/superadmin/site-settings/name", response_model=LogoResponse)
 async def update_site_name(
     request: UpdateSiteNameRequest,
     db: Session = Depends(get_db),
@@ -105,7 +105,7 @@ async def update_site_name(
     )
 
 # SuperAdmin endpoint - Upload logo file
-@router.post("/superadmin/site-settings/logo/upload", response_model=LogoResponse)
+@router.post("/api/superadmin/site-settings/logo/upload", response_model=LogoResponse)
 async def upload_site_logo(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
@@ -159,7 +159,7 @@ async def upload_site_logo(
     )
 
 # SuperAdmin endpoint - Delete/Reset logo
-@router.delete("/superadmin/site-settings/logo", response_model=LogoResponse)
+@router.delete("/api/superadmin/site-settings/logo", response_model=LogoResponse)
 async def delete_site_logo(
     db: Session = Depends(get_db),
     current_user = Depends(get_current_superadmin)
