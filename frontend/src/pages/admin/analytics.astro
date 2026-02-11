@@ -165,9 +165,10 @@ const metadata = {
     const chartDiv = document.getElementById('activity-chart')!;
     
     const data = [
-      { label: 'New Users', value: analytics.analytics.new_users, max: Math.max(analytics.analytics.new_users, 10) },
-      { label: 'New Blogs', value: analytics.analytics.new_blogs, max: Math.max(analytics.analytics.new_blogs, 10) },
-      { label: 'New Reviews', value: analytics.analytics.new_reviews, max: Math.max(analytics.analytics.new_reviews, 10) }
+      { label: 'New Users Today', value: analytics.new_users_today || 0, max: Math.max(analytics.new_users_today || 0, 10) },
+      { label: 'New Tools Today', value: analytics.new_tools_today || 0, max: Math.max(analytics.new_tools_today || 0, 10) },
+      { label: 'New Blogs Today', value: analytics.new_blogs_today || 0, max: Math.max(analytics.new_blogs_today || 0, 10) },
+      { label: 'New Reviews Today', value: analytics.new_reviews_today || 0, max: Math.max(analytics.new_reviews_today || 0, 10) }
     ];
 
     chartDiv.innerHTML = data.map(item => `
