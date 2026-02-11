@@ -568,6 +568,10 @@ const metadata = {
       (document.getElementById('tool-screenshot') as HTMLInputElement).value = tool.screenshot_url || '';
       (document.getElementById('tool-active') as HTMLInputElement).checked = tool.is_active;
       (document.getElementById('tool-featured') as HTMLInputElement).checked = tool.is_featured;
+      
+      // Select assigned admin if available
+      const assignedAdminSelect = document.getElementById('tool-assigned-admin') as HTMLSelectElement;
+      assignedAdminSelect.value = tool.assigned_admin_id || '';
 
       // Select categories
       const categoriesSelect = document.getElementById('tool-categories') as HTMLSelectElement;
