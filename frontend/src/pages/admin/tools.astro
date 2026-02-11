@@ -475,6 +475,21 @@ const metadata = {
 
     // Tool form submit
     document.getElementById('tool-form')!.addEventListener('submit', handleToolSubmit);
+    
+    // Bulk upload button
+    document.getElementById('bulk-upload-btn')!.addEventListener('click', () => {
+      openBulkUploadModal();
+    });
+    
+    // Bulk upload modal close buttons
+    document.getElementById('close-bulk-modal')!.addEventListener('click', closeBulkUploadModal);
+    document.getElementById('cancel-bulk-btn')!.addEventListener('click', closeBulkUploadModal);
+    
+    // Download template button
+    document.getElementById('download-template-btn')!.addEventListener('click', downloadCsvTemplate);
+    
+    // Bulk upload form submit
+    document.getElementById('bulk-upload-form')!.addEventListener('submit', handleBulkUpload);
   }
 
   function openToolModal(tool?: any) {
