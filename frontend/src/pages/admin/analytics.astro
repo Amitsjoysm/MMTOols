@@ -168,11 +168,13 @@ const metadata = {
   function renderActivityChart(analytics: any) {
     const chartDiv = document.getElementById('activity-chart')!;
     
+    const recentActivity = analytics.recent_activity || {};
+    
     const data = [
-      { label: 'New Users Today', value: analytics.new_users_today || 0, max: Math.max(analytics.new_users_today || 0, 10) },
-      { label: 'New Tools Today', value: analytics.new_tools_today || 0, max: Math.max(analytics.new_tools_today || 0, 10) },
-      { label: 'New Blogs Today', value: analytics.new_blogs_today || 0, max: Math.max(analytics.new_blogs_today || 0, 10) },
-      { label: 'New Reviews Today', value: analytics.new_reviews_today || 0, max: Math.max(analytics.new_reviews_today || 0, 10) }
+      { label: 'New Users Today', value: recentActivity.new_users_today || 0, max: Math.max(recentActivity.new_users_today || 0, 10) },
+      { label: 'New Tools Today', value: recentActivity.new_tools_today || 0, max: Math.max(recentActivity.new_tools_today || 0, 10) },
+      { label: 'New Blogs Today', value: recentActivity.new_blogs_today || 0, max: Math.max(recentActivity.new_blogs_today || 0, 10) },
+      { label: 'New Reviews Today', value: recentActivity.new_reviews_today || 0, max: Math.max(recentActivity.new_reviews_today || 0, 10) }
     ];
 
     chartDiv.innerHTML = data.map(item => `
