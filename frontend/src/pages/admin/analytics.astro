@@ -196,8 +196,9 @@ const metadata = {
   function renderPerformanceChart(analytics: any) {
     const chartDiv = document.getElementById('performance-chart')!;
     
-    const totalViews = analytics.total_views || 0;
-    const avgRating = analytics.avg_tool_rating || 0;
+    const performance = analytics.performance || {};
+    const totalViews = performance.total_views || 0;
+    const avgRating = performance.avg_rating || 0;
     
     const data = [
       { label: 'Total Views', value: totalViews, max: Math.max(totalViews, 100), displayValue: totalViews.toLocaleString() },
