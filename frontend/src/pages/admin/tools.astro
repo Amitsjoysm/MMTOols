@@ -587,6 +587,163 @@ const metadata = {
     }
   };
 
+  // Bulk Upload Functions
+  function openBulkUploadModal() {
+    const modal = document.getElementById('bulk-upload-modal')!;
+    const form = document.getElementById('bulk-upload-form') as HTMLFormElement;
+    form.reset();
+    document.getElementById('upload-progress')!.classList.add('hidden');
+    document.getElementById('upload-results')!.classList.add('hidden');
+    modal.classList.remove('hidden');
+  }
+
+  function closeBulkUploadModal() {
+    document.getElementById('bulk-upload-modal')!.classList.add('hidden');
+  }
+
+  async function downloadCsvTemplate() {
+    try {
+      const response = await superAdminApi.tools.getAll({ skip: 0, limit: 1 });
+      const token = localStorage.getItem('auth_token');
+      
+      const templateResponse = await fetch(`${getApiBaseUrl()}/api/superadmin/tools/csv-template`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!templateResponse.ok) throw new Error('Failed to download template');
+      
+      const data = await templateResponse.json();
+      
+      // Create CSV content
+      const headers = data.headers.join(',');
+      const sampleRow = data.template.map((item: any) => {
+        return data.headers.map((h: string) => `"${item[h] || ''}"`).join(',');
+      }).join('\n');
+      
+      const csvContent = headers + '\n' + sampleRow;
+      
+      // Download file
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'tools_upload_template.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      
+      alert('Template downloaded successfully!');
+    } catch (error: any) {
+      console.error('Error downloading template:', error);
+      alert('Failed to download template: ' + (error.message || 'Unknown error'));
+    }
+  }
+
+  function getApiBaseUrl(): string {
+    if (typeof window !== 'undefined') {
+      const currentOrigin = window.location.origin;
+      if (currentOrigin.includes('preview.app.github.dev') || 
+          currentOrigin.includes('github.dev') ||
+          currentOrigin.includes('preview.emergentagent.com')) {
+        return currentOrigin.replace(':3000', ':8001').replace('3000-', '8001-');
+      }
+    }
+    return 'http://localhost:8001';
+  }
+
+  async function handleBulkUpload(e: Event) {
+    e.preventDefault();
+    
+    const fileInput = document.getElementById('csv-file-input') as HTMLInputElement;
+    if (!fileInput.files || fileInput.files.length === 0) {
+      alert('Please select a CSV file');
+      return;
+    }
+
+    const file = fileInput.files[0];
+    const submitBtn = document.getElementById('upload-btn') as HTMLButtonElement;
+    const progressDiv = document.getElementById('upload-progress')!;
+    const progressBar = document.getElementById('progress-bar')!;
+    const progressText = document.getElementById('progress-text')!;
+    const resultsDiv = document.getElementById('upload-results')!;
+    
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Uploading...';
+    progressDiv.classList.remove('hidden');
+    resultsDiv.classList.add('hidden');
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const token = localStorage.getItem('auth_token');
+      progressBar.style.width = '50%';
+      progressText.textContent = 'Uploading file...';
+      
+      const response = await fetch(`${getApiBaseUrl()}/api/superadmin/tools/bulk-upload`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+      
+      progressBar.style.width = '100%';
+      progressText.textContent = 'Processing...';
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Upload failed');
+      }
+      
+      const result = await response.json();
+      
+      // Show results
+      resultsDiv.innerHTML = `
+        <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+          <h4 class="font-semibold text-green-900 dark:text-green-100 mb-2">✅ Upload Successful!</h4>
+          <p class="text-sm text-green-800 dark:text-green-200">
+            ${result.message}<br>
+            Created: ${result.created_tools?.length || 0} tools
+          </p>
+          ${result.errors && result.errors.length > 0 ? `
+            <div class="mt-3 text-xs text-red-800 dark:text-red-200">
+              <p class="font-semibold mb-1">Errors:</p>
+              <ul class="list-disc list-inside">
+                ${result.errors.slice(0, 5).map((err: string) => `<li>${err}</li>`).join('')}
+              </ul>
+            </div>
+          ` : ''}
+        </div>
+      `;
+      resultsDiv.classList.remove('hidden');
+      
+      // Reload tools after successful upload
+      setTimeout(() => {
+        closeBulkUploadModal();
+        loadTools();
+      }, 3000);
+      
+    } catch (error: any) {
+      console.error('Error uploading file:', error);
+      resultsDiv.innerHTML = `
+        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+          <h4 class="font-semibold text-red-900 dark:text-red-100 mb-2">❌ Upload Failed</h4>
+          <p class="text-sm text-red-800 dark:text-red-200">${error.message || 'Unknown error occurred'}</p>
+        </div>
+      `;
+      resultsDiv.classList.remove('hidden');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Upload & Import';
+      progressDiv.classList.add('hidden');
+    }
+  }
+
+
   (window as any).deleteTool = async function(toolId: string, toolName: string) {
     if (!confirm(`Are you sure you want to delete "${toolName}"? This action cannot be undone.`)) {
       return;
