@@ -70,7 +70,15 @@ def require_superadmin_ip(request: Request):
     """
     Dependency function to check SuperAdmin IP whitelist
     Raises HTTPException if IP is not whitelisted
+    Can be disabled with DISABLE_IP_WHITELIST=true environment variable
     """
+    # Check if IP whitelist is disabled (useful for cloud/preview environments)
+    disable_whitelist = os.getenv("DISABLE_IP_WHITELIST", "false").lower() == "true"
+    
+    if disable_whitelist:
+        logger.info("IP whitelist check disabled by environment variable")
+        return True
+    
     if not check_superadmin_ip(request):
         client_ip = get_client_ip(request)
         raise HTTPException(
