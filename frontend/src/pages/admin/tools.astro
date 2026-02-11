@@ -595,6 +595,9 @@ const metadata = {
     try {
       const categoriesSelect = document.getElementById('tool-categories') as HTMLSelectElement;
       const selectedCategories = Array.from(categoriesSelect.selectedOptions).map(opt => opt.value);
+      
+      const assignedAdminSelect = document.getElementById('tool-assigned-admin') as HTMLSelectElement;
+      const assignedAdminId = assignedAdminSelect.value || null;
 
       const toolData = {
         name: (document.getElementById('tool-name') as HTMLInputElement).value,
@@ -614,8 +617,34 @@ const metadata = {
 
       if (editingToolId) {
         await superAdminApi.tools.update(editingToolId, toolData);
+        
+        // Update admin assignment separately
+        if (assignedAdminId !== null) {
+          const token = localStorage.getItem('auth_token');
+          await fetch(`${getApiBaseUrl()}/api/superadmin/tools/${editingToolId}/assign-admin`, {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ admin_id: assignedAdminId || null })
+          });
+        }
       } else {
-        await superAdminApi.tools.create(toolData);
+        const result = await superAdminApi.tools.create(toolData);
+        
+        // Assign admin after creation if selected
+        if (result.tool_id && assignedAdminId) {
+          const token = localStorage.getItem('auth_token');
+          await fetch(`${getApiBaseUrl()}/api/superadmin/tools/${result.tool_id}/assign-admin`, {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ admin_id: assignedAdminId })
+          });
+        }
       }
 
       closeToolModal();
