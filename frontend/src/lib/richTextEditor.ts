@@ -562,6 +562,12 @@ async function handleHighlightColor(editor: Editor) {
 }
 
 function getApiBaseUrl() {
+  // Priority 1: Check environment variable
+  if (typeof import.meta !== 'undefined' && import.meta.env?.PUBLIC_API_URL) {
+    return import.meta.env.PUBLIC_API_URL;
+  }
+  
+  // Priority 2: For Codespaces/Preview environments
   if (typeof window !== 'undefined') {
     const currentOrigin = window.location.origin;
     if (currentOrigin.includes('preview.app.github.dev') || 
@@ -570,6 +576,8 @@ function getApiBaseUrl() {
       return currentOrigin.replace(':3000', ':8001').replace('3000-', '8001-');
     }
   }
+  
+  // Priority 3: Default to localhost
   return 'http://localhost:8001';
 }
 
