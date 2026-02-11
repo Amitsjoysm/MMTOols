@@ -1751,6 +1751,88 @@ async def export_contact_submissions(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to export contact submissions: {str(e)}")
 
+# Tool Assignment to Admins
+class ToolAssignmentRequest(BaseModel):
+    admin_id: str
+
+@router.post("/api/superadmin/tools/{tool_id}/assign")
+async def assign_tool_to_admin(
+    tool_id: str,
+    assignment: ToolAssignmentRequest,
+    current_superadmin: User = Depends(get_current_superadmin),
+    db: Session = Depends(get_db)
+):
+    """Assign a tool to an admin for management"""
+    
+    # Check if tool exists
+    tool = db.query(Tool).filter(Tool.id == tool_id).first()
+    if not tool:
+        raise HTTPException(status_code=404, detail="Tool not found")
+    
+    # Check if admin exists and has admin/superadmin role
+    admin = db.query(User).filter(User.id == assignment.admin_id).first()
+    if not admin:
+        raise HTTPException(status_code=404, detail="Admin user not found")
+    
+    if admin.role not in ["admin", "superadmin"]:
+        raise HTTPException(status_code=400, detail="User must have admin or superadmin role")
+    
+    # Assign the tool
+    tool.assigned_admin_id = assignment.admin_id
+    tool.updated_at = datetime.utcnow()
+    db.commit()
+    
+    return {
+        "message": "Tool assigned successfully",
+        "tool_id": tool_id,
+        "admin_id": assignment.admin_id,
+        "admin_username": admin.username
+    }
+
+@router.delete("/api/superadmin/tools/{tool_id}/assign")
+async def unassign_tool_from_admin(
+    tool_id: str,
+    current_superadmin: User = Depends(get_current_superadmin),
+    db: Session = Depends(get_db)
+):
+    """Remove admin assignment from a tool"""
+    
+    tool = db.query(Tool).filter(Tool.id == tool_id).first()
+    if not tool:
+        raise HTTPException(status_code=404, detail="Tool not found")
+    
+    tool.assigned_admin_id = None
+    tool.updated_at = datetime.utcnow()
+    db.commit()
+    
+    return {"message": "Tool unassigned successfully", "tool_id": tool_id}
+
+@router.get("/api/superadmin/tools/{tool_id}/assigned-admin")
+async def get_tool_assigned_admin(
+    tool_id: str,
+    current_superadmin: User = Depends(get_current_superadmin),
+    db: Session = Depends(get_db)
+):
+    """Get the admin assigned to a tool"""
+    
+    tool = db.query(Tool).options(joinedload(Tool.assigned_admin)).filter(Tool.id == tool_id).first()
+    if not tool:
+        raise HTTPException(status_code=404, detail="Tool not found")
+    
+    if tool.assigned_admin:
+        return {
+            "assigned": True,
+            "admin": {
+                "id": tool.assigned_admin.id,
+                "username": tool.assigned_admin.username,
+                "email": tool.assigned_admin.email,
+                "full_name": tool.assigned_admin.full_name
+            }
+        }
+    
+    return {"assigned": False, "admin": None}
+
+
 # Site Settings Management
 class SiteSettingCreate(BaseModel):
     key: str
