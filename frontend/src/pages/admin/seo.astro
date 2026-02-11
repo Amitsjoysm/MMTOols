@@ -20,7 +20,16 @@ const metadata = {
     <!-- SEO Actions -->
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
       <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">SEO Tools</h3>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <button
+          id="generate-sitemap-btn"
+          class="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-left"
+          data-testid="generate-sitemap-btn"
+        >
+          <div class="font-bold">Generate & Save Sitemap</div>
+          <div class="text-sm opacity-90">Create sitemap.xml for all content</div>
+        </button>
+        
         <button
           id="generate-json-ld-btn"
           class="px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-left"
