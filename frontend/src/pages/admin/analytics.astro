@@ -219,33 +219,41 @@ const metadata = {
     
     detailedDiv.innerHTML = `
       <div class="space-y-3">
-        <h4 class="font-semibold text-gray-900 dark:text-white">Content Activity</h4>
+        <h4 class="font-semibold text-gray-900 dark:text-white">Platform Overview</h4>
         <div class="space-y-2">
           <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
-            <span class="text-gray-700 dark:text-gray-300">New Blogs Created</span>
-            <span class="font-bold text-gray-900 dark:text-white">${analytics.analytics.new_blogs}</span>
+            <span class="text-gray-700 dark:text-gray-300">Total Users</span>
+            <span class="font-bold text-gray-900 dark:text-white">${analytics.total_users?.toLocaleString() || '0'}</span>
           </div>
           <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
-            <span class="text-gray-700 dark:text-gray-300">Total Blog Views</span>
-            <span class="font-bold text-gray-900 dark:text-white">${analytics.analytics.blog_views.toLocaleString()}</span>
+            <span class="text-gray-700 dark:text-gray-300">Total Tools</span>
+            <span class="font-bold text-gray-900 dark:text-white">${analytics.total_tools?.toLocaleString() || '0'}</span>
+          </div>
+          <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+            <span class="text-gray-700 dark:text-gray-300">Total Blogs</span>
+            <span class="font-bold text-gray-900 dark:text-white">${analytics.total_blogs?.toLocaleString() || '0'}</span>
           </div>
         </div>
       </div>
       
       <div class="space-y-3">
-        <h4 class="font-semibold text-gray-900 dark:text-white">User Engagement</h4>
+        <h4 class="font-semibold text-gray-900 dark:text-white">Today's Activity (Real-time)</h4>
         <div class="space-y-2">
-          <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
-            <span class="text-gray-700 dark:text-gray-300">New Users</span>
-            <span class="font-bold text-gray-900 dark:text-white">${analytics.analytics.new_users}</span>
+          <div class="flex justify-between items-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+            <span class="text-gray-700 dark:text-gray-300">New Users Today</span>
+            <span class="font-bold text-green-900 dark:text-green-100">${analytics.new_users_today || 0}</span>
           </div>
-          <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
-            <span class="text-gray-700 dark:text-gray-300">New Reviews</span>
-            <span class="font-bold text-gray-900 dark:text-white">${analytics.analytics.new_reviews}</span>
+          <div class="flex justify-between items-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+            <span class="text-gray-700 dark:text-gray-300">New Tools Today</span>
+            <span class="font-bold text-green-900 dark:text-green-100">${analytics.new_tools_today || 0}</span>
           </div>
-          <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
-            <span class="text-gray-700 dark:text-gray-300">Tool Views</span>
-            <span class="font-bold text-gray-900 dark:text-white">${analytics.analytics.tool_views.toLocaleString()}</span>
+          <div class="flex justify-between items-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+            <span class="text-gray-700 dark:text-gray-300">New Blogs Today</span>
+            <span class="font-bold text-green-900 dark:text-green-100">${analytics.new_blogs_today || 0}</span>
+          </div>
+          <div class="flex justify-between items-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+            <span class="text-gray-700 dark:text-gray-300">New Reviews Today</span>
+            <span class="font-bold text-green-900 dark:text-green-100">${analytics.new_reviews_today || 0}</span>
           </div>
         </div>
       </div>
