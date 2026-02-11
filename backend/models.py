@@ -109,6 +109,9 @@ class Tool(Base):
     claim_approved_date = Column(DateTime, nullable=True)
     claim_rejection_reason = Column(Text, nullable=True)
     
+    # Admin assignment field
+    assigned_admin_id = Column(String, ForeignKey('users.id'), nullable=True)
+    
     # Relationships
     categories = relationship("Category", secondary=tool_categories, back_populates="tools")
     reviews = relationship("Review", back_populates="tool")
@@ -116,6 +119,7 @@ class Tool(Base):
     comments = relationship("ToolComment", back_populates="tool", cascade="all, delete-orphan")
     likes = relationship("ToolLike", back_populates="tool", cascade="all, delete-orphan")
     claimed_by = relationship("User", foreign_keys=[claimed_by_user_id])
+    assigned_admin = relationship("User", foreign_keys=[assigned_admin_id])
 
 class Review(Base):
     __tablename__ = "reviews"
