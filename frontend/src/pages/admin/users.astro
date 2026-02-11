@@ -209,6 +209,50 @@ const metadata = {
       loadUsers();
     } catch (error: any) {
       console.error('Error updating user:', error);
+
+
+  (window as any).changeUserRole = async function(userId: string, currentRole: string) {
+    const roles = ['user', 'admin', 'superadmin'];
+    const roleDescriptions = {
+      'user': 'User - Basic access to create content',
+      'admin': 'Admin - Can manage tools, categories, and moderate content',
+      'superadmin': 'Super Admin - Full access to all features'
+    };
+    
+    let message = 'Select new role:\n\n';
+    roles.forEach((role, index) => {
+      const selected = role === currentRole ? ' (Current)' : '';
+      message += `${index + 1}. ${roleDescriptions[role as keyof typeof roleDescriptions]}${selected}\n`;
+    });
+    message += '\nEnter role number (1-3):';
+    
+    const input = prompt(message);
+    if (!input) return;
+    
+    const roleIndex = parseInt(input) - 1;
+    if (roleIndex < 0 || roleIndex >= roles.length) {
+      alert('Invalid selection');
+      return;
+    }
+    
+    const newRole = roles[roleIndex];
+    if (newRole === currentRole) {
+      alert('User already has this role');
+      return;
+    }
+    
+    if (!confirm(`Are you sure you want to change this user's role to ${newRole}?`)) return;
+
+    try {
+      await superAdminApi.users.update(userId, { role: newRole });
+      alert(`User role updated to ${newRole} successfully!`);
+      loadUsers();
+    } catch (error: any) {
+      console.error('Error updating user role:', error);
+      alert('Failed to update user role: ' + (error.message || 'Unknown error'));
+    }
+  };
+
       alert('Failed to update user: ' + (error.message || 'Unknown error'));
     }
   };
