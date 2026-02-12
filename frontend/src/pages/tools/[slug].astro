@@ -735,29 +735,7 @@ function getPricingClass(pricingType: string): string {
     init();
   }
 </script>
-
-  // Client-side interactivity
-  let userLoggedIn = false;
-  let selectedRating = 0;
-
-  function init() {
-    userLoggedIn = !!localStorage.getItem('auth_token');
-    
-    // Enable/disable comment form based on auth
-    const commentInput = document.getElementById('comment-input') as HTMLTextAreaElement;
-    const postCommentBtn = document.getElementById('post-comment-btn') as HTMLButtonElement;
-    
-    if (userLoggedIn && commentInput && postCommentBtn) {
-      commentInput.disabled = false;
-      commentInput.placeholder = 'Write a comment...';
-      postCommentBtn.disabled = false;
-    }
-    
-    loadComments();
-    setupEventListeners();
-  }
-
-  async function loadComments() {
+</PageLayout>
     try {
       const comments = await toolsApi.getComments(slug, { limit: 50 });
       const commentsList = document.getElementById('comments-list');
