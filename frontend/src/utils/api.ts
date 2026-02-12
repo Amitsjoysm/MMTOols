@@ -242,6 +242,9 @@ export const userApi = {
   updateBlog: (blogId: string, data: any) => apiFetch<any>(`/api/user/blogs/${blogId}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteBlog: (blogId: string) => apiFetch<any>(`/api/user/blogs/${blogId}`, { method: 'DELETE' }),
   publishBlog: (blogId: string) => apiFetch<any>(`/api/user/blogs/${blogId}/publish`, { method: 'POST' }),
+  
+  // User's claimed tools
+  getClaimedTools: () => apiFetch<any[]>('/api/user/claimed-tools'),
 };
 
 // Super Admin APIs
