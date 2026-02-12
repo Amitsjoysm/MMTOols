@@ -95,58 +95,25 @@ const metadata = {
   </div>
 
   <script>
-    // Dynamic API URL detection
-    function getApiBaseUrl() {
-      if (typeof window !== 'undefined') {
-        const currentOrigin = window.location.origin;
-        if (currentOrigin.includes('preview.app.github.dev') || 
-            currentOrigin.includes('github.dev') ||
-            currentOrigin.includes('preview.emergentagent.com')) {
-          return currentOrigin.replace(':3000', ':8001').replace('3000-', '8001-');
-        }
-      }
-      return 'http://localhost:8001';
-    }
+    import { userApi } from '~/utils/api';
     
-    const API_URL = getApiBaseUrl();
     let currentFilter = 'all';
     let blogs = [];
 
-    function getAuthToken() {
-      return localStorage.getItem('token') || localStorage.getItem('auth_token');
-    }
-
     async function fetchBlogs() {
-      const token = getAuthToken();
-      if (!token) {
-        window.location.href = '/auth/login';
-        return;
-      }
-
       showLoading();
 
       try {
-        const response = await fetch(`${API_URL}/api/user/blogs`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (response.status === 401) {
-          window.location.href = '/auth/login';
-          return;
-        }
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch blogs');
-        }
-
-        blogs = await response.json();
+        blogs = await userApi.getBlogs();
         updateCounts();
         renderBlogs();
       } catch (error) {
-        showError(error.message);
+        console.error('Error fetching blogs:', error);
+        if (error.message.includes('401') || error.message.includes('credentials')) {
+          window.location.href = '/auth/login';
+          return;
+        }
+        showError(error.message || 'Failed to fetch blogs. Please try again.');
       }
     }
 
