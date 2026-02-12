@@ -2,31 +2,34 @@
 
 // Automatically detect the correct API URL
 function getApiBaseUrl(): string {
-  // Check if PUBLIC_API_URL is set
+  // Check if PUBLIC_API_URL is set (prefer this)
   if (import.meta.env.PUBLIC_API_URL) {
-    return import.meta.env.PUBLIC_API_URL;
+    const apiUrl = import.meta.env.PUBLIC_API_URL;
+    // If it's a relative URL (starts with /), use same origin
+    if (apiUrl.startsWith('/')) {
+      if (typeof window !== 'undefined') {
+        return window.location.origin;
+      }
+      return '';
+    }
+    return apiUrl;
   }
   
   // For Codespaces/Preview environments, use the current origin
   if (typeof window !== 'undefined') {
-    const currentOrigin = window.location.origin;
-    
-    // Check if we're in a preview/codespace environment
-    if (currentOrigin.includes('preview.app.github.dev') || 
-        currentOrigin.includes('github.dev') ||
-        currentOrigin.includes('preview.emergentagent.com')) {
-      // In preview environments, backend is on same origin
-      return currentOrigin.replace(':3000', ':8001').replace('3000-', '8001-');
-    }
+    return window.location.origin;
   }
   
-  // Default to localhost for local development
-  return 'http://localhost:8001';
+  // Default to empty string (will use relative URLs)
+  return '';
 }
 
 const API_BASE_URL = getApiBaseUrl();
 
-console.log('API Base URL:', API_BASE_URL);
+// Log API URL for debugging (only in development)
+if (typeof window !== 'undefined' && window.location.hostname.includes('localhost')) {
+  console.log('API Base URL:', API_BASE_URL || 'Relative URLs');
+}
 
 // Generic fetch wrapper with error handling
 export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
