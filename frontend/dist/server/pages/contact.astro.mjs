@@ -1,1 +1,60 @@
-// Contents removed by Astro as it's used for prerendering only
+import { c as createComponent, r as renderComponent, d as renderScript, a as renderTemplate, m as maybeRenderHead } from '../chunks/astro/server_ngSGK97K.mjs';
+import 'piccolore';
+import { $ as $$PageLayout } from '../chunks/PageLayout_DHnoqYNQ.mjs';
+export { renderers } from '../renderers.mjs';
+
+const prerender = true;
+const $$Contact = createComponent(async ($$result, $$props, $$slots) => {
+  const metadata = {
+    title: "Contact Us - MarketMindAI",
+    description: "Get in touch with MarketMindAI. Submit your tool, ask questions, or share feedback."
+  };
+  return renderTemplate`${renderComponent($$result, "Layout", $$PageLayout, { "metadata": metadata }, { "default": async ($$result2) => renderTemplate` ${maybeRenderHead()}<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12"> <!-- Header --> <div class="text-center mb-12"> <h1 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
+Get in Touch
+</h1> <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+Have questions? Want to submit a tool? We'd love to hear from you.
+</p> </div> <div class="grid grid-cols-1 lg:grid-cols-2 gap-12"> <!-- Contact Form --> <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8"> <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Send us a message</h2> <form id="contact-form" class="space-y-6"> <div> <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+Name *
+</label> <input type="text" id="name" name="name" required class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Your name"> </div> <div> <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+Email *
+</label> <input type="email" id="email" name="email" required class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="your@email.com"> </div> <div> <label for="company" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+Company (Optional)
+</label> <input type="text" id="company" name="company" class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Your company"> </div> <div> <label for="subject" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+Subject *
+</label> <input type="text" id="subject" name="subject" required class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="How can we help?"> </div> <div> <label for="inquiry_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+Inquiry Type *
+</label> <select id="inquiry_type" name="inquiry_type" required class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"> <option value="general">General Inquiry</option> <option value="submit-tool">Submit a Tool</option> <option value="support">Technical Support</option> <option value="partnership">Partnership</option> <option value="feature">Feature Request</option> <option value="press">Press & Media</option> </select> </div> <div> <label for="message" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+Message *
+</label> <textarea id="message" name="message" rows="6" required class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" placeholder="Tell us more..."></textarea> </div> <div id="form-message" class="hidden"></div> <button type="submit" class="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-lg" data-testid="submit-contact-btn">
+Send Message
+</button> </form> </div> <!-- Contact Information --> <div class="space-y-8"> <!-- Quick Links --> <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8"> <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Quick Links</h2> <div class="space-y-4"> <a href="/tools" class="flex items-center text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"> <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path> </svg>
+Browse All Tools
+</a> <a href="/tools/compare" class="flex items-center text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"> <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path> </svg>
+Compare Tools
+</a> <a href="/blog" class="flex items-center text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"> <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path> </svg>
+Read Blog
+</a> </div> </div> <!-- Submit a Tool --> <div class="bg-blue-50 dark:bg-gray-900 rounded-lg p-8"> <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">
+Submit Your Tool
+</h3> <p class="text-gray-700 dark:text-gray-300 mb-4">
+Have a tool you'd like to see featured on MarketMindAI? We're always looking to add quality tools to our directory.
+</p> <p class="text-sm text-gray-600 dark:text-gray-400">
+Select "Submit a Tool" from the inquiry type dropdown above and tell us about your tool!
+</p> </div> <!-- Social Links --> <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8"> <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">
+Connect With Us
+</h3> <div class="flex space-x-4"> <a href="https://twitter.com/marketmindai" target="_blank" rel="noopener noreferrer" class="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"> <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"> <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"></path> </svg> </a> <a href="https://www.linkedin.com/company/marketmindai" target="_blank" rel="noopener noreferrer" class="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"> <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"> <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"></path> </svg> </a> <a href="https://facebook.com/marketmindai" target="_blank" rel="noopener noreferrer" class="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"> <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"> <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"></path> </svg> </a> </div> </div> </div> </div> </div> ` })} ${renderScript($$result, "/app/frontend/src/pages/contact.astro?astro&type=script&index=0&lang.ts")}`;
+}, "/app/frontend/src/pages/contact.astro", void 0);
+
+const $$file = "/app/frontend/src/pages/contact.astro";
+const $$url = "/contact";
+
+const _page = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  default: $$Contact,
+  file: $$file,
+  prerender,
+  url: $$url
+}, Symbol.toStringTag, { value: 'Module' }));
+
+const page = () => _page;
+
+export { page };
