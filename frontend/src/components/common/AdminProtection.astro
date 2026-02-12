@@ -23,30 +23,29 @@
     
     // Get API base URL - consistent with api.ts
     function getApiBaseUrl() {
-      // Priority 1: Check environment variable (production/preview)
+      // Check if PUBLIC_API_URL is set
       const envApiUrl = import.meta.env.PUBLIC_API_URL;
       if (envApiUrl) {
+        // If it's a relative URL (starts with /), use current origin
+        if (envApiUrl.startsWith('/')) {
+          if (typeof window !== 'undefined') {
+            console.log('Using window origin for relative API URL');
+            return window.location.origin;
+          }
+          return '';
+        }
         console.log('Using PUBLIC_API_URL from environment:', envApiUrl);
         return envApiUrl;
       }
       
-      // Priority 2: For Codespaces/Preview environments
+      // For Codespaces/Preview environments, use current origin
       if (typeof window !== 'undefined') {
-        const currentOrigin = window.location.origin;
-        
-        if (currentOrigin.includes('preview.app.github.dev') || 
-            currentOrigin.includes('github.dev') ||
-            currentOrigin.includes('preview.emergentagent.com')) {
-          // In preview environments, backend is on same origin
-          const apiUrl = currentOrigin.replace(':3000', ':8001').replace('3000-', '8001-');
-          console.log('Detected preview environment, using:', apiUrl);
-          return apiUrl;
-        }
+        console.log('Using window origin as API URL');
+        return window.location.origin;
       }
       
-      // Priority 3: Default to localhost for local development
-      console.log('Using default localhost API URL');
-      return 'http://localhost:8001';
+      // Default to empty string (will use relative URLs)
+      return '';
     }
     
     const API_URL = getApiBaseUrl();
