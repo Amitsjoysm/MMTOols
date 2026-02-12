@@ -394,6 +394,55 @@ async def get_all_tools_admin(
         } for tool in tools
     ]
 
+@router.get("/api/superadmin/tools/{tool_id}")
+async def get_tool_by_id(
+    tool_id: str,
+    current_superadmin: User = Depends(get_current_superadmin),
+    db: Session = Depends(get_db)
+):
+    """Get a single tool by ID"""
+    
+    tool = db.query(Tool).options(
+        joinedload(Tool.categories)
+    ).filter(Tool.id == tool_id).first()
+    
+    if not tool:
+        raise HTTPException(status_code=404, detail="Tool not found")
+    
+    # Format tool data
+    tool_data = {
+        "id": tool.id,
+        "name": tool.name,
+        "slug": tool.slug,
+        "short_description": tool.short_description,
+        "description": tool.description,
+        "url": tool.url,
+        "logo_url": tool.logo_url,
+        "pricing_type": tool.pricing_type,
+        "pricing_details": tool.pricing_details,
+        "features": tool.features.split('|') if tool.features else [],
+        "pros": tool.pros.split('|') if tool.pros else [],
+        "cons": tool.cons.split('|') if tool.cons else [],
+        "rating": tool.rating,
+        "review_count": tool.review_count,
+        "like_count": tool.like_count,
+        "view_count": tool.view_count,
+        "is_active": tool.is_active,
+        "is_featured": tool.is_featured,
+        "categories": [{"id": cat.id, "name": cat.name, "slug": cat.slug} for cat in tool.categories] if tool.categories else [],
+        "company_location": tool.company_location,
+        "started_on": tool.started_on,
+        "about": tool.about,
+        "founders": tool.founders.split('|') if tool.founders else [],
+        "seo_title": tool.seo_title,
+        "seo_description": tool.seo_description,
+        "seo_keywords": tool.seo_keywords,
+        "created_at": tool.created_at.isoformat() if tool.created_at else None,
+        "updated_at": tool.updated_at.isoformat() if tool.updated_at else None,
+    }
+    
+    return tool_data
+
 @router.post("/api/superadmin/tools")
 async def create_tool(
     tool: ToolCreate,
