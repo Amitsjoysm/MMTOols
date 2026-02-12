@@ -74,7 +74,7 @@ async def update_site_logo(
     )
 
 # SuperAdmin endpoint - Update site name
-@router.put("/api/superadmin/site-settings/name", response_model=LogoResponse)
+@router.put("/superadmin/site-settings/name", response_model=LogoResponse)
 async def update_site_name(
     request: UpdateSiteNameRequest,
     db: Session = Depends(get_db),
