@@ -9,17 +9,23 @@
 </div>
 
 <script>
-  // Validate admin access by verifying token with backend
-  async function validateAdminAccess() {
-    const overlay = document.getElementById('admin-protection-overlay');
-    const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
+  // Prevent multiple validations
+  if (window.__adminProtectionRunning) {
+    console.log('Admin protection already running, skipping duplicate');
+  } else {
+    window.__adminProtectionRunning = true;
     
-    // Not logged in - redirect immediately
-    if (!token) {
-      console.warn('No authentication token found');
-      window.location.replace('/admin/login?redirect=' + encodeURIComponent(window.location.pathname));
-      return;
-    }
+    // Validate admin access by verifying token with backend
+    async function validateAdminAccess() {
+      const overlay = document.getElementById('admin-protection-overlay');
+      const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
+      
+      // Not logged in - redirect immediately
+      if (!token) {
+        console.warn('No authentication token found');
+        window.location.replace('/auth/login?redirect=' + encodeURIComponent(window.location.pathname));
+        return;
+      }
     
     // Get API base URL - consistent with api.ts
     function getApiBaseUrl() {
