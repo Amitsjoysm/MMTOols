@@ -11,9 +11,9 @@ from typing import Optional
 # Email configuration
 SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
 SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
-SMTP_USERNAME = os.getenv("SMTP_USERNAME", "gajananzx@gmail.com")
-SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "wbhnyrwyvhidajfe")
-FROM_EMAIL = os.getenv("FROM_EMAIL", "gajananzx@gmail.com")
+SMTP_USERNAME = os.getenv("SMTP_USERNAME", "rohushanshinde@gmail.com")
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "pajbdmcpcegppguz")
+FROM_EMAIL = os.getenv("FROM_EMAIL", "rohushanshinde@gmail.com")
 FROM_NAME = "MarketMind"
 
 # Base URL for frontend - get from environment or use default
