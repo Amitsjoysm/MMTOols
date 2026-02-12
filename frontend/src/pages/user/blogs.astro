@@ -235,21 +235,8 @@ const metadata = {
         return;
       }
 
-      const token = getAuthToken();
       try {
-        const response = await fetch(`${API_URL}/api/user/blogs/${blogId}/publish`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to publish blog');
-        }
-
-        const result = await response.json();
+        const result = await userApi.publishBlog(blogId);
         alert('Blog published successfully with automatic SEO optimization!\n\n' + 
               '✓ SEO Title: ' + result.blog.seo_title + '\n' +
               '✓ SEO Description: Generated\n' +
@@ -266,20 +253,8 @@ const metadata = {
         return;
       }
 
-      const token = getAuthToken();
       try {
-        const response = await fetch(`${API_URL}/api/user/blogs/${blogId}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to delete blog');
-        }
-
+        await userApi.deleteBlog(blogId);
         alert('Blog deleted successfully!');
         fetchBlogs();
       } catch (error) {
