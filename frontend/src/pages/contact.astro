@@ -196,18 +196,7 @@ const metadata = {
 </Layout>
 
 <script>
-  // Dynamic API URL detection
-  function getApiBaseUrl() {
-    if (typeof window !== 'undefined') {
-      const currentOrigin = window.location.origin;
-      if (currentOrigin.includes('preview.app.github.dev') || 
-          currentOrigin.includes('github.dev') ||
-          currentOrigin.includes('preview.emergentagent.com')) {
-        return currentOrigin.replace(':3000', ':8001').replace('3000-', '8001-');
-      }
-    }
-    return 'http://localhost:8001';
-  }
+  import { contactApi } from '~/utils/api';
   
   const form = document.getElementById('contact-form') as HTMLFormElement;
   const formMessage = document.getElementById('form-message')!;
@@ -225,29 +214,17 @@ const metadata = {
     try {
       const formData = new FormData(form);
       const data = Object.fromEntries(formData.entries());
-
-      const API_BASE_URL = getApiBaseUrl();
       
-      const response = await fetch(`${API_BASE_URL}/api/contact`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (response.ok) {
-        formMessage.className = 'p-4 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-lg';
-        formMessage.textContent = 'Thank you! Your message has been sent successfully. We\'ll get back to you soon.';
-        formMessage.classList.remove('hidden');
-        form.reset();
-      } else {
-        throw new Error('Failed to send message');
-      }
+      await contactApi.submit(data as any);
+      
+      formMessage.className = 'p-4 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-lg';
+      formMessage.textContent = 'Thank you! Your message has been sent successfully. We\'ll get back to you soon.';
+      formMessage.classList.remove('hidden');
+      form.reset();
     } catch (error) {
       console.error('Error:', error);
       formMessage.className = 'p-4 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded-lg';
-      formMessage.textContent = 'Oops! Something went wrong. Please try again later or email us directly.';
+      formMessage.textContent = 'Oops! Something went wrong. Please try again later or email us directly at contact@marketmindai.com';
       formMessage.classList.remove('hidden');
     } finally {
       submitBtn.disabled = false;
