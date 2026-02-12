@@ -28,8 +28,7 @@ import{s as i}from"./api.LtktkIWz.js";import{r as u}from"./auth.DepAfbYU.js";u()
           <button onclick="window.editCategory('${e.id}')" class="px-3 py-1 text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300" data-testid="edit-category-${e.id}">
             Edit
           </button>
-          <button onclick="window.deleteCategory('${e.id}', '${e.name.replace(/'/g,"\\'")}')
-class="px-3 py-1 text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300" data-testid="delete-category-${e.id}">
+          <button onclick="window.deleteCategory('${e.id}', '${e.name.replace(/'/g,"\\'")}')" class="px-3 py-1 text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300" data-testid="delete-category-${e.id}">
             Delete
           </button>
         </div>
