@@ -182,8 +182,21 @@ const metadata = {
       <div class="flex gap-4">
         <button
           type="button"
+          id="preview-btn"
+          class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition"
+          data-testid="preview-blog-btn"
+        >
+          <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          </svg>
+          Preview
+        </button>
+        <button
+          type="button"
           id="save-draft-btn"
           class="flex-1 px-6 py-3 bg-gray-600 text-white font-semibold rounded-lg hover:bg-gray-700 transition"
+          data-testid="save-draft-btn"
         >
           Save as Draft
         </button>
@@ -191,32 +204,46 @@ const metadata = {
           type="button"
           id="publish-btn"
           class="flex-1 px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition"
+          data-testid="publish-btn"
         >
           Save & Publish (Auto SEO + JSON-LD)
         </button>
       </div>
     </form>
+    
+    <!-- Preview Modal -->
+    <div id="preview-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 overflow-y-auto">
+      <div class="min-h-screen px-4 flex items-center justify-center">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full mx-auto p-8 my-8">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Blog Preview</h2>
+            <button id="close-preview-btn" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          
+          <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+            <h1 id="preview-title" class="text-3xl font-bold text-gray-900 dark:text-white mb-4"></h1>
+            <div class="flex items-center text-sm text-gray-600 dark:text-gray-400 mb-6">
+              <span id="preview-author">Author Name</span>
+              <span class="mx-2">•</span>
+              <span id="preview-date">Today</span>
+              <span class="mx-2">•</span>
+              <span id="preview-reading-time">5 min read</span>
+            </div>
+            <div id="preview-excerpt" class="text-lg text-gray-700 dark:text-gray-300 mb-6 italic"></div>
+            <div id="preview-content" class="prose dark:prose-invert max-w-none"></div>
+            <div id="preview-tags" class="flex flex-wrap gap-2 mt-6"></div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
-    // Dynamic API URL detection
-    function getApiBaseUrl() {
-      if (typeof window !== 'undefined') {
-        const currentOrigin = window.location.origin;
-        if (currentOrigin.includes('preview.app.github.dev') || 
-            currentOrigin.includes('github.dev') ||
-            currentOrigin.includes('preview.emergentagent.com')) {
-          return currentOrigin.replace(':3000', ':8001').replace('3000-', '8001-');
-        }
-      }
-      return 'http://localhost:8001';
-    }
-    
-    const API_URL = getApiBaseUrl();
-
-    function getAuthToken() {
-      return localStorage.getItem('token') || localStorage.getItem('auth_token');
-    }
+    import { userApi } from '~/utils/api';
 
     function showSuccess(message) {
       const successDiv = document.getElementById('success-message');
