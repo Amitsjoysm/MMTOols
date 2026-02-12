@@ -657,7 +657,8 @@ function getPricingClass(pricingType: string): string {
       const cons = consText ? consText.split('\n').map(c => c.trim()).filter(c => c.length > 0) : [];
       
       try {
-        await toolsApi.createReview(toolId, {
+        await toolsApi.createReview({
+          tool_id: toolId,
           rating: selectedRating,
           title,
           content,
