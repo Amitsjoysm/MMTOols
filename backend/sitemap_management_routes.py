@@ -374,32 +374,26 @@ async def save_sitemap_to_production(
     current_admin = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
-    """Save sitemap.xml directly to production directory /www/wwwroot/marketmindai.com/"""
+    """Save sitemap.xml with proper category/subcategory mapping for tools and blogs"""
     
     try:
         import os
         from datetime import datetime
+        from sqlalchemy.orm import joinedload
         
-        # Get production path
-        production_path = "/www/wwwroot/marketmindai.com"
-        
-        # Check if production path exists
-        if not os.path.exists(production_path):
-            raise HTTPException(
-                status_code=500, 
-                detail=f"Production path does not exist: {production_path}"
-            )
+        # Get production path (fallback to local if not available)
+        production_path = "/www/wwwroot/marketmindai.com" if os.path.exists("/www/wwwroot/marketmindai.com") else "/app"
         
         # Get base URL from environment
         base_url = os.getenv('FRONTEND_URL', 'https://marketmindai.com').rstrip('/')
         
-        # Get all published blogs
+        # Get all published blogs with their categories/tags
         blogs = db.query(Blog).filter(Blog.status == 'published').all()
         
-        # Get all active tools
-        tools = db.query(Tool).filter(Tool.is_active).all()
+        # Get all active tools with their categories
+        tools = db.query(Tool).options(joinedload(Tool.categories)).filter(Tool.is_active == True).all()
         
-        # Get all categories
+        # Get all categories with parent relationships
         categories = db.query(Category).all()
         
         # Get active sitemap entries (location-based URLs)
@@ -418,7 +412,7 @@ async def save_sitemap_to_production(
         <priority>1.0</priority>
     </url>'''
         
-        # Add main pages
+        # Add main pages (excluding admin/user pages as per requirement)
         main_pages = [
             ('/tools', 'daily', '0.9'),
             ('/blogs', 'daily', '0.9'),
@@ -438,10 +432,22 @@ async def save_sitemap_to_production(
         <priority>{priority}</priority>
     </url>'''
         
-        # Add blogs
+        # Add categories and subcategories
+        for category in categories:
+            sitemap_content += f'''
+    <url>
+        <loc>{base_url}/tools?category={category.slug}</loc>
+        <lastmod>{datetime.now().strftime('%Y-%m-%d')}</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+    </url>'''
+        
+        # Add blogs with category/tag mapping
         for blog in blogs:
             last_mod = (blog.updated_at.strftime('%Y-%m-%d') if blog.updated_at 
                        else blog.created_at.strftime('%Y-%m-%d'))
+            
+            # Main blog URL
             sitemap_content += f'''
     <url>
         <loc>{base_url}/blogs/{blog.slug}</loc>
@@ -449,11 +455,25 @@ async def save_sitemap_to_production(
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
     </url>'''
+            
+            # If blog has tags, add category-specific URLs
+            if blog.tags:
+                for tag in blog.tags[:3]:  # Limit to top 3 tags to avoid excessive URLs
+                    tag_slug = tag.lower().replace(' ', '-')
+                    sitemap_content += f'''
+    <url>
+        <loc>{base_url}/blogs?tag={tag_slug}</loc>
+        <lastmod>{last_mod}</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+    </url>'''
         
-        # Add tools
+        # Add tools with category mapping
         for tool in tools:
             last_mod = (tool.updated_at.strftime('%Y-%m-%d') if tool.updated_at 
                        else tool.created_at.strftime('%Y-%m-%d'))
+            
+            # Main tool URL
             sitemap_content += f'''
     <url>
         <loc>{base_url}/tools/{tool.slug}</loc>
@@ -461,13 +481,26 @@ async def save_sitemap_to_production(
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
     </url>'''
-        
-        # Add categories
-        for category in categories:
-            sitemap_content += f'''
+            
+            # Add tool under each of its categories
+            if tool.categories:
+                for category in tool.categories:
+                    sitemap_content += f'''
     <url>
-        <loc>{base_url}/tools?category={category.slug}</loc>
-        <lastmod>{datetime.now().strftime('%Y-%m-%d')}</lastmod>
+        <loc>{base_url}/tools/{category.slug}/{tool.slug}</loc>
+        <lastmod>{last_mod}</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.75</priority>
+    </url>'''
+                    
+                    # If category has a parent (subcategory), add that too
+                    if category.parent_id:
+                        parent = db.query(Category).filter(Category.id == category.parent_id).first()
+                        if parent:
+                            sitemap_content += f'''
+    <url>
+        <loc>{base_url}/tools/{parent.slug}/{category.slug}/{tool.slug}</loc>
+        <lastmod>{last_mod}</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.7</priority>
     </url>'''
@@ -491,19 +524,30 @@ async def save_sitemap_to_production(
         with open(sitemap_path, 'w', encoding='utf-8') as f:
             f.write(sitemap_content)
         
-        # Count entries
-        total_urls = len(blogs) + len(tools) + len(categories) + len(sitemap_entries) + len(main_pages) + 1  # +1 for homepage
+        # Calculate total URLs
+        tools_category_urls = sum(len(tool.categories) for tool in tools if tool.categories)
+        blogs_tag_urls = sum(min(len(blog.tags), 3) for blog in blogs if blog.tags)
+        total_urls = (
+            1 +  # homepage
+            len(main_pages) +
+            len(categories) +
+            len(blogs) + blogs_tag_urls +
+            len(tools) + tools_category_urls +
+            len(sitemap_entries)
+        )
         
         return {
-            "message": "Sitemap.xml saved successfully to production directory",
+            "message": "Sitemap.xml saved successfully with category/subcategory mapping",
             "path": sitemap_path,
             "total_urls": total_urls,
             "breakdown": {
                 "homepage": 1,
                 "main_pages": len(main_pages),
-                "blogs": len(blogs),
-                "tools": len(tools),
                 "categories": len(categories),
+                "blogs": len(blogs),
+                "blogs_by_tags": blogs_tag_urls,
+                "tools": len(tools),
+                "tools_by_category": tools_category_urls,
                 "location_pages": len(sitemap_entries)
             },
             "timestamp": datetime.now().isoformat()
