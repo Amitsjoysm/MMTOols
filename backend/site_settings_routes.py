@@ -31,7 +31,7 @@ class UpdateSiteNameRequest(BaseModel):
     site_name: str
 
 # Public endpoint - Get site logo
-@router.get("/api/site-settings/logo", response_model=LogoResponse)
+@router.get("/site-settings/logo", response_model=LogoResponse)
 async def get_site_logo(db: Session = Depends(get_db)):
     """Get the site logo URL - public endpoint"""
     logo_setting = db.query(SiteSettings).filter(SiteSettings.key == "site_logo_url").first()
@@ -43,7 +43,7 @@ async def get_site_logo(db: Session = Depends(get_db)):
     )
 
 # SuperAdmin endpoint - Update site logo URL
-@router.put("/api/superadmin/site-settings/logo", response_model=LogoResponse)
+@router.put("/superadmin/site-settings/logo", response_model=LogoResponse)
 async def update_site_logo(
     request: UpdateLogoRequest,
     db: Session = Depends(get_db),
