@@ -312,6 +312,10 @@ const metadata = {
           );
         } else {
           showSuccess('✓ Blog saved as draft successfully!');
+          const publishResult = await userApi.publishBlog(blog.id);
+          showSuccess(`Blog published successfully! SEO optimized with: ${publishResult.blog.seo_title}. Redirecting...`);
+        } else {
+          showSuccess('Blog saved as draft successfully! Redirecting...');
         }
 
         // Redirect after 2 seconds
@@ -320,17 +324,70 @@ const metadata = {
         }, 2000);
 
       } catch (error) {
-        showError(error.message);
+        console.error('Error saving blog:', error);
+        showError(error.message || 'Failed to save blog. Please try again.');
       }
     }
+    
+    // Preview functionality
+    function showPreview() {
+      const title = (document.getElementById('title') as HTMLInputElement).value;
+      const contentHtml = (document.getElementById('blog-content-html') as HTMLTextAreaElement).value;
+      const excerpt = (document.getElementById('excerpt') as HTMLTextAreaElement).value;
+      const tagsInput = (document.getElementById('tags') as HTMLInputElement).value;
+      const tags = tagsInput ? tagsInput.split(',').map(t => t.trim()).filter(t => t) : [];
+      
+      if (!title) {
+        alert('Please enter a title to preview');
+        return;
+      }
+      
+      // Update preview modal
+      document.getElementById('preview-title')!.textContent = title;
+      document.getElementById('preview-excerpt')!.textContent = excerpt || 'No excerpt provided';
+      document.getElementById('preview-content')!.innerHTML = contentHtml || '<p class="text-gray-500">No content yet. Start writing in the editor above.</p>';
+      document.getElementById('preview-date')!.textContent = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      
+      // Calculate reading time (rough estimate: 200 words per minute)
+      const wordCount = contentHtml.replace(/<[^>]*>/g, '').split(/\s+/).length;
+      const readingTime = Math.max(1, Math.ceil(wordCount / 200));
+      document.getElementById('preview-reading-time')!.textContent = `${readingTime} min read`;
+      
+      // Show tags
+      const previewTags = document.getElementById('preview-tags')!;
+      if (tags.length > 0) {
+        previewTags.innerHTML = tags.map(tag => 
+          `<span class="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm">${tag}</span>`
+        ).join('');
+      } else {
+        previewTags.innerHTML = '<span class="text-gray-500 text-sm">No tags</span>';
+      }
+      
+      // Show modal
+      document.getElementById('preview-modal')!.classList.remove('hidden');
+    }
+
+    // Event listeners
+    document.getElementById('preview-btn')?.addEventListener('click', showPreview);
+    
+    document.getElementById('close-preview-btn')?.addEventListener('click', () => {
+      document.getElementById('preview-modal')!.classList.add('hidden');
+    });
+    
+    // Close preview on clicking outside
+    document.getElementById('preview-modal')?.addEventListener('click', (e) => {
+      if (e.target === document.getElementById('preview-modal')) {
+        document.getElementById('preview-modal')!.classList.add('hidden');
+      }
+    });
 
     // Save as draft
-    document.getElementById('save-draft-btn').addEventListener('click', () => {
+    document.getElementById('save-draft-btn')?.addEventListener('click', () => {
       saveBlog(false);
     });
 
     // Publish
-    document.getElementById('publish-btn').addEventListener('click', () => {
+    document.getElementById('publish-btn')?.addEventListener('click', () => {
       if (confirm('Publish this blog? It will be visible to everyone and SEO will be automatically optimized with JSON-LD schema.')) {
         saveBlog(true);
       }
