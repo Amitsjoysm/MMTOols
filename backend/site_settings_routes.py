@@ -159,7 +159,7 @@ async def upload_site_logo(
     )
 
 # SuperAdmin endpoint - Delete/Reset logo
-@router.delete("/api/superadmin/site-settings/logo", response_model=LogoResponse)
+@router.delete("/superadmin/site-settings/logo", response_model=LogoResponse)
 async def delete_site_logo(
     db: Session = Depends(get_db),
     current_user = Depends(get_current_superadmin)
