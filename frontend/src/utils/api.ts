@@ -266,6 +266,7 @@ export const superAdminApi = {
       }
       return apiFetch<any[]>(`/api/superadmin/tools?${queryParams.toString()}`);
     },
+    getById: (id: string) => apiFetch<any>(`/api/superadmin/tools/${id}`),
     create: (data: any) => apiFetch<any>('/api/superadmin/tools', { method: 'POST', body: JSON.stringify(data) }),
     update: (id: string, data: any) => apiFetch<any>(`/api/superadmin/tools/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     delete: (id: string) => apiFetch<any>(`/api/superadmin/tools/${id}`, { method: 'DELETE' }),
