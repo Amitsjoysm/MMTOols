@@ -173,8 +173,8 @@ The following origins are whitelisted:
 ```
 https://marketmindai.com
 https://www.marketmindai.com
-https://superadmin-boost-1.preview.emergentagent.com
-https://superadmin-boost-1.preview.emergentagent.com
+https://sync-fix-deploy.preview.emergentagent.com
+https://sync-fix-deploy.preview.emergentagent.com
 http://localhost:3000
 ```
 
