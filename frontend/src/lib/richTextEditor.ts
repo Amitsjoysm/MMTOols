@@ -19,7 +19,7 @@ import TableHeader from '@tiptap/extension-table-header';
 import TableCell from '@tiptap/extension-table-cell';
 import HorizontalRule from '@tiptap/extension-horizontal-rule';
 import Youtube from '@tiptap/extension-youtube';
-import { lowlight } from 'lowlight';
+import { createLowlight } from 'lowlight';
 
 // Import languages for syntax highlighting
 import javascript from 'highlight.js/lib/languages/javascript';
@@ -30,7 +30,8 @@ import css from 'highlight.js/lib/languages/css';
 import json from 'highlight.js/lib/languages/json';
 import bash from 'highlight.js/lib/languages/bash';
 
-// Register languages
+// Create lowlight instance and register languages
+const lowlight = createLowlight();
 lowlight.register('javascript', javascript);
 lowlight.register('typescript', typescript);
 lowlight.register('python', python);
