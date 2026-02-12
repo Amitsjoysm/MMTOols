@@ -295,24 +295,6 @@ const metadata = {
         // If publish is true, publish immediately
         if (publish) {
           const publishResult = await userApi.publishBlog(blog.id);
-              'Content-Type': 'application/json'
-            }
-          });
-
-          if (!publishResponse.ok) {
-            throw new Error('Blog created but failed to publish');
-          }
-
-          const publishResult = await publishResponse.json();
-          showSuccess(
-            `✓ Blog published successfully!\n\n` +
-            `✓ SEO Title: ${publishResult.blog.seo_title}\n` +
-            `✓ SEO Description: Generated\n` +
-            `✓ JSON-LD Schema: Auto-generated for Google`
-          );
-        } else {
-          showSuccess('✓ Blog saved as draft successfully!');
-          const publishResult = await userApi.publishBlog(blog.id);
           showSuccess(`Blog published successfully! SEO optimized with: ${publishResult.blog.seo_title}. Redirecting...`);
         } else {
           showSuccess('Blog saved as draft successfully! Redirecting...');
