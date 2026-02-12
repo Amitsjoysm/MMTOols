@@ -555,7 +555,80 @@ function getPricingClass(pricingType: string): string {
       });
     }
 
+    // Add to compare button
+    const addToCompareBtn = document.getElementById('add-to-compare-btn');
+    if (addToCompareBtn) {
+      addToCompareBtn.addEventListener('click', () => {
+        // Get or create comparison list in localStorage
+        let compareList = JSON.parse(localStorage.getItem('compareTools') || '[]');
+        
+        // Check if tool already in compare list
+        const alreadyAdded = compareList.some((t: any) => t.id === toolId);
+        
+        if (alreadyAdded) {
+          // Remove from compare list
+          compareList = compareList.filter((t: any) => t.id !== toolId);
+          localStorage.setItem('compareTools', JSON.stringify(compareList));
+          addToCompareBtn.textContent = ' Add to Compare';
+          alert('Removed from comparison');
+        } else {
+          // Add to compare list (max 4 tools)
+          if (compareList.length >= 4) {
+            alert('You can compare up to 4 tools at a time. Remove one to add another.');
+            return;
+          }
+          
+          compareList.push({
+            id: toolId,
+            slug: slug,
+            name: document.querySelector('[data-testid="tool-title"]')?.textContent || ''
+          });
+          localStorage.setItem('compareTools', JSON.stringify(compareList));
+          addToCompareBtn.innerHTML = `
+            <svg class="w-5 h-5 mr-2" fill="currentColor" stroke="none" viewBox="0 0 24 24">
+              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Added to Compare (${compareList.length})
+          `;
+          
+          // Show link to compare page
+          setTimeout(() => {
+            if (confirm('Tool added to comparison! Would you like to go to the compare page?')) {
+              window.location.href = '/tools/compare';
+            }
+          }, 500);
+        }
+        
+        // Update button badge count
+        updateCompareButtonBadge();
+      });
+      
+      // Check if tool already in compare list on load
+      const compareList = JSON.parse(localStorage.getItem('compareTools') || '[]');
+      if (compareList.some((t: any) => t.id === toolId)) {
+        addToCompareBtn.innerHTML = `
+          <svg class="w-5 h-5 mr-2" fill="currentColor" stroke="none" viewBox="0 0 24 24">
+            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Added to Compare (${compareList.length})
+        `;
+      }
+    }
+    
     setupReviewModal();
+  }
+  
+  function updateCompareButtonBadge() {
+    const compareList = JSON.parse(localStorage.getItem('compareTools') || '[]');
+    const addToCompareBtn = document.getElementById('add-to-compare-btn');
+    if (addToCompareBtn && compareList.length > 0) {
+      addToCompareBtn.innerHTML = `
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+        Add to Compare (${compareList.length}/4)
+      `;
+    }
   }
 
   function setupReviewModal() {
