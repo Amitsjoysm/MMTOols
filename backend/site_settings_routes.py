@@ -105,7 +105,7 @@ async def update_site_name(
     )
 
 # SuperAdmin endpoint - Upload logo file
-@router.post("/api/superadmin/site-settings/logo/upload", response_model=LogoResponse)
+@router.post("/superadmin/site-settings/logo/upload", response_model=LogoResponse)
 async def upload_site_logo(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
