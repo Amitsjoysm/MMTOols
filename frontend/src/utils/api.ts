@@ -336,6 +336,11 @@ export const superAdminApi = {
     generateJsonLd: (contentType: string, limit: number = 100) =>
       apiFetch<any>(`/api/superadmin/seo/generate-json-ld?content_type=${contentType}&limit=${limit}`, { method: 'POST' }),
   },
+  
+  // Sitemap Management
+  sitemap: {
+    generate: () => apiFetch<any>('/api/superadmin/sitemap/generate', { method: 'POST' }),
+  },
 };
 
 // Admin APIs
