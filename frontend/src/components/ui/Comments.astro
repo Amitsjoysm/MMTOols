@@ -59,8 +59,9 @@ const commentId = `comments-${contentSlug}`;
       const currentOrigin = window.location.origin;
       if (currentOrigin.includes('preview.app.github.dev') || 
           currentOrigin.includes('github.dev') ||
-          currentOrigin.includes('preview.emergentagent.com')) {
-        return currentOrigin.replace(':3000', ':8001').replace('3000-', '8001-');
+          currentOrigin.includes('preview.emergentagent.com') ||
+          currentOrigin.includes('stage-preview.emergentagent.com')) {
+        return currentOrigin;
       }
     }
     return 'http://localhost:8001';
