@@ -432,7 +432,48 @@ function getPricingClass(pricingType: string): string {
 </Layout>
 
 <script define:vars={{ slug: slug, toolId: tool.id }}>
-  import { toolsApi } from '~/utils/api';
+  // Dynamic API URL detection
+  function getApiBaseUrl() {
+    if (typeof window !== 'undefined') {
+      const currentOrigin = window.location.origin;
+      if (currentOrigin.includes('preview.emergentagent.com') || 
+          currentOrigin.includes('stage-preview.emergentagent.com') ||
+          currentOrigin.includes('github.dev')) {
+        return currentOrigin;
+      }
+    }
+    return 'http://localhost:8001';
+  }
+  
+  const API_BASE_URL = getApiBaseUrl();
+  
+  // Generic fetch wrapper
+  async function apiFetch(endpoint, options = {}) {
+    const url = `${API_BASE_URL}${endpoint}`;
+    const defaultHeaders = {
+      'Content-Type': 'application/json',
+    };
+
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      defaultHeaders['Authorization'] = `Bearer ${token}`;
+    }
+
+    const config = {
+      ...options,
+      headers: {
+        ...defaultHeaders,
+        ...options.headers,
+      },
+    };
+
+    const response = await fetch(url, config);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  }
 
   // Client-side interactivity
   let userLoggedIn = false;
@@ -442,8 +483,8 @@ function getPricingClass(pricingType: string): string {
     userLoggedIn = !!localStorage.getItem('auth_token');
     
     // Enable/disable comment form based on auth
-    const commentInput = document.getElementById('comment-input') as HTMLTextAreaElement;
-    const postCommentBtn = document.getElementById('post-comment-btn') as HTMLButtonElement;
+    const commentInput = document.getElementById('comment-input');
+    const postCommentBtn = document.getElementById('post-comment-btn');
     
     if (userLoggedIn && commentInput && postCommentBtn) {
       commentInput.disabled = false;
@@ -457,7 +498,7 @@ function getPricingClass(pricingType: string): string {
 
   async function loadComments() {
     try {
-      const comments = await toolsApi.getComments(slug, { limit: 50 });
+      const comments = await apiFetch(`/api/tools/${slug}/comments?limit=50`);
       const commentsList = document.getElementById('comments-list');
       
       if (!commentsList) return;
