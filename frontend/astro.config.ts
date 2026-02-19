@@ -35,7 +35,7 @@ export default defineConfig({
   },
   vite: {
     server: {
-      allowedHosts: true
+      allowedHosts: ['localhost', '127.0.0.1', '.preview.emergentagent.com', '.emergentcf.cloud']
     },
     resolve: {
       alias: {
