@@ -154,8 +154,11 @@ class BlogAPITester:
         print(f"\n👍 BLOG INTERACTION TESTS")
         print("-" * 40)
         
-        if not self.test_blog_slug:
-            print("⚠️  Skipping interaction tests - no test blog available")
+        # Use existing blog if test blog creation failed
+        test_slug = self.test_blog_slug or "design-system-best-practices-with-figma"
+        
+        if not test_slug:
+            print("⚠️  Skipping interaction tests - no blog available")
             return
         
         # 1. Test view increment
