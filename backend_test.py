@@ -19,6 +19,7 @@ class BlogAPITester:
         self.tests_passed = 0
         self.test_blog_slug = None
         self.test_comment_id = None
+        self.test_blog_slug = "the-future-of-ai-trends-to-watch-in-2024"
         
         print(f"🚀 Starting Blog API Tests against: {self.base_url}")
         print("=" * 60)
