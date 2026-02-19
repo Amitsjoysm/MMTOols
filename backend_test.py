@@ -11,7 +11,7 @@ import time
 from datetime import datetime
 
 class BlogAPITester:
-    def __init__(self, base_url="https://tool-comparison-1.preview.emergentagent.com"):
+    def __init__(self, base_url="https://ba9510e0-24c7-4ddd-b7f9-e554b8a05d00.preview.emergentagent.com"):
         self.base_url = base_url
         self.token = None
         self.user_id = None
