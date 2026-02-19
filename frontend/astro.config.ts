@@ -35,7 +35,7 @@ export default defineConfig({
   },
   vite: {
     server: {
-      allowedHosts: ['ai-tooltracker.preview.emergentagent.com', 'localhost', '127.0.0.1']
+      allowedHosts: ['ai-tooltracker.preview.emergentagent.com', 'localhost', '127.0.0.1', '.stage-preview.emergentagent.com']
     },
     resolve: {
       alias: {
