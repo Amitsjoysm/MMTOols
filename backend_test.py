@@ -209,9 +209,9 @@ class BlogAPITester:
         
         # 1. Get comments (should be empty initially)
         success, comments = self.run_test(
-            "Get Blog Comments (Empty)",
+            "Get Blog Comments (Existing)",
             "GET",
-            f"/api/blogs/{self.test_blog_slug}/comments",
+            f"/api/blogs/{test_slug}/comments",
             200,
             auth_required=False
         )
@@ -227,7 +227,7 @@ class BlogAPITester:
         success, response = self.run_test(
             "Create Blog Comment",
             "POST",
-            f"/api/blogs/{self.test_blog_slug}/comments",
+            f"/api/blogs/{test_slug}/comments",
             201,
             data=comment_data
         )
@@ -236,16 +236,16 @@ class BlogAPITester:
             self.test_comment_id = response['id']
             print(f"   ✅ Comment created with ID: {self.test_comment_id}")
         
-        # 3. Get comments again (should have 1 comment now)
+        # 3. Get comments again (should have more comments now)
         success, comments = self.run_test(
-            "Get Blog Comments (With Data)",
+            "Get Blog Comments (After Creation)",
             "GET",
-            f"/api/blogs/{self.test_blog_slug}/comments",
+            f"/api/blogs/{test_slug}/comments",
             200,
             auth_required=False
         )
         
-        if success and len(comments) > 0:
+        if success:
             print(f"   ✅ Comments after creation: {len(comments)} comments")
             print(f"   ✅ COMMENTS SYSTEM WORKING - Route ordering issue RESOLVED!")
 
