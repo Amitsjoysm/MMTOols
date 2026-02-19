@@ -207,12 +207,54 @@ const processedContent = blog.content.split('\n').map((line: string) => {
 </Layout>
 
 <script define:vars={{ slug, blogId: blog.id }}>
-  import { blogsApi } from '~/utils/api';
+  // Dynamic API URL detection
+  function getApiBaseUrl() {
+    if (typeof window !== 'undefined') {
+      const currentOrigin = window.location.origin;
+      if (currentOrigin.includes('preview.app.github.dev') || 
+          currentOrigin.includes('github.dev') ||
+          currentOrigin.includes('preview.emergentagent.com') ||
+          currentOrigin.includes('stage-preview.emergentagent.com')) {
+        return currentOrigin;
+      }
+    }
+    return 'http://localhost:8001';
+  }
+  
+  const API_BASE_URL = getApiBaseUrl();
+
+  // Generic fetch wrapper
+  async function apiFetch(endpoint, options = {}) {
+    const url = `${API_BASE_URL}${endpoint}`;
+    const defaultHeaders = {
+      'Content-Type': 'application/json',
+    };
+
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      defaultHeaders['Authorization'] = `Bearer ${token}`;
+    }
+
+    const config = {
+      ...options,
+      headers: {
+        ...defaultHeaders,
+        ...options.headers,
+      },
+    };
+
+    const response = await fetch(url, config);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  }
 
   async function init() {
     // Increment view count (client-side action)
     try {
-      await blogsApi.incrementView(slug);
+      await apiFetch(`/api/blogs/${slug}/view`, { method: 'POST' });
       console.log('View count incremented');
     } catch (error) {
       console.error('Error incrementing view:', error);
@@ -228,27 +270,48 @@ const processedContent = blog.content.split('\n').map((line: string) => {
     if (!commentsList) return;
 
     try {
-      const comments = await blogsApi.getComments(slug);
+      const comments = await apiFetch(`/api/blogs/${slug}/comments`);
       
       if (comments.length === 0) {
-        commentsList.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center">No comments yet. Be the first to comment!</p>';
+        commentsList.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center py-4">No comments yet. Be the first to comment!</p>';
         return;
       }
 
-      commentsList.innerHTML = comments.map((comment: any) => `
-        <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4" data-testid="comment-${comment.id}">
+      commentsList.innerHTML = comments.map((comment) => `
+        <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4" data-testid="comment-${comment.id}">
           <div class="flex items-center space-x-2 mb-2">
+            <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+              ${comment.user_name.charAt(0).toUpperCase()}
+            </div>
             <span class="font-medium text-gray-900 dark:text-white">${comment.user_name}</span>
             <span class="text-sm text-gray-500 dark:text-gray-400">
               ${new Date(comment.created_at).toLocaleDateString()}
             </span>
           </div>
-          <p class="text-gray-700 dark:text-gray-300">${comment.content}</p>
+          <p class="text-gray-700 dark:text-gray-300 ml-10">${comment.content}</p>
+          ${comment.replies && comment.replies.length > 0 ? `
+            <div class="mt-4 ml-10 space-y-3 border-l-2 border-gray-200 dark:border-gray-700 pl-4">
+              ${comment.replies.map(reply => `
+                <div class="bg-gray-100 dark:bg-gray-700 rounded-lg p-3">
+                  <div class="flex items-center space-x-2 mb-1">
+                    <div class="w-6 h-6 bg-gray-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                      ${reply.user_name.charAt(0).toUpperCase()}
+                    </div>
+                    <span class="font-medium text-gray-900 dark:text-white text-sm">${reply.user_name}</span>
+                    <span class="text-xs text-gray-500 dark:text-gray-400">
+                      ${new Date(reply.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <p class="text-gray-700 dark:text-gray-300 text-sm ml-8">${reply.content}</p>
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
         </div>
       `).join('');
     } catch (error) {
       console.error('Error loading comments:', error);
-      commentsList.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center">Failed to load comments.</p>';
+      commentsList.innerHTML = '<p class="text-red-500 dark:text-red-400 text-center py-4">Failed to load comments. Please refresh the page.</p>';
     }
   }
 
@@ -268,7 +331,7 @@ const processedContent = blog.content.split('\n').map((line: string) => {
       }
 
       try {
-        const result = await blogsApi.toggleLike(slug);
+        const result = await apiFetch(`/api/blogs/${slug}/like`, { method: 'POST' });
         
         if (likeCount) likeCount.textContent = result.like_count.toString();
         if (blogLikes) blogLikes.textContent = result.like_count + ' likes';
@@ -302,8 +365,8 @@ const processedContent = blog.content.split('\n').map((line: string) => {
   }
 
   function setupCommentForm() {
-    const form = document.getElementById('comment-form') as HTMLFormElement;
-    const textarea = document.getElementById('comment-content') as HTMLTextAreaElement;
+    const form = document.getElementById('comment-form');
+    const textarea = document.getElementById('comment-content');
 
     if (!form || !textarea) return;
 
@@ -314,7 +377,10 @@ const processedContent = blog.content.split('\n').map((line: string) => {
       if (!content) return;
 
       try {
-        await blogsApi.createComment(slug, { content });
+        await apiFetch(`/api/blogs/${slug}/comments`, {
+          method: 'POST',
+          body: JSON.stringify({ content }),
+        });
         textarea.value = '';
         await loadComments();
         alert('Comment posted successfully!');
