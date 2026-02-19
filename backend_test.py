@@ -165,7 +165,7 @@ class BlogAPITester:
         success, response = self.run_test(
             "Increment Blog View Count",
             "POST",
-            f"/api/blogs/{self.test_blog_slug}/view",
+            f"/api/blogs/{test_slug}/view",
             200,
             auth_required=False
         )
@@ -177,7 +177,7 @@ class BlogAPITester:
         success, response = self.run_test(
             "Toggle Blog Like",
             "POST",
-            f"/api/blogs/{self.test_blog_slug}/like",
+            f"/api/blogs/{test_slug}/like",
             200
         )
         
@@ -188,7 +188,7 @@ class BlogAPITester:
         success, response = self.run_test(
             "Toggle Blog Bookmark",
             "POST",
-            f"/api/blogs/{self.test_blog_slug}/bookmark",
+            f"/api/blogs/{test_slug}/bookmark",
             200
         )
         
