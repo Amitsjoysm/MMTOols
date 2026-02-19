@@ -540,7 +540,7 @@ function getPricingClass(pricingType: string): string {
         }
         
         try {
-          const result = await toolsApi.toggleLike(slug);
+          const result = await apiFetch(`/api/tools/${slug}/like`, { method: 'POST' });
           const likeCount = document.getElementById('like-count');
           const sidebarLikeCount = document.getElementById('sidebar-like-count');
           
@@ -576,7 +576,7 @@ function getPricingClass(pricingType: string): string {
     const postCommentBtn = document.getElementById('post-comment-btn');
     if (postCommentBtn) {
       postCommentBtn.addEventListener('click', async () => {
-        const commentInput = document.getElementById('comment-input') as HTMLTextAreaElement;
+        const commentInput = document.getElementById('comment-input');
         const content = commentInput?.value.trim();
         
         if (!content) {
@@ -585,7 +585,10 @@ function getPricingClass(pricingType: string): string {
         }
         
         try {
-          await toolsApi.createComment(slug, { content });
+          await apiFetch(`/api/tools/${slug}/comments`, {
+            method: 'POST',
+            body: JSON.stringify({ content })
+          });
           commentInput.value = '';
           await loadComments();
           alert('Comment posted successfully!');
@@ -602,7 +605,7 @@ function getPricingClass(pricingType: string): string {
   function setupReviewModal() {
     const modal = document.getElementById('review-modal');
     const cancelBtn = document.getElementById('cancel-review-btn');
-    const reviewForm = document.getElementById('review-form') as HTMLFormElement;
+    const reviewForm = document.getElementById('review-form');
     const ratingButtons = document.querySelectorAll('.rating-btn');
 
     if (!modal || !reviewForm) return;
