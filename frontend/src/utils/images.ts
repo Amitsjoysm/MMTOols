@@ -83,11 +83,22 @@ export const adaptOpenGraphImages = async (
         ) {
           _image = (await unpicOptimizer(resolvedImage, [defaultWidth], defaultWidth, defaultHeight, 'jpg'))[0];
         } else if (resolvedImage) {
-          const dimensions =
-            typeof resolvedImage !== 'string' && resolvedImage?.width <= defaultWidth
-              ? [resolvedImage?.width, resolvedImage?.height]
-              : [defaultWidth, defaultHeight];
-          _image = (await astroAssetsOptimizer(resolvedImage, [dimensions[0]], dimensions[0], dimensions[1], 'jpg'))[0];
+          // Only optimize images that are ImageMetadata objects (imported assets)
+          // For string paths (local or remote), skip optimizer to avoid MissingImageDimension errors
+          if (typeof resolvedImage !== 'string') {
+            const dimensions =
+              resolvedImage?.width <= defaultWidth
+                ? [resolvedImage?.width, resolvedImage?.height]
+                : [defaultWidth, defaultHeight];
+            _image = (await astroAssetsOptimizer(resolvedImage, [dimensions[0]], dimensions[0], dimensions[1], 'jpg'))[0];
+          } else {
+            // Return the string path as-is with default dimensions
+            return {
+              url: resolvedImage.startsWith('/') ? String(new URL(resolvedImage, astroSite)) : resolvedImage,
+              width: image.width || defaultWidth,
+              height: image.height || defaultHeight,
+            };
+          }
         }
 
         if (typeof _image === 'object') {

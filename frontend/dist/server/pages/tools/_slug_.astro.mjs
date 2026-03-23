@@ -1,6 +1,6 @@
 import { f as createAstro, c as createComponent, a as renderTemplate, h as defineScriptVars, r as renderComponent, F as Fragment, u as unescapeHTML, b as addAttribute, m as maybeRenderHead } from '../../chunks/astro/server_CZk8NOd-.mjs';
 import 'piccolore';
-import { $ as $$PageLayout } from '../../chunks/PageLayout_CQTO3tfd.mjs';
+import { $ as $$PageLayout } from '../../chunks/PageLayout_D77RgbZh.mjs';
 import { a as ssrToolsApi } from '../../chunks/ssr-api_CezTdN0q.mjs';
 import { S as SITE } from '../../chunks/permalinks_CkvIL3vS.mjs';
 export { renderers } from '../../renderers.mjs';
@@ -151,7 +151,7 @@ Limited integrations"></textarea> </div> </div> <div class="flex items-center ju
 Cancel
 </button> <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" data-testid="submit-review-btn">
 Submit Review
-</button> </div> </form> </div> </div> `, "head": async ($$result2) => renderTemplate`${renderComponent($$result2, "Fragment", Fragment, { "slot": "head" }, { "default": async ($$result3) => renderTemplate(_a || (_a = __template([' <script type="application/ld+json">', '<\/script> <meta name="keywords"', '> <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"> <meta property="og:updated_time"', '> <link rel="preload" as="image"', "> "])), unescapeHTML(JSON.stringify(toolJsonLd)), addAttribute(seoKeywords, "content"), addAttribute(tool.updated_at || tool.created_at || (/* @__PURE__ */ new Date()).toISOString(), "content"), addAttribute(logoUrl, "href")) })}` }), defineScriptVars({ slug, toolId: tool.id }));
+</button> </div> </form> </div> </div> `, "head": async ($$result2) => renderTemplate`${renderComponent($$result2, "Fragment", Fragment, { "slot": "head" }, { "default": async ($$result3) => renderTemplate(_a || (_a = __template([' <script type="application/ld+json">', '<\/script> <meta name="keywords"', '> <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"> <meta property="og:updated_time"', "> "])), unescapeHTML(JSON.stringify(toolJsonLd)), addAttribute(seoKeywords, "content"), addAttribute(tool.updated_at || tool.created_at || (/* @__PURE__ */ new Date()).toISOString(), "content")) })}` }), defineScriptVars({ slug, toolId: tool.id }));
 }, "/app/frontend/src/pages/tools/[slug].astro", void 0);
 
 const $$file = "/app/frontend/src/pages/tools/[slug].astro";

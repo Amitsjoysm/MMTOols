@@ -1,6 +1,6 @@
 import { f as createAstro, c as createComponent, a as renderTemplate, h as defineScriptVars, r as renderComponent, F as Fragment, u as unescapeHTML, b as addAttribute, m as maybeRenderHead } from '../../chunks/astro/server_CZk8NOd-.mjs';
 import 'piccolore';
-import { $ as $$PageLayout } from '../../chunks/PageLayout_CQTO3tfd.mjs';
+import { $ as $$PageLayout } from '../../chunks/PageLayout_D77RgbZh.mjs';
 import { s as ssrBlogsApi } from '../../chunks/ssr-api_CezTdN0q.mjs';
 import { S as SITE } from '../../chunks/permalinks_CkvIL3vS.mjs';
 export { renderers } from '../../renderers.mjs';
