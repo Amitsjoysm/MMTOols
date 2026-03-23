@@ -3,8 +3,11 @@
  * These functions fetch data at build time for static site generation
  */
 
-// Use Astro's environment variable (process.env for SSR context)
-const API_BASE_URL = process.env.PUBLIC_API_URL || 'http://localhost:8001';
+// Use localhost for server-side requests since we're running on the same machine
+// The environment variable is only used for client-side requests
+const API_BASE_URL = 'http://localhost:8001';
+
+console.log('[SSR-API] Using API base URL:', API_BASE_URL);
 
 interface FetchOptions {
   method?: string;

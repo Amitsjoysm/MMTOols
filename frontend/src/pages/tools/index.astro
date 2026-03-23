@@ -1,6 +1,6 @@
 ---
-// Prerender tools listing page with all tools for SEO
-export const prerender = true;
+// Server-side render the tools listing page dynamically for latest data
+export const prerender = false;
 
 import Layout from '~/layouts/PageLayout.astro';
 import { ssrToolsApi, ssrCategoriesApi } from '~/utils/ssr-api';
