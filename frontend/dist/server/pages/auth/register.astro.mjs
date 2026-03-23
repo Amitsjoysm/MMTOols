@@ -1,4 +1,4 @@
-import { c as createComponent, b as addAttribute, e as renderHead, d as renderScript, a as renderTemplate } from '../../chunks/astro/server_DmgvrA-F.mjs';
+import { c as createComponent, b as addAttribute, e as renderHead, d as renderScript, a as renderTemplate } from '../../chunks/astro/server_CZk8NOd-.mjs';
 import 'piccolore';
 import 'clsx';
 /* empty css                                        */

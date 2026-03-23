@@ -1,7 +1,7 @@
-import { c as createComponent, r as renderComponent, a as renderTemplate, m as maybeRenderHead, b as addAttribute } from '../chunks/astro/server_DmgvrA-F.mjs';
+import { c as createComponent, r as renderComponent, a as renderTemplate, m as maybeRenderHead, b as addAttribute } from '../chunks/astro/server_CZk8NOd-.mjs';
 import 'piccolore';
-import { $ as $$Layout } from '../chunks/Layout_CLVvWlcn.mjs';
-import { g as getHomePermalink } from '../chunks/permalinks_DwY3Cg8-.mjs';
+import { $ as $$Layout } from '../chunks/Layout_BzVW6q71.mjs';
+import { g as getHomePermalink } from '../chunks/permalinks_CkvIL3vS.mjs';
 export { renderers } from '../renderers.mjs';
 
 const $$404 = createComponent(($$result, $$props, $$slots) => {

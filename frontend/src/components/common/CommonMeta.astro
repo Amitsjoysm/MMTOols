@@ -1,5 +1,6 @@
 ---
 import { getAsset } from '~/utils/permalinks';
+import { SITE } from 'astrowind:config';
 ---
 
 <meta charset="UTF-8" />
@@ -9,11 +10,27 @@ import { getAsset } from '~/utils/permalinks';
 <!-- Resource Hints for Performance -->
 <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
 <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
-<!-- Sitemap -->
-<link rel="sitemap" href={getAsset('/sitemap-index.xml')} />
+<!-- Sitemap discovery -->
+<link rel="sitemap" href="/sitemap-index.xml" />
+<link rel="sitemap" type="application/xml" href="/sitemap-dynamic.xml" />
 
-<!-- Additional SEO Meta Tags -->
+<!-- Mobile/PWA -->
 <meta name="format-detection" content="telephone=no" />
-<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#2563eb" media="(prefers-color-scheme: light)" />
 <meta name="theme-color" content="#1a202c" media="(prefers-color-scheme: dark)" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+<!-- Performance: preload critical resources -->
+<link rel="preload" as="style" href="/favicon.svg" />
+
+<!-- SEO: Site-wide author and publisher -->
+<meta name="author" content="MarketMindAI" />
+<meta name="publisher" content="MarketMindAI" />
+<meta name="copyright" content={`© ${new Date().getFullYear()} MarketMindAI`} />
+<meta name="language" content="en-US" />
+<meta name="revisit-after" content="7 days" />
+<meta name="rating" content="general" />

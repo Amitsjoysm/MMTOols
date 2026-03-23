@@ -1,8 +1,8 @@
-import { f as createAstro, c as createComponent, a as renderTemplate, h as defineScriptVars, r as renderComponent, F as Fragment, u as unescapeHTML, m as maybeRenderHead, b as addAttribute } from '../../chunks/astro/server_DmgvrA-F.mjs';
+import { f as createAstro, c as createComponent, a as renderTemplate, h as defineScriptVars, r as renderComponent, F as Fragment, u as unescapeHTML, b as addAttribute, m as maybeRenderHead } from '../../chunks/astro/server_CZk8NOd-.mjs';
 import 'piccolore';
-import { $ as $$PageLayout } from '../../chunks/PageLayout_B1SbXrLv.mjs';
+import { $ as $$PageLayout } from '../../chunks/PageLayout_CQTO3tfd.mjs';
 import { s as ssrBlogsApi } from '../../chunks/ssr-api_CezTdN0q.mjs';
-import { S as SITE } from '../../chunks/permalinks_DwY3Cg8-.mjs';
+import { S as SITE } from '../../chunks/permalinks_CkvIL3vS.mjs';
 export { renderers } from '../../renderers.mjs';
 
 var __freeze = Object.freeze;
@@ -28,17 +28,21 @@ const $$slug = createComponent(async ($$result, $$props, $$slots) => {
   const blogDescription = (blog.seo_description || blog.excerpt || "").substring(0, 300);
   const publishedIso = blog.published_at ? new Date(blog.published_at).toISOString() : (/* @__PURE__ */ new Date()).toISOString();
   const modifiedIso = blog.updated_at ? new Date(blog.updated_at).toISOString() : publishedIso;
+  const seoKeywords = blog.seo_keywords || (blog.tags ? blog.tags.join(", ") : "") || blog.title;
   const metadata = {
     title: blog.seo_title || `${blog.title} | MarketMindAI Blog`,
-    description: blogDescription,
-    keywords: blog.seo_keywords || (blog.tags ? blog.tags.join(", ") : ""),
+    description: blogDescription.substring(0, 160),
+    keywords: seoKeywords,
     canonical: blogUrl,
+    robots: { index: true, follow: true },
     openGraph: {
       title: blog.seo_title || blog.title,
-      description: blogDescription,
-      image: blog.featured_image || `${siteUrl}/favicon.svg`,
+      description: blogDescription.substring(0, 200),
+      images: [{ url: blog.featured_image || `${siteUrl}/favicon.svg`, width: 1200, height: 630, alt: blog.title }],
       type: "article",
       url: blogUrl,
+      site_name: "MarketMindAI",
+      locale: "en_US",
       article: {
         publishedTime: publishedIso,
         modifiedTime: modifiedIso,
@@ -48,7 +52,7 @@ const $$slug = createComponent(async ($$result, $$props, $$slots) => {
     },
     twitter: {
       title: blog.seo_title || blog.title,
-      description: blogDescription,
+      description: blogDescription.substring(0, 200),
       image: blog.featured_image || `${siteUrl}/favicon.svg`,
       cardType: "summary_large_image"
     }
@@ -142,7 +146,7 @@ const $$slug = createComponent(async ($$result, $$props, $$slots) => {
 Please <a href="/auth/login" class="font-medium underline">login</a> to leave a comment.
 </p> </div> <!-- Comment Form (client-side) --> <form id="comment-form" class="hidden mb-8"> <textarea id="comment-content" rows="4" placeholder="Share your thoughts..." class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent" required></textarea> <button type="submit" class="mt-3 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" data-testid="submit-comment-btn">
 Post Comment
-</button> </form> <!-- Comments List --> <div id="comments-list" class="space-y-6"> <p class="text-gray-500 dark:text-gray-400 text-center py-4">Loading comments...</p> </div> </div> </div> `, "head": async ($$result2) => renderTemplate`${renderComponent($$result2, "Fragment", Fragment, { "slot": "head" }, { "default": async ($$result3) => renderTemplate(_a || (_a = __template([' <script type="application/ld+json">', "<\/script> "])), unescapeHTML(JSON.stringify(articleJsonLd))) })}` }), defineScriptVars({ slug, blogId: blog.id }));
+</button> </form> <!-- Comments List --> <div id="comments-list" class="space-y-6"> <p class="text-gray-500 dark:text-gray-400 text-center py-4">Loading comments...</p> </div> </div> </div> `, "head": async ($$result2) => renderTemplate`${renderComponent($$result2, "Fragment", Fragment, { "slot": "head" }, { "default": async ($$result3) => renderTemplate(_a || (_a = __template([' <script type="application/ld+json">', '<\/script> <meta name="keywords"', '> <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"> <meta property="article:published_time"', '> <meta property="article:modified_time"', '> <meta property="article:author"', "> ", ""])), unescapeHTML(JSON.stringify(articleJsonLd)), addAttribute(seoKeywords, "content"), addAttribute(publishedIso, "content"), addAttribute(modifiedIso, "content"), addAttribute(blog.author_name || "MarketMindAI", "content"), blog.tags?.map((tag) => renderTemplate`<meta property="article:tag"${addAttribute(tag, "content")}>`)) })}` }), defineScriptVars({ slug, blogId: blog.id }));
 }, "/app/frontend/src/pages/blogs/[slug].astro", void 0);
 
 const $$file = "/app/frontend/src/pages/blogs/[slug].astro";

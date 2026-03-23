@@ -1,6 +1,6 @@
-import { f as createAstro, c as createComponent, r as renderComponent, d as renderScript, a as renderTemplate, m as maybeRenderHead, b as addAttribute } from '../../chunks/astro/server_DmgvrA-F.mjs';
+import { f as createAstro, c as createComponent, r as renderComponent, d as renderScript, a as renderTemplate, m as maybeRenderHead, b as addAttribute } from '../../chunks/astro/server_CZk8NOd-.mjs';
 import 'piccolore';
-import { $ as $$PageLayout } from '../../chunks/PageLayout_B1SbXrLv.mjs';
+import { $ as $$PageLayout } from '../../chunks/PageLayout_CQTO3tfd.mjs';
 export { renderers } from '../../renderers.mjs';
 
 const $$Astro = createAstro("https://marketmindai.com");

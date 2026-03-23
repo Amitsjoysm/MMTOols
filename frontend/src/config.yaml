@@ -33,34 +33,34 @@ i18n:
 
 apps:
   blog:
-    isEnabled: true
+    isEnabled: false
     postsPerPage: 12
 
     post:
-      isEnabled: true
-      permalink: '/blog/%slug%'
+      isEnabled: false
+      permalink: '/blogs/%slug%'
       robots:
         index: true
 
     list:
-      isEnabled: true
-      pathname: 'blog'
+      isEnabled: false
+      pathname: 'blogs'
       robots:
         index: true
 
     category:
-      isEnabled: true
+      isEnabled: false
       pathname: 'category'
       robots:
         index: true
 
     tag:
-      isEnabled: true
+      isEnabled: false
       pathname: 'tag'
       robots:
         index: true
 
-    isRelatedPostsEnabled: true
+    isRelatedPostsEnabled: false
     relatedPostsCount: 4
 
 analytics:

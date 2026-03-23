@@ -6,9 +6,15 @@ import Layout from '~/layouts/PageLayout.astro';
 import { ssrBlogsApi } from '~/utils/ssr-api';
 
 const metadata = {
-  title: 'Blog - MarketMindAI | Latest AI Tools & Productivity Insights',
-  description: 'Read the latest insights, tips, and news about AI tools, productivity, and business solutions. Expert reviews and guides for modern businesses.',
-  keywords: 'ai blog, productivity tips, business insights, tool reviews, ai news',
+  title: '387 Expert AI Blog Posts - Tools, Reviews & Business Guides 2026 | MarketMindAI',
+  description: 'Read 387 expert blog posts about AI tools, business productivity, automation, and digital transformation. In-depth reviews and guides for 2026.',
+  keywords: 'ai tools blog, ai software reviews 2026, best ai for business, productivity ai tools, automation tools guide, ai technology trends',
+  robots: { index: true, follow: true },
+  openGraph: {
+    title: '387 Expert AI Blog Posts 2026 | MarketMindAI',
+    description: 'Expert reviews and guides for 387 AI tools and business solutions.',
+    type: 'website',
+  },
 };
 
 // Fetch blogs at build time (SSR/SSG)
@@ -25,6 +31,19 @@ try {
 ---
 
 <Layout metadata={metadata}>
+  <Fragment slot="head">
+    <meta name="keywords" content={metadata.keywords} />
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large" />
+    <script is:inline type="application/ld+json">{JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Blog",
+      "name": "MarketMindAI Blog",
+      "description": metadata.description,
+      "url": "https://marketmindai.com/blogs",
+      "publisher": { "@type": "Organization", "name": "MarketMindAI", "url": "https://marketmindai.com" },
+      "inLanguage": "en-US"
+    })}</script>
+  </Fragment>
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
     <!-- Header -->
     <div class="text-center mb-12">

@@ -1,6 +1,6 @@
 import { renderers } from './renderers.mjs';
-import { c as createExports, s as serverEntrypointModule } from './chunks/_@astrojs-ssr-adapter_DY_UqrWh.mjs';
-import { manifest } from './manifest_ClLfBZn-.mjs';
+import { c as createExports, s as serverEntrypointModule } from './chunks/_@astrojs-ssr-adapter_D2_lCKcy.mjs';
+import { manifest } from './manifest_DBvxMb7O.mjs';
 
 const serverIslandMap = new Map();;
 
@@ -27,28 +27,25 @@ const _page19 = () => import('./pages/auth/login.astro.mjs');
 const _page20 = () => import('./pages/auth/register.astro.mjs');
 const _page21 = () => import('./pages/auth/reset-password.astro.mjs');
 const _page22 = () => import('./pages/auth/verify-email.astro.mjs');
-const _page23 = () => import('./pages/blogs/_slug_.astro.mjs');
-const _page24 = () => import('./pages/blogs.astro.mjs');
-const _page25 = () => import('./pages/contact.astro.mjs');
-const _page26 = () => import('./pages/free-tools.astro.mjs');
-const _page27 = () => import('./pages/pricing.astro.mjs');
-const _page28 = () => import('./pages/privacy.astro.mjs');
-const _page29 = () => import('./pages/rss.xml.astro.mjs');
-const _page30 = () => import('./pages/sitemap-dynamic.xml.astro.mjs');
-const _page31 = () => import('./pages/terms.astro.mjs');
-const _page32 = () => import('./pages/tools/compare.astro.mjs');
-const _page33 = () => import('./pages/tools/_slug_.astro.mjs');
-const _page34 = () => import('./pages/tools.astro.mjs');
-const _page35 = () => import('./pages/user/blogs/create.astro.mjs');
-const _page36 = () => import('./pages/user/blogs/edit/_id_.astro.mjs');
-const _page37 = () => import('./pages/user/blogs.astro.mjs');
-const _page38 = () => import('./pages/user/claimed-tools.astro.mjs');
-const _page39 = () => import('./pages/user/dashboard.astro.mjs');
-const _page40 = () => import('./pages/_---blog_/_category_/_---page_.astro.mjs');
-const _page41 = () => import('./pages/_---blog_/_tag_/_---page_.astro.mjs');
-const _page42 = () => import('./pages/_---blog_/_---page_.astro.mjs');
-const _page43 = () => import('./pages/index.astro.mjs');
-const _page44 = () => import('./pages/_---blog_.astro.mjs');
+const _page23 = () => import('./pages/blog.astro.mjs');
+const _page24 = () => import('./pages/blogs/_slug_.astro.mjs');
+const _page25 = () => import('./pages/blogs.astro.mjs');
+const _page26 = () => import('./pages/contact.astro.mjs');
+const _page27 = () => import('./pages/free-tools.astro.mjs');
+const _page28 = () => import('./pages/pricing.astro.mjs');
+const _page29 = () => import('./pages/privacy.astro.mjs');
+const _page30 = () => import('./pages/rss.xml.astro.mjs');
+const _page31 = () => import('./pages/sitemap-dynamic.xml.astro.mjs');
+const _page32 = () => import('./pages/terms.astro.mjs');
+const _page33 = () => import('./pages/tools/compare.astro.mjs');
+const _page34 = () => import('./pages/tools/_slug_.astro.mjs');
+const _page35 = () => import('./pages/tools.astro.mjs');
+const _page36 = () => import('./pages/user/blogs/create.astro.mjs');
+const _page37 = () => import('./pages/user/blogs/edit/_id_.astro.mjs');
+const _page38 = () => import('./pages/user/blogs.astro.mjs');
+const _page39 = () => import('./pages/user/claimed-tools.astro.mjs');
+const _page40 = () => import('./pages/user/dashboard.astro.mjs');
+const _page41 = () => import('./pages/index.astro.mjs');
 const pageMap = new Map([
     ["node_modules/astro/dist/assets/endpoint/node.js", _page0],
     ["src/pages/404.astro", _page1],
@@ -73,28 +70,25 @@ const pageMap = new Map([
     ["src/pages/auth/register.astro", _page20],
     ["src/pages/auth/reset-password.astro", _page21],
     ["src/pages/auth/verify-email.astro", _page22],
-    ["src/pages/blogs/[slug].astro", _page23],
-    ["src/pages/blogs/index.astro", _page24],
-    ["src/pages/contact.astro", _page25],
-    ["src/pages/free-tools.astro", _page26],
-    ["src/pages/pricing.astro", _page27],
-    ["src/pages/privacy.md", _page28],
-    ["src/pages/rss.xml.ts", _page29],
-    ["src/pages/sitemap-dynamic.xml.ts", _page30],
-    ["src/pages/terms.md", _page31],
-    ["src/pages/tools/compare.astro", _page32],
-    ["src/pages/tools/[slug].astro", _page33],
-    ["src/pages/tools/index.astro", _page34],
-    ["src/pages/user/blogs/create.astro", _page35],
-    ["src/pages/user/blogs/edit/[id].astro", _page36],
-    ["src/pages/user/blogs.astro", _page37],
-    ["src/pages/user/claimed-tools.astro", _page38],
-    ["src/pages/user/dashboard.astro", _page39],
-    ["src/pages/[...blog]/[category]/[...page].astro", _page40],
-    ["src/pages/[...blog]/[tag]/[...page].astro", _page41],
-    ["src/pages/[...blog]/[...page].astro", _page42],
-    ["src/pages/index.astro", _page43],
-    ["src/pages/[...blog]/index.astro", _page44]
+    ["src/pages/blog.astro", _page23],
+    ["src/pages/blogs/[slug].astro", _page24],
+    ["src/pages/blogs/index.astro", _page25],
+    ["src/pages/contact.astro", _page26],
+    ["src/pages/free-tools.astro", _page27],
+    ["src/pages/pricing.astro", _page28],
+    ["src/pages/privacy.md", _page29],
+    ["src/pages/rss.xml.ts", _page30],
+    ["src/pages/sitemap-dynamic.xml.ts", _page31],
+    ["src/pages/terms.md", _page32],
+    ["src/pages/tools/compare.astro", _page33],
+    ["src/pages/tools/[slug].astro", _page34],
+    ["src/pages/tools/index.astro", _page35],
+    ["src/pages/user/blogs/create.astro", _page36],
+    ["src/pages/user/blogs/edit/[id].astro", _page37],
+    ["src/pages/user/blogs.astro", _page38],
+    ["src/pages/user/claimed-tools.astro", _page39],
+    ["src/pages/user/dashboard.astro", _page40],
+    ["src/pages/index.astro", _page41]
 ]);
 
 const _manifest = Object.assign(manifest, {

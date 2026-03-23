@@ -28,18 +28,25 @@ const blogDescription = (blog.seo_description || blog.excerpt || '').substring(0
 const publishedIso = blog.published_at ? new Date(blog.published_at).toISOString() : new Date().toISOString();
 const modifiedIso = blog.updated_at ? new Date(blog.updated_at).toISOString() : publishedIso;
 
+const seoKeywords = blog.seo_keywords 
+  || (blog.tags ? blog.tags.join(', ') : '')
+  || blog.title;
+
 // Generate metadata for SEO
 const metadata = {
   title: blog.seo_title || `${blog.title} | MarketMindAI Blog`,
-  description: blogDescription,
-  keywords: blog.seo_keywords || (blog.tags ? blog.tags.join(', ') : ''),
+  description: blogDescription.substring(0, 160),
+  keywords: seoKeywords,
   canonical: blogUrl,
+  robots: { index: true, follow: true },
   openGraph: {
     title: blog.seo_title || blog.title,
-    description: blogDescription,
-    image: blog.featured_image || `${siteUrl}/favicon.svg`,
+    description: blogDescription.substring(0, 200),
+    images: [{ url: blog.featured_image || `${siteUrl}/favicon.svg`, width: 1200, height: 630, alt: blog.title }],
     type: 'article',
     url: blogUrl,
+    site_name: 'MarketMindAI',
+    locale: 'en_US',
     article: {
       publishedTime: publishedIso,
       modifiedTime: modifiedIso,
@@ -49,7 +56,7 @@ const metadata = {
   },
   twitter: {
     title: blog.seo_title || blog.title,
-    description: blogDescription,
+    description: blogDescription.substring(0, 200),
     image: blog.featured_image || `${siteUrl}/favicon.svg`,
     cardType: 'summary_large_image',
   },
@@ -153,6 +160,12 @@ const processedContent = isHtmlContent
 <Layout metadata={metadata}>
   <Fragment slot="head">
     <script is:inline type="application/ld+json" set:html={JSON.stringify(articleJsonLd)} />
+    <meta name="keywords" content={seoKeywords} />
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+    <meta property="article:published_time" content={publishedIso} />
+    <meta property="article:modified_time" content={modifiedIso} />
+    <meta property="article:author" content={blog.author_name || 'MarketMindAI'} />
+    {blog.tags?.map((tag: string) => <meta property="article:tag" content={tag} />)}
   </Fragment>
   <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-12">
     <!-- Blog Content -->

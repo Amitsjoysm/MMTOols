@@ -1,4 +1,4 @@
-import { getPermalink, getBlogPermalink } from './utils/permalinks';
+import { getPermalink } from './utils/permalinks';
 
 export const headerData = {
   links: [
@@ -25,7 +25,7 @@ export const headerData = {
     },
     {
       text: 'Blog',
-      href: getBlogPermalink(),
+      href: getPermalink('/blogs'),
     },
     {
       text: 'About',
@@ -58,7 +58,7 @@ export const footerData = {
       links: [
         { text: 'All Tools', href: getPermalink('/tools') },
         { text: 'Compare Tools', href: getPermalink('/tools/compare') },
-        { text: 'Blog', href: getBlogPermalink() },
+        { text: 'Blog', href: getPermalink('/blogs') },
         { text: 'About Us', href: getPermalink('/about') },
       ],
     },

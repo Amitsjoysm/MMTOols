@@ -6,9 +6,15 @@ import Layout from '~/layouts/PageLayout.astro';
 import { ssrToolsApi, ssrCategoriesApi } from '~/utils/ssr-api';
 
 const metadata = {
-  title: 'Browse AI Tools & Business Solutions - MarketMindAI',
-  description: 'Discover and compare the best AI tools and business solutions. Filter by category, pricing, and features to find the perfect tool for your needs.',
-  keywords: 'ai tools, business solutions, productivity tools, software directory',
+  title: 'Browse 10,000+ AI Tools & Business Solutions 2026 | MarketMindAI',
+  description: 'Discover and compare 10,000+ AI tools and business solutions. Filter by category, pricing, ratings to find the best AI tools for your business in 2026.',
+  keywords: 'ai tools directory, best ai tools 2026, compare ai tools, ai software, business automation tools, productivity ai, marketing ai tools',
+  robots: { index: true, follow: true },
+  openGraph: {
+    title: 'Browse 10,000+ AI Tools & Business Solutions 2026',
+    description: 'Your comprehensive directory of 10,000+ AI tools. Compare features, pricing and ratings to find the perfect tool.',
+    type: 'website',
+  },
 };
 
 // Fetch data at build time (SSR/SSG)
@@ -34,6 +40,19 @@ try {
 ---
 
 <Layout metadata={metadata}>
+  <Fragment slot="head">
+    <meta name="keywords" content={metadata.keywords} />
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large" />
+    <script is:inline type="application/ld+json">{JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      "name": "AI Tools Directory - MarketMindAI",
+      "description": metadata.description,
+      "url": "https://marketmindai.com/tools",
+      "publisher": { "@type": "Organization", "name": "MarketMindAI", "url": "https://marketmindai.com" },
+      "inLanguage": "en-US"
+    })}</script>
+  </Fragment>
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
     <!-- Header -->
     <div class="text-center mb-12">
