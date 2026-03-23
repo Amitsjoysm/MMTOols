@@ -1,7 +1,7 @@
 import { f as createAstro, c as createComponent, a as renderTemplate, h as defineScriptVars, r as renderComponent, F as Fragment, u as unescapeHTML, b as addAttribute, m as maybeRenderHead } from '../../chunks/astro/server_CZk8NOd-.mjs';
 import 'piccolore';
 import { $ as $$PageLayout } from '../../chunks/PageLayout_W7EoUzsJ.mjs';
-import { a as ssrToolsApi } from '../../chunks/ssr-api_CezTdN0q.mjs';
+import { a as ssrToolsApi } from '../../chunks/ssr-api_ip_KgNt5.mjs';
 import { S as SITE } from '../../chunks/permalinks_CkvIL3vS.mjs';
 export { renderers } from '../../renderers.mjs';
 
