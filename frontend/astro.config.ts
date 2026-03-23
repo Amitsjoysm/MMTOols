@@ -27,7 +27,7 @@ export default defineConfig({
   adapter: node({
     mode: 'standalone'
   }),
-  site: 'https://astrowind.vercel.app',
+  site: 'https://marketmindai.com',
   trailingSlash: 'ignore',
   server: {
     port: 3000,

@@ -1,9 +1,11 @@
 ---
 import Layout from '~/layouts/PageLayout.astro';
 import { ssrBlogsApi } from '~/utils/ssr-api';
+import { SITE } from 'astrowind:config';
 
 // SSR: Fetch blog data on each request for SEO-optimized content
 const { slug } = Astro.params;
+const siteUrl = SITE.site || 'https://marketmindai.com';
 
 // Fetch blog data
 let blog: any = null;
@@ -21,22 +23,110 @@ if (!blog) {
   return Astro.redirect('/404');
 }
 
+const blogUrl = `${siteUrl}/blogs/${blog.slug}`;
+const blogDescription = (blog.seo_description || blog.excerpt || '').substring(0, 300);
+const publishedIso = blog.published_at ? new Date(blog.published_at).toISOString() : new Date().toISOString();
+const modifiedIso = blog.updated_at ? new Date(blog.updated_at).toISOString() : publishedIso;
+
 // Generate metadata for SEO
 const metadata = {
   title: blog.seo_title || `${blog.title} | MarketMindAI Blog`,
-  description: blog.seo_description || blog.excerpt || blog.content.substring(0, 160),
+  description: blogDescription,
   keywords: blog.seo_keywords || (blog.tags ? blog.tags.join(', ') : ''),
+  canonical: blogUrl,
   openGraph: {
-    title: blog.title,
-    description: blog.excerpt || blog.content.substring(0, 200),
-    image: blog.featured_image,
+    title: blog.seo_title || blog.title,
+    description: blogDescription,
+    image: blog.featured_image || `${siteUrl}/favicon.svg`,
     type: 'article',
+    url: blogUrl,
     article: {
-      publishedTime: blog.published_at,
-      author: blog.author_name,
+      publishedTime: publishedIso,
+      modifiedTime: modifiedIso,
+      author: blog.author_name || 'MarketMindAI',
       tags: blog.tags || [],
     }
   },
+  twitter: {
+    title: blog.seo_title || blog.title,
+    description: blogDescription,
+    image: blog.featured_image || `${siteUrl}/favicon.svg`,
+    cardType: 'summary_large_image',
+  },
+};
+
+// ── Extract or build JSON-LD ─────────────────────────────────────────────────
+// Blog posts already have JSON-LD embedded from the HTML import
+// We enrich it or build from scratch
+let rawJsonLd = blog.json_ld;
+if (rawJsonLd && typeof rawJsonLd === 'string') {
+  try { rawJsonLd = JSON.parse(rawJsonLd); } catch {}
+}
+
+// Extract FAQ entities from existing JSON-LD
+const existingFaqs: any[] = (() => {
+  if (!rawJsonLd) return [];
+  const graph = rawJsonLd?.['@graph'] || [];
+  const faqNode = graph.find((n: any) => n['@type'] === 'FAQPage');
+  return faqNode?.mainEntity || [];
+})();
+
+// Build enriched Article JSON-LD
+const articleJsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${siteUrl}/#organization`,
+      "name": "MarketMindAI",
+      "url": siteUrl,
+      "logo": { "@type": "ImageObject", "url": `${siteUrl}/favicon.svg` }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": siteUrl },
+        { "@type": "ListItem", "position": 2, "name": "Blog", "item": `${siteUrl}/blogs` },
+        { "@type": "ListItem", "position": 3, "name": blog.title, "item": blogUrl },
+      ]
+    },
+    {
+      "@type": "Article",
+      "@id": `${blogUrl}#article`,
+      "headline": blog.seo_title || blog.title,
+      "description": blogDescription,
+      "url": blogUrl,
+      "datePublished": publishedIso,
+      "dateModified": modifiedIso,
+      "author": {
+        "@type": "Organization",
+        "@id": `${siteUrl}/#organization`,
+        "name": "MarketMindAI",
+        "url": siteUrl,
+      },
+      "publisher": {
+        "@type": "Organization",
+        "@id": `${siteUrl}/#organization`,
+        "name": "MarketMindAI",
+        "logo": { "@type": "ImageObject", "url": `${siteUrl}/favicon.svg` }
+      },
+      "mainEntityOfPage": { "@type": "WebPage", "@id": blogUrl },
+      "image": blog.featured_image || `${siteUrl}/favicon.svg`,
+      "inLanguage": "en-US",
+      "keywords": blog.seo_keywords || '',
+    },
+    ...(existingFaqs.length > 0 ? [{
+      "@type": "FAQPage",
+      "mainEntity": existingFaqs.slice(0, 10).map((q: any) => ({
+        "@type": "Question",
+        "name": typeof q.name === 'string' ? q.name : '',
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": typeof q.acceptedAnswer?.text === 'string' ? q.acceptedAnswer.text : ''
+        }
+      }))
+    }] : [])
+  ]
 };
 
 const publishedDate = new Date(blog.published_at).toLocaleDateString('en-US', {
@@ -45,26 +135,25 @@ const publishedDate = new Date(blog.published_at).toLocaleDateString('en-US', {
   day: 'numeric'
 });
 
-// Process content (convert markdown-style newlines to HTML)
-const processedContent = blog.content.split('\n').map((line: string) => {
-  // Handle headers
-  if (line.startsWith('# ')) {
-    return `<h1 class="text-3xl font-bold mb-4 mt-8">${line.substring(2)}</h1>`;
-  } else if (line.startsWith('## ')) {
-    return `<h2 class="text-2xl font-bold mb-3 mt-6">${line.substring(3)}</h2>`;
-  } else if (line.startsWith('### ')) {
-    return `<h3 class="text-xl font-bold mb-2 mt-4">${line.substring(4)}</h3>`;
-  } else if (line.startsWith('**') && line.endsWith('**')) {
-    return `<p class="font-bold mb-2">${line.replace(/\*\*/g, '')}</p>`;
-  } else if (line.trim() === '') {
-    return '<br />';
-  } else {
+// Blog content is already HTML (imported from HTML files) - render directly
+// For plain text blogs, do a simple conversion
+const isHtmlContent = blog.content && (blog.content.includes('<') || blog.content.includes('&lt;'));
+const processedContent = isHtmlContent
+  ? blog.content
+  : blog.content.split('\n').map((line: string) => {
+    if (line.startsWith('# ')) return `<h1 class="text-3xl font-bold mb-4 mt-8">${line.substring(2)}</h1>`;
+    if (line.startsWith('## ')) return `<h2 class="text-2xl font-bold mb-3 mt-6">${line.substring(3)}</h2>`;
+    if (line.startsWith('### ')) return `<h3 class="text-xl font-bold mb-2 mt-4">${line.substring(4)}</h3>`;
+    if (line.startsWith('**') && line.endsWith('**')) return `<p class="font-bold mb-2">${line.replace(/\*\*/g, '')}</p>`;
+    if (line.trim() === '') return '<br />';
     return `<p class="mb-4">${line}</p>`;
-  }
-}).join('\n');
+  }).join('\n');
 ---
 
 <Layout metadata={metadata}>
+  <Fragment slot="head">
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(articleJsonLd)} />
+  </Fragment>
   <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-12">
     <!-- Blog Content -->
     <article class="prose prose-lg dark:prose-invert max-w-none">

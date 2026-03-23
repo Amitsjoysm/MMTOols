@@ -160,6 +160,32 @@ const metadata = {
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tags (comma-separated)</label>
               <input type="text" id="blog-tags" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500" placeholder="ai, technology, tutorial" />
             </div>
+
+            <!-- SEO Fields -->
+            <div class="md:col-span-2 border-t border-gray-200 dark:border-gray-700 pt-4">
+              <h4 class="text-base font-semibold text-gray-800 dark:text-white mb-3">SEO & LLM Crawl Fields</h4>
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">SEO Title</label>
+              <input type="text" id="blog-seo-title" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500" placeholder="Optimized title for search engines (50-60 chars)" />
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">SEO Description</label>
+              <textarea id="blog-seo-description" rows="2" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500" placeholder="Meta description (150-160 chars)"></textarea>
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">SEO Keywords</label>
+              <input type="text" id="blog-seo-keywords" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500" placeholder="keyword1, keyword2, keyword3" />
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">JSON-LD Structured Data (Article + FAQ)</label>
+              <textarea id="blog-json-ld" rows="6" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 font-mono text-xs" placeholder='{"@context":"https://schema.org","@type":"Article",...}'></textarea>
+              <p class="mt-1 text-xs text-gray-500">Override auto-generated JSON-LD. Leave blank to auto-generate based on blog data.</p>
+            </div>
           </div>
 
           <div class="flex items-center justify-end space-x-4 pt-4 border-t border-gray-200 dark:border-gray-700">
@@ -391,6 +417,11 @@ const metadata = {
       (document.getElementById('blog-status') as HTMLSelectElement).value = blog.status;
       (document.getElementById('blog-image') as HTMLInputElement).value = blog.featured_image || '';
       (document.getElementById('blog-tags') as HTMLInputElement).value = blog.tags?.join(', ') || '';
+      // SEO fields
+      (document.getElementById('blog-seo-title') as HTMLInputElement).value = blog.seo_title || '';
+      (document.getElementById('blog-seo-description') as HTMLTextAreaElement).value = blog.seo_description || '';
+      (document.getElementById('blog-seo-keywords') as HTMLInputElement).value = blog.seo_keywords || '';
+      (document.getElementById('blog-json-ld') as HTMLTextAreaElement).value = blog.json_ld ? JSON.stringify(blog.json_ld, null, 2) : '';
     } else {
       // Pre-select current user as author for new blog
       const currentUser = getCurrentUser();
@@ -426,8 +457,14 @@ const metadata = {
         author_id: (document.getElementById('blog-author') as HTMLSelectElement).value,
         status: (document.getElementById('blog-status') as HTMLSelectElement).value,
         featured_image: (document.getElementById('blog-image') as HTMLInputElement).value,
-        tags: tags
+        tags: tags,
+        seo_title: (document.getElementById('blog-seo-title') as HTMLInputElement).value || null,
+        seo_description: (document.getElementById('blog-seo-description') as HTMLTextAreaElement).value || null,
+        seo_keywords: (document.getElementById('blog-seo-keywords') as HTMLInputElement).value || null,
+        json_ld: (() => { try { const v = (document.getElementById('blog-json-ld') as HTMLTextAreaElement).value; return v ? JSON.parse(v) : null; } catch { alert('JSON-LD must be valid JSON'); return undefined; } })()
       };
+
+      if (blogData.json_ld === undefined) { submitBtn.disabled = false; submitBtn.textContent = originalText; return; }
 
       if (editingBlogId) {
         await superAdminApi.blogs.update(editingBlogId, blogData);

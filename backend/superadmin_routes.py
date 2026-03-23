@@ -63,10 +63,19 @@ class ToolCreate(BaseModel):
     category_ids: Optional[List[str]] = []
     is_featured: Optional[bool] = False
     is_active: Optional[bool] = True
+    rating: Optional[float] = 0.0
     seo_title: Optional[str] = None
     seo_description: Optional[str] = None
     seo_keywords: Optional[str] = None
     json_ld: Optional[Dict[str, Any]] = None
+    # CSV/LLM fields
+    platform: Optional[str] = None
+    best_for: Optional[str] = None
+    free_trial: Optional[str] = None
+    alternatives: Optional[List[Dict[str, Any]]] = None
+    faqs: Optional[List[Dict[str, Any]]] = None
+    new_category: Optional[str] = None
+    new_subcategory: Optional[str] = None
     # New company-related fields
     linkedin_url: Optional[str] = None
     company_funding: Optional[Dict[str, Any]] = None
@@ -92,10 +101,19 @@ class ToolUpdate(BaseModel):
     category_ids: Optional[List[str]] = None
     is_featured: Optional[bool] = None
     is_active: Optional[bool] = None
+    rating: Optional[float] = None
     seo_title: Optional[str] = None
     seo_description: Optional[str] = None
     seo_keywords: Optional[str] = None
     json_ld: Optional[Dict[str, Any]] = None
+    # CSV/LLM fields
+    platform: Optional[str] = None
+    best_for: Optional[str] = None
+    free_trial: Optional[str] = None
+    alternatives: Optional[List[Dict[str, Any]]] = None
+    faqs: Optional[List[Dict[str, Any]]] = None
+    new_category: Optional[str] = None
+    new_subcategory: Optional[str] = None
     # New company-related fields
     linkedin_url: Optional[str] = None
     company_funding: Optional[Dict[str, Any]] = None

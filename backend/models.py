@@ -102,6 +102,15 @@ class Tool(Base):
     started_on = Column(String)  # Founded date
     logo_thumbnail_url = Column(String)  # Google Drive thumbnail URL
     
+    # CSV import fields
+    platform = Column(String)  # Web, Desktop, Mobile, etc.
+    best_for = Column(String)  # What the tool is best for
+    free_trial = Column(String)  # Available / Not Available
+    alternatives = Column(JSON)  # [{name, rating}]
+    faqs = Column(JSON)  # [{question, answer}]
+    new_category = Column(String)  # Category from classification
+    new_subcategory = Column(String)  # Subcategory from classification
+
     # Tool claiming fields
     claimed_by_user_id = Column(String, ForeignKey('users.id'), nullable=True)
     claim_status = Column(String, default="unclaimed")  # unclaimed, pending, approved, rejected

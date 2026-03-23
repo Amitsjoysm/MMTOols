@@ -191,6 +191,67 @@ const metadata = {
                 <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Featured Tool</span>
               </label>
             </div>
+
+            <!-- ── SEO & LLM Fields ── -->
+            <div class="md:col-span-2 border-t border-gray-200 dark:border-gray-700 pt-4">
+              <h4 class="text-base font-semibold text-gray-800 dark:text-white mb-3">SEO & LLM Crawl Fields</h4>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Platform</label>
+              <input type="text" id="tool-platform" placeholder="Web, Desktop, Mobile..." class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500" />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Free Trial</label>
+              <select id="tool-free-trial" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500">
+                <option value="">Not specified</option>
+                <option value="Available">Available</option>
+                <option value="Not Available">Not Available</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Rating (0-5)</label>
+              <input type="number" id="tool-rating" min="0" max="5" step="0.1" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500" />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Best For</label>
+              <input type="text" id="tool-best-for" placeholder="What is this tool best for?" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500" />
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">SEO Title</label>
+              <input type="text" id="tool-seo-title" placeholder="SEO optimized title for search engines" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500" />
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">SEO Description</label>
+              <textarea id="tool-seo-description" rows="2" placeholder="150-160 character meta description" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"></textarea>
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">SEO Keywords</label>
+              <input type="text" id="tool-seo-keywords" placeholder="keyword1, keyword2, keyword3" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500" />
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">FAQs (JSON array — for LLM crawling & SEO)</label>
+              <textarea id="tool-faqs" rows="5" placeholder='[{"question":"What is X?","answer":"X is..."}]' class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 font-mono text-xs"></textarea>
+              <p class="mt-1 text-xs text-gray-500">JSON array of FAQ objects with question/answer keys. Used for Google FAQ rich results.</p>
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Alternatives (JSON array)</label>
+              <textarea id="tool-alternatives" rows="3" placeholder='[{"name":"ToolName","rating":4.5}]' class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 font-mono text-xs"></textarea>
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Custom JSON-LD (override auto-generated structured data)</label>
+              <textarea id="tool-json-ld" rows="6" placeholder='{"@context":"https://schema.org","@type":"SoftwareApplication",...}' class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 font-mono text-xs"></textarea>
+              <p class="mt-1 text-xs text-gray-500">Advanced: Override the auto-generated JSON-LD. Leave blank to auto-generate.</p>
+            </div>
           </div>
 
           <div class="flex items-center justify-end space-x-4 pt-4 border-t border-gray-200 dark:border-gray-700">
@@ -497,6 +558,17 @@ const metadata = {
       (document.getElementById('tool-screenshot') as HTMLInputElement).value = tool.screenshot_url || '';
       (document.getElementById('tool-active') as HTMLInputElement).checked = tool.is_active;
       (document.getElementById('tool-featured') as HTMLInputElement).checked = tool.is_featured;
+      // New SEO/LLM fields
+      (document.getElementById('tool-platform') as HTMLInputElement).value = tool.platform || '';
+      (document.getElementById('tool-free-trial') as HTMLSelectElement).value = tool.free_trial || '';
+      (document.getElementById('tool-rating') as HTMLInputElement).value = tool.rating?.toString() || '';
+      (document.getElementById('tool-best-for') as HTMLInputElement).value = tool.best_for || '';
+      (document.getElementById('tool-seo-title') as HTMLInputElement).value = tool.seo_title || '';
+      (document.getElementById('tool-seo-description') as HTMLTextAreaElement).value = tool.seo_description || '';
+      (document.getElementById('tool-seo-keywords') as HTMLInputElement).value = tool.seo_keywords || '';
+      (document.getElementById('tool-faqs') as HTMLTextAreaElement).value = tool.faqs ? JSON.stringify(tool.faqs, null, 2) : '';
+      (document.getElementById('tool-alternatives') as HTMLTextAreaElement).value = tool.alternatives ? JSON.stringify(tool.alternatives, null, 2) : '';
+      (document.getElementById('tool-json-ld') as HTMLTextAreaElement).value = tool.json_ld ? JSON.stringify(tool.json_ld, null, 2) : '';
 
       // Select categories
       const categoriesSelect = document.getElementById('tool-categories') as HTMLSelectElement;
@@ -535,11 +607,26 @@ const metadata = {
         screenshot_url: (document.getElementById('tool-screenshot') as HTMLInputElement).value,
         is_active: (document.getElementById('tool-active') as HTMLInputElement).checked,
         is_featured: (document.getElementById('tool-featured') as HTMLInputElement).checked,
+        platform: (document.getElementById('tool-platform') as HTMLInputElement).value || null,
+        free_trial: (document.getElementById('tool-free-trial') as HTMLSelectElement).value || null,
+        rating: parseFloat((document.getElementById('tool-rating') as HTMLInputElement).value) || 0,
+        best_for: (document.getElementById('tool-best-for') as HTMLInputElement).value || null,
+        seo_title: (document.getElementById('tool-seo-title') as HTMLInputElement).value || null,
+        seo_description: (document.getElementById('tool-seo-description') as HTMLTextAreaElement).value || null,
+        seo_keywords: (document.getElementById('tool-seo-keywords') as HTMLInputElement).value || null,
+        faqs: (() => { try { const v = (document.getElementById('tool-faqs') as HTMLTextAreaElement).value; return v ? JSON.parse(v) : null; } catch { alert('FAQs must be valid JSON'); return undefined; } })(),
+        alternatives: (() => { try { const v = (document.getElementById('tool-alternatives') as HTMLTextAreaElement).value; return v ? JSON.parse(v) : null; } catch { alert('Alternatives must be valid JSON'); return undefined; } })(),
+        json_ld: (() => { try { const v = (document.getElementById('tool-json-ld') as HTMLTextAreaElement).value; return v ? JSON.parse(v) : null; } catch { alert('JSON-LD must be valid JSON'); return undefined; } })(),
         category_ids: selectedCategories,
         features: [],
         pros: [],
         cons: []
       };
+
+      // Abort if JSON parse failed
+      if (toolData.faqs === undefined || toolData.alternatives === undefined || toolData.json_ld === undefined) {
+        submitBtn.disabled = false; submitBtn.textContent = originalText; return;
+      }
 
       if (editingToolId) {
         await superAdminApi.tools.update(editingToolId, toolData);

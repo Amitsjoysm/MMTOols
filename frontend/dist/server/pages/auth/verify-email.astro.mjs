@@ -1,6 +1,6 @@
-import { f as createAstro, c as createComponent, a as renderTemplate, h as defineScriptVars, r as renderComponent, m as maybeRenderHead } from '../../chunks/astro/server_Chl_MonH.mjs';
+import { f as createAstro, c as createComponent, a as renderTemplate, h as defineScriptVars, r as renderComponent, m as maybeRenderHead } from '../../chunks/astro/server_DmgvrA-F.mjs';
 import 'piccolore';
-import { $ as $$PageLayout } from '../../chunks/PageLayout_z9TmQO_-.mjs';
+import { $ as $$PageLayout } from '../../chunks/PageLayout_B1SbXrLv.mjs';
 export { renderers } from '../../renderers.mjs';
 
 var __freeze = Object.freeze;
@@ -17,7 +17,20 @@ const $$VerifyEmail = createComponent(async ($$result, $$props, $$slots) => {
   };
   const token = Astro2.url.searchParams.get("token");
   return renderTemplate(_a || (_a = __template(["", " <script>(function(){", `
-  const API_BASE_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8001';
+  // Dynamic API URL detection
+  function getApiBaseUrl() {
+    if (typeof window !== 'undefined') {
+      const currentOrigin = window.location.origin;
+      if (currentOrigin.includes('preview.app.github.dev') || 
+          currentOrigin.includes('github.dev') ||
+          currentOrigin.includes('preview.emergentagent.com')) {
+        return currentOrigin.replace(':3000', ':8001').replace('3000-', '8001-');
+      }
+    }
+    return 'http://localhost:8001';
+  }
+  
+  const API_BASE_URL = getApiBaseUrl();
 
   // Token-based verification (from email link)
   if (token) {
@@ -132,8 +145,21 @@ const $$VerifyEmail = createComponent(async ($$result, $$props, $$slots) => {
       messageDiv.classList.remove('hidden');
     });
   }
-})();</script>`], ["", " <script>(function(){", `
-  const API_BASE_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8001';
+})();<\/script>`], ["", " <script>(function(){", `
+  // Dynamic API URL detection
+  function getApiBaseUrl() {
+    if (typeof window !== 'undefined') {
+      const currentOrigin = window.location.origin;
+      if (currentOrigin.includes('preview.app.github.dev') || 
+          currentOrigin.includes('github.dev') ||
+          currentOrigin.includes('preview.emergentagent.com')) {
+        return currentOrigin.replace(':3000', ':8001').replace('3000-', '8001-');
+      }
+    }
+    return 'http://localhost:8001';
+  }
+  
+  const API_BASE_URL = getApiBaseUrl();
 
   // Token-based verification (from email link)
   if (token) {
@@ -248,7 +274,7 @@ const $$VerifyEmail = createComponent(async ($$result, $$props, $$slots) => {
       messageDiv.classList.remove('hidden');
     });
   }
-})();</script>`])), renderComponent($$result, "Layout", $$PageLayout, { "metadata": metadata }, { "default": async ($$result2) => renderTemplate` ${maybeRenderHead()}<div class="min-h-screen flex items-center justify-center px-4 py-12"> <div class="max-w-md w-full space-y-8"> <div class="text-center"> <h2 class="text-3xl font-bold text-gray-900 dark:text-white">
+})();<\/script>`])), renderComponent($$result, "Layout", $$PageLayout, { "metadata": metadata }, { "default": async ($$result2) => renderTemplate` ${maybeRenderHead()}<div class="min-h-screen flex items-center justify-center px-4 py-12"> <div class="max-w-md w-full space-y-8"> <div class="text-center"> <h2 class="text-3xl font-bold text-gray-900 dark:text-white">
 Email Verification
 </h2> <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
 Verify your email to activate your account
@@ -264,6 +290,7 @@ Resend verification code
 Back to Login
 </a> </div> </div> </div> ` }), defineScriptVars({ token }));
 }, "/app/frontend/src/pages/auth/verify-email.astro", void 0);
+
 const $$file = "/app/frontend/src/pages/auth/verify-email.astro";
 const $$url = "/auth/verify-email";
 

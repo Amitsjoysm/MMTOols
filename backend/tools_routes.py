@@ -87,6 +87,14 @@ def get_tools_routes():
         about: Optional[str] = None
         started_on: Optional[str] = None
         logo_thumbnail_url: Optional[str] = None
+        # CSV/LLM fields
+        platform: Optional[str] = None
+        best_for: Optional[str] = None
+        free_trial: Optional[str] = None
+        alternatives: Optional[List[Dict[str, Any]]] = None
+        faqs: Optional[List[Dict[str, Any]]] = None
+        new_category: Optional[str] = None
+        new_subcategory: Optional[str] = None
     
     class ToolCommentCreate(BaseModel):
         content: str
@@ -217,7 +225,14 @@ def get_tools_routes():
                 company_founders=tool.company_founders,
                 about=tool.about,
                 started_on=tool.started_on,
-                logo_thumbnail_url=tool.logo_thumbnail_url
+                logo_thumbnail_url=tool.logo_thumbnail_url,
+                platform=tool.platform,
+                best_for=tool.best_for,
+                free_trial=tool.free_trial,
+                alternatives=tool.alternatives,
+                faqs=tool.faqs,
+                new_category=tool.new_category,
+                new_subcategory=tool.new_subcategory
             ) for tool in tools
         ]
     
@@ -282,7 +297,14 @@ def get_tools_routes():
                 company_founders=tool.company_founders,
                 about=tool.about,
                 started_on=tool.started_on,
-                logo_thumbnail_url=tool.logo_thumbnail_url
+                logo_thumbnail_url=tool.logo_thumbnail_url,
+                platform=tool.platform,
+                best_for=tool.best_for,
+                free_trial=tool.free_trial,
+                alternatives=tool.alternatives,
+                faqs=tool.faqs,
+                new_category=tool.new_category,
+                new_subcategory=tool.new_subcategory
             ) for tool in tools
         ]
     
@@ -333,7 +355,14 @@ def get_tools_routes():
             company_founders=tool.company_founders,
             about=tool.about,
             started_on=tool.started_on,
-            logo_thumbnail_url=tool.logo_thumbnail_url
+            logo_thumbnail_url=tool.logo_thumbnail_url,
+                platform=tool.platform,
+                best_for=tool.best_for,
+                free_trial=tool.free_trial,
+                alternatives=tool.alternatives,
+                faqs=tool.faqs,
+                new_category=tool.new_category,
+                new_subcategory=tool.new_subcategory
         )
     
     @router.get("/api/tools/by-slug/{tool_slug}", response_model=ToolResponse)
@@ -386,7 +415,14 @@ def get_tools_routes():
             company_founders=tool.company_founders,
             about=tool.about,
             started_on=tool.started_on,
-            logo_thumbnail_url=tool.logo_thumbnail_url
+            logo_thumbnail_url=tool.logo_thumbnail_url,
+                platform=tool.platform,
+                best_for=tool.best_for,
+                free_trial=tool.free_trial,
+                alternatives=tool.alternatives,
+                faqs=tool.faqs,
+                new_category=tool.new_category,
+                new_subcategory=tool.new_subcategory
         )
     
     @router.post("/api/tools/{tool_id}/reviews", response_model=ReviewResponse)

@@ -1,9 +1,11 @@
 ---
 import Layout from '~/layouts/PageLayout.astro';
 import { ssrToolsApi } from '~/utils/ssr-api';
+import { SITE } from 'astrowind:config';
 
 // SSR: Fetch tool data on each request for SEO-optimized content
 const { slug } = Astro.params;
+const siteUrl = SITE.site || 'https://marketmindai.com';
 
 // Fetch tool data
 let tool: any = null;
@@ -27,18 +29,109 @@ if (!tool) {
   return Astro.redirect('/404');
 }
 
+const toolUrl = `${siteUrl}/tools/${tool.slug}`;
+const logoUrl = tool.logo_url || tool.screenshot_url || `${siteUrl}/favicon.svg`;
+const toolDescription = (tool.seo_description || tool.short_description || tool.description || '').substring(0, 300);
+const catNames = tool.categories?.map((c: any) => c.name).join(', ') || '';
+
 // Generate metadata for SEO
 const metadata = {
   title: tool.seo_title || `${tool.name} - AI Tool Review & Guide | MarketMindAI`,
-  description: tool.seo_description || tool.short_description || tool.description.substring(0, 160),
-  keywords: tool.seo_keywords || `${tool.name}, ai tool, ${tool.categories.map((c: any) => c.name).join(', ')}`,
+  description: toolDescription,
+  keywords: tool.seo_keywords || `${tool.name}, ai tool, ${catNames}`,
+  canonical: toolUrl,
   openGraph: {
-    title: tool.name,
-    description: tool.short_description || tool.description.substring(0, 200),
-    image: tool.logo_url || tool.screenshot_url,
+    title: tool.seo_title || tool.name,
+    description: toolDescription,
+    image: logoUrl,
     type: 'website',
+    url: toolUrl,
+  },
+  twitter: {
+    title: tool.seo_title || tool.name,
+    description: toolDescription,
+    image: logoUrl,
+    cardType: 'summary_large_image',
   },
 };
+
+// ── JSON-LD structured data ───────────────────────────────────────────────────
+const faqs = tool.faqs || (tool.json_ld?.['@graph']?.find?.((n: any) => n['@type'] === 'FAQPage')?.mainEntity) || [];
+const alternatives = tool.alternatives || [];
+
+const jsonLdGraph: any[] = [
+  {
+    "@type": "Organization",
+    "@id": `${siteUrl}/#organization`,
+    "name": "MarketMindAI",
+    "url": siteUrl,
+    "logo": { "@type": "ImageObject", "url": `${siteUrl}/favicon.svg` }
+  },
+  {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": siteUrl },
+      { "@type": "ListItem", "position": 2, "name": "AI Tools", "item": `${siteUrl}/tools` },
+      ...(tool.categories?.slice(0,1).map((c: any, idx: number) => ({
+        "@type": "ListItem", "position": 3 + idx, "name": c.name, "item": `${siteUrl}/tools?category=${c.slug}`
+      })) || []),
+      { "@type": "ListItem", "position": tool.categories?.length ? 3 + tool.categories.length : 3, "name": tool.name, "item": toolUrl },
+    ]
+  },
+  {
+    "@type": "SoftwareApplication",
+    "@id": `${toolUrl}#software`,
+    "name": tool.name,
+    "url": tool.url || toolUrl,
+    "description": toolDescription,
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": tool.platform || "Web Browser",
+    "screenshot": logoUrl,
+    "image": logoUrl,
+    "offers": {
+      "@type": "Offer",
+      "priceCurrency": "USD",
+      "description": tool.pricing_details?.description || tool.pricing_type || "See website for pricing",
+      "availability": "https://schema.org/InStock",
+    },
+    "aggregateRating": tool.rating > 0 ? {
+      "@type": "AggregateRating",
+      "ratingValue": String(tool.rating.toFixed(1)),
+      "bestRating": "5",
+      "worstRating": "1",
+      "ratingCount": String(Math.max(tool.review_count || 1, 1)),
+    } : undefined,
+    "publisher": { "@id": `${siteUrl}/#organization` },
+    "featureList": Array.isArray(tool.features) ? tool.features.join(', ') : '',
+    "softwareVersion": "2026",
+    "applicationSubCategory": catNames || "AI Software",
+  },
+];
+
+if (faqs && faqs.length > 0) {
+  jsonLdGraph.push({
+    "@type": "FAQPage",
+    "mainEntity": faqs.slice(0, 10).map((faq: any) => ({
+      "@type": "Question",
+      "name": faq.question || faq.name || '',
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": faq.answer || (faq.acceptedAnswer?.text) || ''
+      }
+    }))
+  });
+}
+
+const toolJsonLd = { "@context": "https://schema.org", "@graph": jsonLdGraph.filter(Boolean) };
+
+function getPricingClass(pricingType: string): string {
+  const classes = {
+    free: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+    freemium: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+    paid: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
+  };
+  return classes[pricingType as keyof typeof classes] || classes.paid;
+}
 
 function getPricingClass(pricingType: string): string {
   const classes = {
@@ -51,6 +144,9 @@ function getPricingClass(pricingType: string): string {
 ---
 
 <Layout metadata={metadata}>
+  <Fragment slot="head">
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(toolJsonLd)} />
+  </Fragment>
   <div id="tool-detail-container" class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
     <!-- Back Button -->
     <div class="mb-6">
@@ -246,6 +342,47 @@ function getPricingClass(pricingType: string): string {
             )}
           </div>
         </div>
+
+        <!-- FAQs Section -->
+        {faqs && faqs.length > 0 && (
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Frequently Asked Questions</h2>
+            <div class="space-y-4">
+              {faqs.slice(0, 10).map((faq: any, idx: number) => (
+                <details class="group border border-gray-200 dark:border-gray-700 rounded-lg">
+                  <summary class="flex justify-between items-center cursor-pointer p-4 font-medium text-gray-900 dark:text-white list-none">
+                    <span>{faq.question || faq.name || ''}</span>
+                    <svg class="w-5 h-5 text-gray-500 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </summary>
+                  <div class="px-4 pb-4 text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+                    {faq.answer || faq.acceptedAnswer?.text || ''}
+                  </div>
+                </details>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <!-- Alternatives Section -->
+        {alternatives && alternatives.length > 0 && (
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Top Alternatives to {tool.name}</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {alternatives.slice(0, 8).map((alt: any) => (
+                <div class="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-400 transition-colors">
+                  <span class="font-medium text-gray-900 dark:text-white text-sm">{alt.name}</span>
+                  {alt.rating > 0 && (
+                    <span class="flex items-center text-sm text-yellow-500 font-semibold">
+                      ★ {alt.rating.toFixed(1)}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <!-- Comments Section (Client-side for interactivity) -->
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">

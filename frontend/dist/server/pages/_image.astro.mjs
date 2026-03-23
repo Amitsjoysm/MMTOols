@@ -1,9 +1,9 @@
-import { g as getConfiguredImageService, i as imageConfig, s as serverDir, o as outDir } from '../chunks/_astro_assets_DNvT1OpM.mjs';
+import { g as getConfiguredImageService, i as imageConfig, s as serverDir, o as outDir } from '../chunks/_astro_assets_CYq2L3H1.mjs';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { i as isRemotePath, r as removeQueryString, a as isParentDirectory } from '../chunks/path_BD1S9hBe.mjs';
-import { i as isRemoteAllowed } from '../chunks/remote_DrauV6zU.mjs';
+import { i as isRemoteAllowed } from '../chunks/remote_DVMROsal.mjs';
 import * as mime from 'mrmime';
 export { renderers } from '../renderers.mjs';
 
@@ -34,7 +34,10 @@ const etag = (payload, weak = false) => {
 
 async function loadRemoteImage(src) {
   try {
-    const res = await fetch(src);
+    const res = await fetch(src, { redirect: "manual" });
+    if (res.status >= 300 && res.status < 400) {
+      return void 0;
+    }
     if (!res.ok) {
       return void 0;
     }
