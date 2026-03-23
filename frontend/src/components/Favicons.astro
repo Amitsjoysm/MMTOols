@@ -1,10 +1,44 @@
 ---
+/**
+ * Favicons & App Icons - full multi-device support
+ * Works for all screen sizes: desktop, tablet, mobile, PWA
+ */
 import favIcon from '~/assets/favicons/favicon.ico';
-import favIconSvg from '~/assets/favicons/favicon.svg';
 import appleTouchIcon from '~/assets/favicons/apple-touch-icon.png';
 ---
 
+<!-- Standard favicons -->
 <link rel="shortcut icon" href={favIcon} />
-<link rel="icon" type="image/svg+xml" href={favIconSvg.src} />
-<link rel="mask-icon" href={favIconSvg.src} color="#8D46E7" />
-<link rel="apple-touch-icon" sizes="180x180" href={appleTouchIcon.src} />
+<link rel="icon" type="image/x-icon" href="/favicon.ico" />
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+
+<!-- Apple touch icons (iOS / iPadOS all sizes) -->
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<link rel="apple-touch-icon" sizes="57x57" href="/apple-touch-icon.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/apple-touch-icon.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/apple-touch-icon.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/apple-touch-icon.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/apple-touch-icon.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/apple-touch-icon.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/apple-touch-icon.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+
+<!-- Android Chrome / PWA icons -->
+<link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png" />
+<link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png" />
+
+<!-- Web App Manifest (PWA) -->
+<link rel="manifest" href="/site.webmanifest" />
+
+<!-- Microsoft / Windows tiles -->
+<meta name="msapplication-TileColor" content="#2563eb" />
+<meta name="msapplication-TileImage" content="/android-chrome-192x192.png" />
+<meta name="msapplication-config" content="none" />
+
+<!-- Safari pinned tab -->
+<meta name="apple-mobile-web-app-title" content="MarketMindAI" />
+<meta name="application-name" content="MarketMindAI" />
+<meta name="theme-color" content="#2563eb" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#1e293b" media="(prefers-color-scheme: dark)" />

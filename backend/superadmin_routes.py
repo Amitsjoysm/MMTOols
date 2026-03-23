@@ -211,11 +211,27 @@ async def update_user(
     current_superadmin: User = Depends(get_current_superadmin),
     db: Session = Depends(get_db)
 ):
-    """Update user"""
+    """Update user - including role upgrades/downgrades"""
     
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+    
+    # Validate role if being changed
+    if user_update.role is not None:
+        valid_roles = ["user", "admin", "superadmin"]
+        if user_update.role not in valid_roles:
+            raise HTTPException(status_code=400, detail=f"Invalid role. Must be one of: {', '.join(valid_roles)}")
+        
+        # Prevent demoting yourself (the acting superadmin)
+        if user_id == current_superadmin.id and user_update.role != "superadmin":
+            raise HTTPException(status_code=400, detail="You cannot demote your own superadmin account")
+        
+        # Check we're not removing the last superadmin
+        if user.role == "superadmin" and user_update.role != "superadmin":
+            superadmin_count = db.query(User).filter(User.role == "superadmin", User.is_active == True).count()
+            if superadmin_count <= 1:
+                raise HTTPException(status_code=400, detail="Cannot demote the last active superadmin")
     
     # Update fields
     update_data = user_update.dict(exclude_unset=True)
@@ -224,8 +240,18 @@ async def update_user(
     
     user.updated_at = datetime.utcnow()
     db.commit()
+    db.refresh(user)
     
-    return {"message": "User updated successfully"}
+    return {
+        "message": "User updated successfully",
+        "user": {
+            "id": user.id,
+            "email": user.email,
+            "username": user.username,
+            "role": user.role,
+            "is_active": user.is_active
+        }
+    }
 
 @router.delete("/api/superadmin/users/{user_id}")
 async def delete_user(
