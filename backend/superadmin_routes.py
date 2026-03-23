@@ -438,6 +438,63 @@ async def get_all_tools_admin(
         } for tool in tools
     ]
 
+@router.get("/api/superadmin/tools/{tool_id}")
+async def get_tool_by_id(
+    tool_id: str,
+    current_superadmin: User = Depends(get_current_superadmin),
+    db: Session = Depends(get_db)
+):
+    """Get single tool with all fields for editing"""
+    
+    tool = db.query(Tool).filter(Tool.id == tool_id).first()
+    if not tool:
+        raise HTTPException(status_code=404, detail="Tool not found")
+    
+    return {
+        "id": tool.id,
+        "name": tool.name,
+        "slug": tool.slug,
+        "description": tool.description,
+        "short_description": tool.short_description,
+        "url": tool.url,
+        "logo_url": tool.logo_url,
+        "screenshot_url": tool.screenshot_url,
+        "pricing_type": tool.pricing_type,
+        "pricing_details": tool.pricing_details,
+        "features": tool.features,
+        "pros": tool.pros,
+        "cons": tool.cons,
+        "rating": tool.rating,
+        "review_count": tool.review_count,
+        "view_count": tool.view_count,
+        "like_count": tool.like_count,
+        "trending_score": tool.trending_score,
+        "is_featured": tool.is_featured,
+        "is_active": tool.is_active,
+        "seo_title": tool.seo_title,
+        "seo_description": tool.seo_description,
+        "seo_keywords": tool.seo_keywords,
+        "json_ld": tool.json_ld,
+        "platform": tool.platform,
+        "best_for": tool.best_for,
+        "free_trial": tool.free_trial,
+        "alternatives": tool.alternatives,
+        "faqs": tool.faqs,
+        "new_category": tool.new_category,
+        "new_subcategory": tool.new_subcategory,
+        "linkedin_url": tool.linkedin_url,
+        "company_funding": tool.company_funding,
+        "company_news": tool.company_news,
+        "company_location": tool.company_location,
+        "company_founders": tool.company_founders,
+        "about": tool.about,
+        "started_on": tool.started_on,
+        "claim_status": tool.claim_status,
+        "created_at": tool.created_at,
+        "updated_at": tool.updated_at,
+        "categories": [{"id": cat.id, "name": cat.name, "slug": cat.slug} for cat in tool.categories]
+    }
+
 @router.post("/api/superadmin/tools")
 async def create_tool(
     tool: ToolCreate,
@@ -802,6 +859,41 @@ async def get_all_blogs_admin(
             "seo_keywords": blog.seo_keywords
         } for blog in blogs
     ]
+
+@router.get("/api/superadmin/blogs/{blog_id}")
+async def get_blog_by_id(
+    blog_id: str,
+    current_superadmin: User = Depends(get_current_superadmin),
+    db: Session = Depends(get_db)
+):
+    """Get single blog with all fields for editing"""
+    
+    blog = db.query(Blog).filter(Blog.id == blog_id).first()
+    if not blog:
+        raise HTTPException(status_code=404, detail="Blog not found")
+    
+    return {
+        "id": blog.id,
+        "title": blog.title,
+        "slug": blog.slug,
+        "content": blog.content,
+        "excerpt": blog.excerpt,
+        "featured_image": blog.featured_image,
+        "author_id": blog.author_id,
+        "status": blog.status,
+        "view_count": blog.view_count,
+        "like_count": blog.like_count,
+        "reading_time": blog.reading_time,
+        "tags": blog.tags,
+        "is_ai_generated": blog.is_ai_generated,
+        "seo_title": blog.seo_title,
+        "seo_description": blog.seo_description,
+        "seo_keywords": blog.seo_keywords,
+        "json_ld": blog.json_ld,
+        "created_at": blog.created_at,
+        "updated_at": blog.updated_at,
+        "published_at": blog.published_at,
+    }
 
 @router.post("/api/superadmin/blogs")
 async def create_blog_admin(

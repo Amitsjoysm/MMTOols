@@ -487,13 +487,13 @@ const metadata = {
   // Global functions for inline event handlers
   (window as any).editBlog = async function(blogId: string) {
     try {
-      const blogs = await superAdminApi.blogs.getAll({ skip: 0, limit: 1000 });
-      const blog = blogs.find((b: any) => b.id === blogId);
+      const blog = await superAdminApi.blogs.getById(blogId);
       if (blog) {
         openBlogModal(blog);
       }
     } catch (error) {
       console.error('Error loading blog:', error);
+      alert('Failed to load blog details');
     }
   };
 

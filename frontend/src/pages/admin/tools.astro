@@ -649,13 +649,13 @@ const metadata = {
   // Global functions for inline event handlers
   (window as any).editTool = async function(toolId: string) {
     try {
-      const tool = await superAdminApi.tools.getAll({ skip: 0, limit: 1000 })
-        .then(tools => tools.find((t: any) => t.id === toolId));
+      const tool = await superAdminApi.tools.getById(toolId);
       if (tool) {
         openToolModal(tool);
       }
     } catch (error) {
       console.error('Error loading tool:', error);
+      alert('Failed to load tool details');
     }
   };
 
