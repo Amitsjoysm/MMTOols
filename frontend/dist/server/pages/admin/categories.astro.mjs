@@ -1,6 +1,6 @@
 import { c as createComponent, r as renderComponent, d as renderScript, a as renderTemplate, m as maybeRenderHead } from '../../chunks/astro/server_CZk8NOd-.mjs';
 import 'piccolore';
-import { $ as $$AdminLayout } from '../../chunks/AdminLayout_Csi0zVbJ.mjs';
+import { $ as $$AdminLayout } from '../../chunks/AdminLayout_XeQMiTGP.mjs';
 export { renderers } from '../../renderers.mjs';
 
 const $$Categories = createComponent(async ($$result, $$props, $$slots) => {

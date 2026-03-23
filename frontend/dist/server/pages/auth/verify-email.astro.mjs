@@ -1,6 +1,6 @@
 import { f as createAstro, c as createComponent, a as renderTemplate, h as defineScriptVars, r as renderComponent, m as maybeRenderHead } from '../../chunks/astro/server_CZk8NOd-.mjs';
 import 'piccolore';
-import { $ as $$PageLayout } from '../../chunks/PageLayout_D77RgbZh.mjs';
+import { $ as $$PageLayout } from '../../chunks/PageLayout_W7EoUzsJ.mjs';
 export { renderers } from '../../renderers.mjs';
 
 var __freeze = Object.freeze;
