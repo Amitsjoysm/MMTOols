@@ -58,13 +58,23 @@ Build a full-featured web application named "MarketMindAI" - a comprehensive dir
 - [x] **Blog Interactions:** like/unlike, bookmark/unbookmark, comment, user bookmarks page
 - [x] **Tool Interactions:** like/unlike, review/rate, comment, toast notifications
 - [x] **Blog Create/Edit Bug Fix:** Tags now sent as array (not string)
-- [x] **Production Build Package (March 2026):**
-  - [x] Frontend SSR built via `yarn build` 
-  - [x] Nginx config for SSL + reverse proxy
-  - [x] Systemd service files for backend + frontend
-  - [x] Automated deploy.sh script
-  - [x] Comprehensive README.md deployment guide
-  - [x] `production_release_marketmindai.zip` (42MB) with all artifacts
+- [x] **Analytics & AdSense Integration (March 2026):**
+  - [x] `GET /api/site-settings/analytics` — public SSR endpoint
+  - [x] `POST /api/superadmin/site-settings/analytics` — save GA4/AdSense/GTM/custom code
+  - [x] `SiteAnalytics.astro` — SSR component injects scripts in `<head>` of every page
+  - [x] Admin site-settings page — Analytics & Monetization section (GA4 ID, AdSense ID, GTM ID, custom head code, contact email)
+  - [x] Status indicator cards (green dot when configured)
+- [x] **Critical Refresh/Connection Fix (March 2026):**
+  - [x] Fixed 15+ frontend pages: `getApiBaseUrl()` was returning `http://localhost:8001` as fallback (broke ALL API calls on production)
+  - [x] Fixed `AdminProtection.astro`: comment+code merged on same line making `API_URL` undefined → Connection Error overlay
+  - [x] All pages now use: `const API_URL = (import.meta as any).env?.PUBLIC_API_URL || window.location.origin`
+  - [x] Fixed `admin/tools.astro`: `showToast` scoped inside try{} block (all save/delete operations silently failed)
+  - [x] Fixed `admin/blogs.astro`: `getCurrentUser()` → `getUserData()` (new blog modal never opened)
+  - [x] Fixed `admin/blogs.astro`: limit 1000 → 200 (was getting 422 errors)
+  - [x] All `alert()` calls (30+) replaced with `showToast()` toast notifications
+- [x] **database.py auto-restart**: `_ensure_postgres()` auto-starts PostgreSQL on backend boot
+- [x] **Production Build v3** (`/app/production_release_v3_FINAL_marketmindai.zip`, 39MB):
+  - [x] All fixes included, built with `yarn build`, fully tested (16/16 backend tests passed)
   - [x] Replaced "TechResona" branding with "MarketMindAI" across the site
   - [x] Created SuperAdmin endpoint for logo management (`/api/superadmin/site-settings/logo`)
   - [x] Created Admin UI for site settings (`/admin/site-settings`)
