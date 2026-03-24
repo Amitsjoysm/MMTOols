@@ -172,20 +172,16 @@ const metadata = {
   </div>
 
   <script>
-    // Dynamic API URL detection
-    function getApiBaseUrl() {
-      if (typeof window !== 'undefined') {
-        const currentOrigin = window.location.origin;
-        if (currentOrigin.includes('preview.app.github.dev') || 
-            currentOrigin.includes('github.dev') ||
-            currentOrigin.includes('preview.emergentagent.com')) {
-          return currentOrigin.replace(':3000', ':8001').replace('3000-', '8001-');
-        }
-      }
-      return 'http://localhost:8001';
+    const API_URL = (import.meta as any).env?.PUBLIC_API_URL || window.location.origin;
+
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      const bg = type === 'success' ? 'bg-green-600' : type === 'error' ? 'bg-red-600' : 'bg-blue-600';
+      toast.className = `fixed bottom-4 right-4 z-50 px-5 py-3 rounded-lg text-white text-sm font-medium shadow-xl ${bg}`;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
     }
-    
-    const API_URL = getApiBaseUrl();
 
     function getAuthToken() {
       return localStorage.getItem('token') || localStorage.getItem('auth_token');
@@ -228,7 +224,7 @@ const metadata = {
         document.getElementById('page-loading').classList.add('hidden');
         document.getElementById('form-container').classList.remove('hidden');
       } catch (error) {
-        alert('Error: ' + error.message);
+        showToast('Error: ' + error.message, 'error');
         window.location.href = '/user/blogs';
       }
     }

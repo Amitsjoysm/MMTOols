@@ -77,6 +77,14 @@ const metadata = {
 </AdminLayout>
 
 <script>
+
+  function showToast(message, type = 'success') {
+    const el = document.createElement('div');
+    el.className = `fixed bottom-4 right-4 z-50 px-5 py-3 rounded-lg text-white text-sm font-medium shadow-xl ${type==='error'?'bg-red-600':type==='info'?'bg-blue-600':'bg-green-600'}`;
+    el.textContent = message;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 4000);
+  }
   import { adminApi } from '~/utils/api';
   import { requireAdmin } from '~/utils/auth';
 
@@ -188,11 +196,11 @@ const metadata = {
 
     try {
       await adminApi.verifyReview(reviewId, verified);
-      alert(`Review ${verified ? 'verified' : 'unverified'} successfully!`);
+      showToast(`Review ${verified ? 'verified' : 'unverified'} successfully!`, 'success');
       loadReviews();
     } catch (error: any) {
       console.error('Error updating review:', error);
-      alert('Failed to update review: ' + (error.message || 'Unknown error'));
+      showToast('Failed to update review: ' + (error.message || 'Unknown error', 'error'));
     }
   };
 

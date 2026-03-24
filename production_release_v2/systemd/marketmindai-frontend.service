@@ -1,0 +1,23 @@
+[Unit]
+Description=MarketMindAI Frontend (Astro SSR)
+After=network.target marketmindai-backend.service
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/var/www/marketmindai/frontend
+ExecStart=/usr/bin/node /var/www/marketmindai/frontend/dist/server/entry.mjs
+Restart=on-failure
+RestartSec=5s
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=marketmindai-frontend
+
+# Environment
+Environment=HOST=127.0.0.1
+Environment=PORT=4321
+Environment=NODE_ENV=production
+EnvironmentFile=/var/www/marketmindai/frontend/.env
+
+[Install]
+WantedBy=multi-user.target

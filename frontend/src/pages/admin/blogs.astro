@@ -204,6 +204,15 @@ const metadata = {
 
 <script>
   import { superAdminApi } from '~/utils/api';
+
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      const bg = type === 'success' ? 'bg-green-600' : type === 'error' ? 'bg-red-600' : 'bg-blue-600';
+      toast.className = `fixed bottom-4 right-4 z-50 px-5 py-3 rounded-lg text-white text-sm font-medium shadow-xl ${bg}`;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
+    }
   import { requireAdmin, getUserData } from '~/utils/auth';
 
   // Check authentication
@@ -223,7 +232,7 @@ const metadata = {
 
   async function loadAuthors() {
     try {
-      allAuthors = await superAdminApi.users.getAll({ limit: 1000 });
+      allAuthors = await superAdminApi.users.getAll({ limit: 200 });
       
       // Populate author filters
       const authorFilter = document.getElementById('author-filter') as HTMLSelectElement;
@@ -242,7 +251,7 @@ const metadata = {
       });
 
       // Pre-select current user as author
-      const currentUser = getCurrentUser();
+      const currentUser = getUserData();
       if (currentUser) {
         (document.getElementById('blog-author') as HTMLSelectElement).value = currentUser.id;
       }
@@ -424,7 +433,7 @@ const metadata = {
       (document.getElementById('blog-json-ld') as HTMLTextAreaElement).value = blog.json_ld ? JSON.stringify(blog.json_ld, null, 2) : '';
     } else {
       // Pre-select current user as author for new blog
-      const currentUser = getCurrentUser();
+      const currentUser = getUserData();
       if (currentUser) {
         (document.getElementById('blog-author') as HTMLSelectElement).value = currentUser.id;
       }
@@ -461,7 +470,7 @@ const metadata = {
         seo_title: (document.getElementById('blog-seo-title') as HTMLInputElement).value || null,
         seo_description: (document.getElementById('blog-seo-description') as HTMLTextAreaElement).value || null,
         seo_keywords: (document.getElementById('blog-seo-keywords') as HTMLInputElement).value || null,
-        json_ld: (() => { try { const v = (document.getElementById('blog-json-ld') as HTMLTextAreaElement).value; return v ? JSON.parse(v) : null; } catch { alert('JSON-LD must be valid JSON'); return undefined; } })()
+        json_ld: (() => { try { const v = (document.getElementById('blog-json-ld') as HTMLTextAreaElement).value; return v ? JSON.parse(v) : null; } catch { showToast('JSON-LD must be valid JSON'); return undefined; } })()
       };
 
       if (blogData.json_ld === undefined) { submitBtn.disabled = false; submitBtn.textContent = originalText; return; }
@@ -474,10 +483,10 @@ const metadata = {
 
       closeBlogModal();
       loadBlogs();
-      alert(editingBlogId ? 'Blog updated successfully!' : 'Blog created successfully!');
+      showToast(editingBlogId ? 'Blog updated successfully!' : 'Blog created successfully!', 'success');
     } catch (error: any) {
       console.error('Error saving blog:', error);
-      alert('Failed to save blog: ' + (error.message || 'Unknown error'));
+      showToast('Failed to save blog: ' + (error.message || 'Unknown error', 'error'));
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = originalText;
@@ -493,7 +502,7 @@ const metadata = {
       }
     } catch (error) {
       console.error('Error loading blog:', error);
-      alert('Failed to load blog details');
+      showToast('Failed to load blog details', 'error');
     }
   };
 
@@ -504,11 +513,11 @@ const metadata = {
 
     try {
       await superAdminApi.blogs.publish(blogId);
-      alert('Blog published successfully!');
+      showToast('Blog published successfully!', 'success');
       loadBlogs();
     } catch (error: any) {
       console.error('Error publishing blog:', error);
-      alert('Failed to publish blog: ' + (error.message || 'Unknown error'));
+      showToast('Failed to publish blog: ' + (error.message || 'Unknown error', 'error'));
     }
   };
 
@@ -519,11 +528,11 @@ const metadata = {
 
     try {
       await superAdminApi.blogs.unpublish(blogId);
-      alert('Blog unpublished successfully!');
+      showToast('Blog unpublished successfully!', 'success');
       loadBlogs();
     } catch (error: any) {
       console.error('Error unpublishing blog:', error);
-      alert('Failed to unpublish blog: ' + (error.message || 'Unknown error'));
+      showToast('Failed to unpublish blog: ' + (error.message || 'Unknown error', 'error'));
     }
   };
 
@@ -534,11 +543,11 @@ const metadata = {
 
     try {
       await superAdminApi.blogs.delete(blogId);
-      alert('Blog deleted successfully!');
+      showToast('Blog deleted successfully!', 'success');
       loadBlogs();
     } catch (error: any) {
       console.error('Error deleting blog:', error);
-      alert('Failed to delete blog: ' + (error.message || 'Unknown error'));
+      showToast('Failed to delete blog: ' + (error.message || 'Unknown error', 'error'));
     }
   };
 

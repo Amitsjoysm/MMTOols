@@ -129,6 +129,15 @@ const metadata = {
 <script>
   import { authApi, userApi } from '~/utils/api';
 
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      const bg = type === 'success' ? 'bg-green-600' : type === 'error' ? 'bg-red-600' : 'bg-blue-600';
+      toast.className = `fixed bottom-4 right-4 z-50 px-5 py-3 rounded-lg text-white text-sm font-medium shadow-xl ${bg}`;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
+    }
+
   let currentUser: any = null;
   let dashboardData: any = null;
 
@@ -254,10 +263,10 @@ const metadata = {
         renderDashboard();
         
         editProfileModal.classList.add('hidden');
-        alert('Profile updated successfully!');
+        showToast('Profile updated successfully!', 'success');
       } catch (error) {
         console.error('Error updating profile:', error);
-        alert('Failed to update profile. Please try again.');
+        showToast('Failed to update profile. Please try again.', 'error');
       }
     });
 

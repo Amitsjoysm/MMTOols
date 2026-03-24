@@ -717,6 +717,15 @@ const metadata = {
     URL.revokeObjectURL(link.href);
   }
 
+  function showToast(message: string, type: string = 'success') {
+    const toast = document.createElement('div');
+    const bg = type === 'success' ? 'bg-green-600' : type === 'error' ? 'bg-red-600' : 'bg-blue-600';
+    toast.className = `fixed bottom-4 right-4 z-50 px-5 py-3 rounded-lg text-white text-sm font-medium shadow-xl flex items-center gap-2 ${bg}`;
+    toast.innerHTML = `<span>${message}</span>`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+  }
+
   async function handleBulkUpload(e: Event) {
     e.preventDefault();
     
@@ -724,12 +733,12 @@ const metadata = {
     const file = fileInput.files?.[0];
     
     if (!file) {
-      alert('Please select a CSV file');
+      showToast('Please select a CSV file', 'error');
       return;
     }
     
     if (!file.name.endsWith('.csv')) {
-      alert('Please upload a CSV file');
+      showToast('Please upload a CSV file', 'error');
       return;
     }
     
@@ -754,6 +763,7 @@ const metadata = {
       progressText.textContent = 'Processing CSV...';
       
       const API_URL = import.meta.env.PUBLIC_API_URL || '';
+
       const response = await fetch(`${API_URL}/api/superadmin/tools/bulk-upload`, {
         method: 'POST',
         headers: {
@@ -896,9 +906,9 @@ const metadata = {
         seo_title: (document.getElementById('tool-seo-title') as HTMLInputElement).value || null,
         seo_description: (document.getElementById('tool-seo-description') as HTMLTextAreaElement).value || null,
         seo_keywords: (document.getElementById('tool-seo-keywords') as HTMLInputElement).value || null,
-        faqs: (() => { try { const v = (document.getElementById('tool-faqs') as HTMLTextAreaElement).value; return v ? JSON.parse(v) : null; } catch { alert('FAQs must be valid JSON'); return undefined; } })(),
-        alternatives: (() => { try { const v = (document.getElementById('tool-alternatives') as HTMLTextAreaElement).value; return v ? JSON.parse(v) : null; } catch { alert('Alternatives must be valid JSON'); return undefined; } })(),
-        json_ld: (() => { try { const v = (document.getElementById('tool-json-ld') as HTMLTextAreaElement).value; return v ? JSON.parse(v) : null; } catch { alert('JSON-LD must be valid JSON'); return undefined; } })(),
+        faqs: (() => { try { const v = (document.getElementById('tool-faqs') as HTMLTextAreaElement).value; return v ? JSON.parse(v) : null; } catch { showToast('FAQs must be valid JSON'); return undefined; } })(),
+        alternatives: (() => { try { const v = (document.getElementById('tool-alternatives') as HTMLTextAreaElement).value; return v ? JSON.parse(v) : null; } catch { showToast('Alternatives must be valid JSON'); return undefined; } })(),
+        json_ld: (() => { try { const v = (document.getElementById('tool-json-ld') as HTMLTextAreaElement).value; return v ? JSON.parse(v) : null; } catch { showToast('JSON-LD must be valid JSON'); return undefined; } })(),
         category_ids: selectedCategories,
         features: [],
         pros: [],
@@ -918,10 +928,10 @@ const metadata = {
 
       closeToolModal();
       loadTools();
-      alert(editingToolId ? 'Tool updated successfully!' : 'Tool created successfully!');
+      showToast(editingToolId ? 'Tool updated successfully!' : 'Tool created successfully!', 'success');
     } catch (error: any) {
       console.error('Error saving tool:', error);
-      alert('Failed to save tool: ' + (error.message || 'Unknown error'));
+      showToast('Failed to save tool: ' + (error.message || 'Unknown error', 'error'));
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = originalText;
@@ -937,7 +947,7 @@ const metadata = {
       }
     } catch (error) {
       console.error('Error loading tool:', error);
-      alert('Failed to load tool details');
+      showToast('Failed to load tool details', 'error');
     }
   };
 
@@ -948,11 +958,11 @@ const metadata = {
 
     try {
       await superAdminApi.tools.delete(toolId);
-      alert('Tool deleted successfully!');
+      showToast('Tool deleted successfully!', 'success');
       loadTools();
     } catch (error: any) {
       console.error('Error deleting tool:', error);
-      alert('Failed to delete tool: ' + (error.message || 'Unknown error'));
+      showToast('Failed to delete tool: ' + (error.message || 'Unknown error', 'error'));
     }
   };
 
@@ -995,12 +1005,12 @@ const metadata = {
     const adminId = adminSelect.value;
     
     if (!adminId) {
-      alert('Please select an admin to assign tools to');
+      showToast('Please select an admin to assign tools to', 'error');
       return;
     }
     
     if (selectedToolIds.size === 0) {
-      alert('Please select at least one tool to assign');
+      showToast('Please select at least one tool to assign', 'error');
       return;
     }
     
@@ -1019,17 +1029,17 @@ const metadata = {
       
       if (response.ok) {
         const data = await response.json();
-        alert(data.message);
+        showToast(data.message, 'success');
         closeAssignModal();
         selectedToolIds.clear();
         loadTools();
       } else {
         const error = await response.json();
-        alert('Failed to assign tools: ' + (error.detail || 'Unknown error'));
+        showToast('Failed to assign tools: ' + (error.detail || 'Unknown error', 'error'));
       }
     } catch (error: any) {
       console.error('Error assigning tools:', error);
-      alert('Failed to assign tools: ' + (error.message || 'Unknown error'));
+      showToast('Failed to assign tools: ' + (error.message || 'Unknown error', 'error'));
     }
   }
 

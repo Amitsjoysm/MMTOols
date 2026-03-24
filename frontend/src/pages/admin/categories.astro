@@ -112,6 +112,8 @@ const metadata = {
 </AdminLayout>
 
 <script>
+
+  function showToast(msg, type='success'){const el=document.createElement('div');el.className=`fixed bottom-4 right-4 z-50 px-5 py-3 rounded-lg text-white text-sm font-medium shadow-xl ${type==='error'?'bg-red-600':'bg-green-600'}`;el.textContent=msg;document.body.appendChild(el);setTimeout(()=>el.remove(),4000);}
   import { superAdminApi } from '~/utils/api';
   import { requireAdmin } from '~/utils/auth';
 
@@ -278,10 +280,10 @@ const metadata = {
 
       closeCategoryModal();
       await loadCategories();
-      alert(editingCategoryId ? 'Category updated successfully!' : 'Category created successfully!');
+      showToast(editingCategoryId ? 'Category updated successfully!' : 'Category created successfully!', 'success');
     } catch (error: any) {
       console.error('Error saving category:', error);
-      alert('Failed to save category: ' + (error.message || 'Unknown error'));
+      showToast('Failed to save category: ' + (error.message || 'Unknown error', 'error'));
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = originalText;
@@ -302,11 +304,11 @@ const metadata = {
 
     try {
       await superAdminApi.categories.delete(categoryId);
-      alert('Category deleted successfully!');
+      showToast('Category deleted successfully!', 'success');
       loadCategories();
     } catch (error: any) {
       console.error('Error deleting category:', error);
-      alert('Failed to delete category: ' + (error.message || 'Unknown error'));
+      showToast('Failed to delete category: ' + (error.message || 'Unknown error', 'error'));
     }
   };
 

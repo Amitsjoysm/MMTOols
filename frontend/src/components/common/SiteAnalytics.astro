@@ -1,0 +1,47 @@
+---
+/**
+ * Dynamic Analytics & AdSense injection via SSR
+ * Reads settings from database and injects scripts server-side
+ */
+let analyticsId = '';
+let adsenseId = '';
+let headCode = '';
+
+try {
+  const BACKEND_URL = import.meta.env.BACKEND_URL || 'http://localhost:8001';
+  const res = await fetch(`${BACKEND_URL}/api/site-settings/analytics`);
+  if (res.ok) {
+    const data = await res.json();
+    analyticsId = data.analytics_id || '';
+    adsenseId = data.adsense_id || '';
+    headCode = data.custom_head_code || '';
+  }
+} catch {
+  // silently fail - analytics is optional
+}
+---
+
+{analyticsId && (
+  <>
+    <!-- Google Analytics (GA4) -->
+    <script async src={`https://www.googletagmanager.com/gtag/js?id=${analyticsId}`}></script>
+    <script define:vars={{ analyticsId }}>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', analyticsId, { anonymize_ip: true });
+    </script>
+  </>
+)}
+
+{adsenseId && (
+  <>
+    <!-- Google AdSense -->
+    <script async src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseId}`} crossorigin="anonymous"></script>
+  </>
+)}
+
+{headCode && (
+  <!-- Custom Head Code -->
+  <Fragment set:html={headCode} />
+)}

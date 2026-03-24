@@ -50,20 +50,16 @@ const description = 'Manage your claimed tools';
   </div>
 
   <script>
-    // Dynamic API URL detection
-    function getApiBaseUrl() {
-      if (typeof window !== 'undefined') {
-        const currentOrigin = window.location.origin;
-        if (currentOrigin.includes('preview.app.github.dev') || 
-            currentOrigin.includes('github.dev') ||
-            currentOrigin.includes('preview.emergentagent.com')) {
-          return currentOrigin.replace(':3000', ':8001').replace('3000-', '8001-');
-        }
-      }
-      return 'http://localhost:8001';
+    const API_URL = (import.meta as any).env?.PUBLIC_API_URL || window.location.origin;
+
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      const bg = type === 'success' ? 'bg-green-600' : type === 'error' ? 'bg-red-600' : 'bg-blue-600';
+      toast.className = `fixed bottom-4 right-4 z-50 px-5 py-3 rounded-lg text-white text-sm font-medium shadow-xl ${bg}`;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
     }
-    
-    const API_URL = getApiBaseUrl();
 
     function getAuthToken() {
       return localStorage.getItem('token') || localStorage.getItem('auth_token');
@@ -228,10 +224,10 @@ const description = 'Manage your claimed tools';
           throw new Error('Failed to cancel claim');
         }
 
-        alert('Claim request cancelled successfully!');
+        showToast('Claim request cancelled successfully!', 'success');
         fetchClaimedTools();
       } catch (error) {
-        alert('Error: ' + error.message);
+        showToast('Error: ' + error.message, 'error');
       }
     };
 
@@ -257,10 +253,10 @@ const description = 'Manage your claimed tools';
           throw new Error(error.detail || 'Failed to claim tool');
         }
 
-        alert('Claim request submitted successfully!');
+        showToast('Claim request submitted successfully!', 'success');
         fetchClaimedTools();
       } catch (error) {
-        alert('Error: ' + error.message);
+        showToast('Error: ' + error.message, 'error');
       }
     };
 

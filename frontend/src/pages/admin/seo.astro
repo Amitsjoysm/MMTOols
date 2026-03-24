@@ -78,6 +78,8 @@ const metadata = {
 </AdminLayout>
 
 <script>
+
+  function showToast(msg, type='success'){const el=document.createElement('div');el.className=`fixed bottom-4 right-4 z-50 px-5 py-3 rounded-lg text-white text-sm font-medium shadow-xl ${type==='error'?'bg-red-600':'bg-green-600'}`;el.textContent=msg;document.body.appendChild(el);setTimeout(()=>el.remove(),4000);}
   import { superAdminApi } from '~/utils/api';
   import { requireAdmin } from '~/utils/auth';
 
@@ -132,11 +134,11 @@ const metadata = {
 
     try {
       await superAdminApi.seo.generateJsonLd('all', 1000);
-      alert('JSON-LD generated successfully for all content!');
+      showToast('JSON-LD generated successfully for all content!', 'success');
       await loadSEOOverview();
     } catch (error: any) {
       console.error('Error generating JSON-LD:', error);
-      alert('Failed to generate JSON-LD: ' + (error.message || 'Unknown error'));
+      showToast('Failed to generate JSON-LD: ' + (error.message || 'Unknown error', 'error'));
     } finally {
       loading.classList.add('hidden');
     }
@@ -177,7 +179,7 @@ const metadata = {
       issuesSection.classList.remove('hidden');
     } catch (error: any) {
       console.error('Error analyzing SEO issues:', error);
-      alert('Failed to analyze SEO issues: ' + (error.message || 'Unknown error'));
+      showToast('Failed to analyze SEO issues: ' + (error.message || 'Unknown error', 'error'));
     } finally {
       loading.classList.add('hidden');
     }

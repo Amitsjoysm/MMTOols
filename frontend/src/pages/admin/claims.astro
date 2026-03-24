@@ -119,20 +119,16 @@ const description = 'Manage tool ownership claim requests';
   </div>
 
   <script>
-    // Dynamic API URL detection
-    function getApiBaseUrl() {
-      if (typeof window !== 'undefined') {
-        const currentOrigin = window.location.origin;
-        if (currentOrigin.includes('preview.app.github.dev') || 
-            currentOrigin.includes('github.dev') ||
-            currentOrigin.includes('preview.emergentagent.com')) {
-          return currentOrigin.replace(':3000', ':8001').replace('3000-', '8001-');
-        }
-      }
-      return 'http://localhost:8001';
+    const API_URL = (import.meta as any).env?.PUBLIC_API_URL || window.location.origin;
+
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      const bg = type === 'success' ? 'bg-green-600' : type === 'error' ? 'bg-red-600' : 'bg-blue-600';
+      toast.className = `fixed bottom-4 right-4 z-50 px-5 py-3 rounded-lg text-white text-sm font-medium shadow-xl ${bg}`;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
     }
-    
-    const API_URL = getApiBaseUrl();
     let currentFilter = 'pending';
     let claims = [];
     let currentToolId = null;
@@ -297,10 +293,10 @@ const description = 'Manage tool ownership claim requests';
           throw new Error('Failed to approve claim');
         }
 
-        alert('Claim approved successfully!');
+        showToast('Claim approved successfully!', 'success');
         fetchClaims(currentFilter);
       } catch (error) {
-        alert('Error: ' + error.message);
+        showToast('Error: ' + error.message, 'error');
       }
     };
 
@@ -341,12 +337,12 @@ const description = 'Manage tool ownership claim requests';
           throw new Error('Failed to reject claim');
         }
 
-        alert('Claim rejected successfully!');
+        showToast('Claim rejected successfully!', 'success');
         document.getElementById('rejection-modal').classList.add('hidden');
         currentToolId = null;
         fetchClaims(currentFilter);
       } catch (error) {
-        alert('Error: ' + error.message);
+        showToast('Error: ' + error.message, 'error');
       }
     });
 

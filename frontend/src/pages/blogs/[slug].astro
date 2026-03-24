@@ -322,21 +322,17 @@ const processedContent = isHtmlContent
 </Layout>
 
 <script define:vars={{ slug, blogId: blog.id }}>
-  // Dynamic API URL detection
-  function getApiBaseUrl() {
-    if (typeof window !== 'undefined') {
-      const currentOrigin = window.location.origin;
-      if (currentOrigin.includes('preview.app.github.dev') || 
-          currentOrigin.includes('github.dev') ||
-          currentOrigin.includes('preview.emergentagent.com') ||
-          currentOrigin.includes('stage-preview.emergentagent.com')) {
-        return currentOrigin;
-      }
-    }
-    return 'http://localhost:8001';
+const API_URL = (import.meta as any).env?.PUBLIC_API_URL || window.location.origin;
+
+  function showToast(message, type = 'success') {
+    const el = document.createElement('div');
+    el.className = `fixed bottom-4 right-4 z-50 px-5 py-3 rounded-lg text-white text-sm font-medium shadow-xl ${type==='error'?'bg-red-600':type==='info'?'bg-blue-600':'bg-green-600'}`;
+    el.textContent = message;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 4000);
   }
   
-  const API_BASE_URL = getApiBaseUrl();
+  const API_BASE_URL = API_URL;
 
   // Generic fetch wrapper
   async function apiFetch(endpoint, options = {}) {
@@ -544,7 +540,7 @@ const processedContent = isHtmlContent
         showNotification('Comment posted successfully!', 'success');
       } catch (error) {
         console.error('Error posting comment:', error);
-        alert('Failed to post comment. Please try again.');
+        showToast('Failed to post comment. Please try again.', 'error');
       }
     });
   }
