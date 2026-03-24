@@ -807,12 +807,29 @@ async def bulk_upload_tools(
     
     for row_num, row in enumerate(reader, start=2):
         try:
+            name = row.get('name', '').strip()
+            if not name:
+                errors.append(f"Row {row_num}: Missing tool name")
+                continue
+            
+            # Check for duplicate name
+            existing = db.query(Tool).filter(Tool.name == name).first()
+            if existing:
+                errors.append(f"Row {row_num}: Tool '{name}' already exists")
+                continue
+            
             # Generate slug
-            slug = generate_slug(row['name'])
+            slug = generate_slug(name)
             counter = 1
             while db.query(Tool).filter(Tool.slug == slug).first():
-                slug = f"{generate_slug(row['name'])}-{counter}"
+                slug = f"{generate_slug(name)}-{counter}"
                 counter += 1
+            
+            # Helper function to parse list fields (semicolon separated)
+            def parse_list_field(field_value):
+                if not field_value:
+                    return []
+                return [x.strip() for x in str(field_value).split(';') if x.strip()]
             
             # Helper function to parse JSON fields safely
             def parse_json_field(field_value):
@@ -824,20 +841,39 @@ async def bulk_upload_tools(
                 except (json.JSONDecodeError, TypeError):
                     return None
             
+            # Parse rating
+            rating = 0.0
+            try:
+                rating = float(row.get('rating', 0)) if row.get('rating') else 0.0
+                rating = min(5.0, max(0.0, rating))
+            except (ValueError, TypeError):
+                rating = 0.0
+            
             db_tool = Tool(
                 id=str(uuid.uuid4()),
-                name=row['name'],
+                name=name,
                 slug=slug,
                 description=row.get('description', ''),
                 short_description=row.get('short_description', ''),
                 url=row.get('url', ''),
                 logo_url=row.get('logo_url', ''),
                 pricing_type=row.get('pricing_type', 'free'),
-                features=row.get('features', '').split(';') if row.get('features') else [],
-                pros=row.get('pros', '').split(';') if row.get('pros') else [],
-                cons=row.get('cons', '').split(';') if row.get('cons') else [],
+                features=parse_list_field(row.get('features')),
+                pros=parse_list_field(row.get('pros')),
+                cons=parse_list_field(row.get('cons')),
                 is_active=row.get('is_active', 'true').lower() == 'true',
-                # New company-related fields
+                is_featured=row.get('is_featured', 'false').lower() == 'true',
+                rating=rating,
+                platform=row.get('platform', ''),
+                best_for=row.get('best_for', ''),
+                free_trial=row.get('free_trial', ''),
+                new_category=row.get('new_category', ''),
+                new_subcategory=row.get('new_subcategory', ''),
+                # SEO fields
+                seo_title=row.get('seo_title', ''),
+                seo_description=row.get('seo_description', ''),
+                seo_keywords=row.get('seo_keywords', ''),
+                # Company fields
                 linkedin_url=row.get('linkedin_url', ''),
                 company_funding=parse_json_field(row.get('company_funding')),
                 company_news=row.get('company_news', ''),
@@ -845,11 +881,14 @@ async def bulk_upload_tools(
                 company_founders=parse_json_field(row.get('company_founders')),
                 about=row.get('about', ''),
                 started_on=row.get('started_on', ''),
-                logo_thumbnail_url=row.get('logo_thumbnail_url', '')
+                logo_thumbnail_url=row.get('logo_thumbnail_url', ''),
+                # Additional fields
+                alternatives=parse_json_field(row.get('alternatives')),
+                faqs=parse_json_field(row.get('faqs')),
             )
             
             db.add(db_tool)
-            created_tools.append(row['name'])
+            created_tools.append(name)
             
         except Exception as e:
             errors.append(f"Row {row_num}: {str(e)}")
@@ -862,8 +901,10 @@ async def bulk_upload_tools(
     
     return {
         "message": f"Bulk upload completed. {len(created_tools)} tools created.",
-        "created_tools": created_tools,
-        "errors": errors
+        "created_count": len(created_tools),
+        "error_count": len(errors),
+        "created_tools": created_tools[:20],  # Return first 20 names
+        "errors": errors[:10]  # Return first 10 errors
     }
 
 @router.get("/api/superadmin/tools/csv-template")
