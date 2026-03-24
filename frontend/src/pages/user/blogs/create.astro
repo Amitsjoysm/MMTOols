@@ -258,12 +258,13 @@ const metadata = {
         title,
         content,
         excerpt: (document.getElementById('excerpt') as HTMLTextAreaElement).value,
-        featured_image: (document.getElementById('featured_image') as HTMLInputElement).value,
-        tags: (document.getElementById('tags') as HTMLInputElement).value,
-        seo_title: (document.getElementById('seo_title') as HTMLInputElement).value,
-        seo_description: (document.getElementById('seo_description') as HTMLTextAreaElement).value,
-        seo_keywords: (document.getElementById('seo_keywords') as HTMLInputElement).value,
-        status: 'draft'
+        featured_image: (document.getElementById('featured_image') as HTMLInputElement).value || null,
+        tags: (document.getElementById('tags') as HTMLInputElement).value
+          ? (document.getElementById('tags') as HTMLInputElement).value.split(',').map((t: string) => t.trim()).filter((t: string) => t)
+          : [],
+        seo_title: (document.getElementById('seo_title') as HTMLInputElement).value || null,
+        seo_description: (document.getElementById('seo_description') as HTMLTextAreaElement).value || null,
+        seo_keywords: (document.getElementById('seo_keywords') as HTMLInputElement).value || null,
       };
 
       try {

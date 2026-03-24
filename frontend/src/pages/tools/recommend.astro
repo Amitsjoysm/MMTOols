@@ -295,9 +295,10 @@ const metadata = {
                 </div>
                 
                 <div class="mt-4 flex gap-3">
-                  <a href="/tools/${tool.slug}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
+                  <a href="/tools/${tool.slug}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium" data-testid="view-details-${tool.slug}">
                     View Details
                   </a>
+                  ${tool.url ? `<a href="${tool.url}" target="_blank" rel="noopener noreferrer" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium" data-testid="visit-tool-${tool.slug}">Visit Tool</a>` : ''}
                   <button onclick="window.addToCompare('${tool.id}', '${tool.name}')" class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-sm">
                     + Compare
                   </button>

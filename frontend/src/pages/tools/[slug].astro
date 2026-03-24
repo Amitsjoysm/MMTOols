@@ -644,6 +644,14 @@ function getPricingClass(pricingType: string): string {
   let userLoggedIn = false;
   let selectedRating = 0;
 
+  function showToast(message: string, type: 'success' | 'error' = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `fixed bottom-4 right-4 z-50 px-5 py-3 rounded-lg text-white text-sm font-medium shadow-lg transition-all ${type === 'success' ? 'bg-green-600' : 'bg-red-600'}`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3500);
+  }
+
   function init() {
     userLoggedIn = !!localStorage.getItem('auth_token');
     
@@ -721,6 +729,7 @@ function getPricingClass(pricingType: string): string {
           }
         } catch (error) {
           console.error('Error toggling like:', error);
+          showToast('Please log in to like this tool.', 'error');
         }
       });
     }
@@ -745,7 +754,7 @@ function getPricingClass(pricingType: string): string {
         const content = commentInput?.value.trim();
         
         if (!content) {
-          alert('Please write a comment');
+          showToast('Please write a comment', 'error');
           return;
         }
         
@@ -756,10 +765,10 @@ function getPricingClass(pricingType: string): string {
           });
           commentInput.value = '';
           await loadComments();
-          alert('Comment posted successfully!');
+          showToast('Comment posted successfully!', 'success');
         } catch (error) {
           console.error('Error posting comment:', error);
-          alert('Failed to post comment. Please try again.');
+          showToast('Failed to post comment. Please try again.', 'error');
         }
       });
     }
@@ -837,11 +846,11 @@ function getPricingClass(pricingType: string): string {
         
         modal.classList.add('hidden');
         reviewForm.reset();
-        alert('Review submitted successfully! Page will reload.');
+        showToast('Review submitted successfully!', 'success');
         window.location.reload();
       } catch (error) {
         console.error('Error submitting review:', error);
-        alert('Failed to submit review. You may have already reviewed this tool.');
+        showToast('Failed to submit review. You may have already reviewed this tool.', 'error');
       }
     });
 

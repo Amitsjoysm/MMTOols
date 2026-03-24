@@ -385,6 +385,30 @@ async def get_comments(
     return result
 
 # Like endpoints - MUST BE BEFORE /api/blogs/{blog_id}
+@router.get("/api/blogs/{blog_slug}/like-status")
+async def get_blog_like_status(
+    blog_slug: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    blog = db.query(Blog).filter(Blog.slug == blog_slug).first()
+    if not blog:
+        return {"liked": False}
+    existing = db.query(BlogLike).filter(BlogLike.blog_id == blog.id, BlogLike.user_id == current_user.id).first()
+    return {"liked": bool(existing)}
+
+@router.get("/api/blogs/{blog_slug}/bookmark-status")
+async def get_blog_bookmark_status(
+    blog_slug: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    blog = db.query(Blog).filter(Blog.slug == blog_slug).first()
+    if not blog:
+        return {"bookmarked": False}
+    existing = db.query(BlogBookmark).filter(BlogBookmark.blog_id == blog.id, BlogBookmark.user_id == current_user.id).first()
+    return {"bookmarked": bool(existing)}
+
 @router.post("/api/blogs/{blog_slug}/like", response_model=LikeResponse)
 async def toggle_blog_like(
     blog_slug: str,

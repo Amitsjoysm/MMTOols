@@ -248,14 +248,11 @@ const processedContent = isHtmlContent
             <span id="blog-likes">{blog.like_count} likes</span>
           </span>
         </div>
-        <a href="/blogs" class="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
-          ← Back to Blogs
-        </a>
       </div>
     </article>
 
-    <!-- Like Button -->
-    <div class="mt-8 text-center">
+    <!-- Like and Bookmark Buttons -->
+    <div class="mt-8 flex items-center justify-center gap-4 flex-wrap">
       <button
         id="like-button"
         data-blog-slug={blog.slug}
@@ -269,6 +266,22 @@ const processedContent = isHtmlContent
         <span id="like-text">Like</span>
         <span id="like-count" class="font-bold">{blog.like_count}</span>
       </button>
+
+      <button
+        id="bookmark-button"
+        data-blog-slug={blog.slug}
+        class="inline-flex items-center space-x-2 px-6 py-3 rounded-lg border-2 border-gray-300 text-gray-600 hover:border-blue-500 hover:text-blue-600 dark:border-gray-600 dark:text-gray-400 dark:hover:border-blue-500 dark:hover:text-blue-400 transition-colors"
+        data-testid="bookmark-blog-btn"
+      >
+        <svg id="bookmark-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+        </svg>
+        <span id="bookmark-text">Bookmark</span>
+      </button>
+
+      <a href="/blogs" class="inline-flex items-center px-6 py-3 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+        ← Back to Blogs
+      </a>
     </div>
 
     <!-- Comments Section -->
@@ -364,7 +377,9 @@ const processedContent = isHtmlContent
 
     loadComments();
     setupLikeButton();
+    setupBookmarkButton();
     checkAuth();
+    checkInitialState();
   }
 
   async function loadComments() {
@@ -448,9 +463,50 @@ const processedContent = isHtmlContent
         }
       } catch (error) {
         console.error('Error toggling like:', error);
-        alert('Failed to update like. Please try again.');
+        showNotification('Please log in to like this blog.', 'error');
       }
     });
+  }
+
+  function setupBookmarkButton() {
+    const bookmarkBtn = document.getElementById('bookmark-button');
+    const bookmarkText = document.getElementById('bookmark-text');
+    const bookmarkIcon = document.getElementById('bookmark-icon');
+    if (!bookmarkBtn) return;
+
+    bookmarkBtn.addEventListener('click', async () => {
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        window.location.href = '/auth/login?redirect=/blogs/' + slug;
+        return;
+      }
+      try {
+        const result = await apiFetch(`/api/blogs/${slug}/bookmark`, { method: 'POST' });
+        if (result.bookmarked) {
+          bookmarkBtn.classList.add('bg-blue-50', 'border-blue-500', 'text-blue-600', 'dark:bg-blue-900/20');
+          bookmarkBtn.classList.remove('border-gray-300', 'text-gray-600');
+          if (bookmarkText) bookmarkText.textContent = 'Bookmarked';
+          if (bookmarkIcon) bookmarkIcon.setAttribute('fill', 'currentColor');
+        } else {
+          bookmarkBtn.classList.remove('bg-blue-50', 'border-blue-500', 'text-blue-600', 'dark:bg-blue-900/20');
+          bookmarkBtn.classList.add('border-gray-300', 'text-gray-600');
+          if (bookmarkText) bookmarkText.textContent = 'Bookmark';
+          if (bookmarkIcon) bookmarkIcon.setAttribute('fill', 'none');
+        }
+        showNotification(result.bookmarked ? 'Blog bookmarked!' : 'Bookmark removed.', 'success');
+      } catch (error) {
+        console.error('Error toggling bookmark:', error);
+        showNotification('Please log in to bookmark this blog.', 'error');
+      }
+    });
+  }
+
+  function showNotification(message: string, type: 'success' | 'error') {
+    const div = document.createElement('div');
+    div.className = `fixed bottom-4 right-4 z-50 px-5 py-3 rounded-lg text-white text-sm font-medium shadow-lg transition-all ${type === 'success' ? 'bg-green-600' : 'bg-red-600'}`;
+    div.textContent = message;
+    document.body.appendChild(div);
+    setTimeout(() => div.remove(), 3000);
   }
 
   function checkAuth() {
@@ -485,12 +541,39 @@ const processedContent = isHtmlContent
         });
         textarea.value = '';
         await loadComments();
-        alert('Comment posted successfully!');
+        showNotification('Comment posted successfully!', 'success');
       } catch (error) {
         console.error('Error posting comment:', error);
         alert('Failed to post comment. Please try again.');
       }
     });
+  }
+
+  async function checkInitialState() {
+    const token = localStorage.getItem('auth_token');
+    if (!token) return;
+    // Check if user already liked this blog
+    try {
+      const likeStatus = await apiFetch(`/api/blogs/${slug}/like-status`);
+      if (likeStatus?.liked) {
+        const likeButton = document.getElementById('like-button');
+        const likeText = document.getElementById('like-text');
+        if (likeButton) likeButton.classList.add('bg-red-50', 'border-red-500', 'text-red-600', 'dark:bg-red-900/20');
+        if (likeText) likeText.textContent = 'Unlike';
+      }
+    } catch {}
+    // Check if user already bookmarked this blog
+    try {
+      const bookmarkStatus = await apiFetch(`/api/blogs/${slug}/bookmark-status`);
+      if (bookmarkStatus?.bookmarked) {
+        const bookmarkBtn = document.getElementById('bookmark-button');
+        const bookmarkText = document.getElementById('bookmark-text');
+        const bookmarkIcon = document.getElementById('bookmark-icon');
+        if (bookmarkBtn) bookmarkBtn.classList.add('bg-blue-50', 'border-blue-500', 'text-blue-600', 'dark:bg-blue-900/20');
+        if (bookmarkText) bookmarkText.textContent = 'Bookmarked';
+        if (bookmarkIcon) bookmarkIcon.setAttribute('fill', 'currentColor');
+      }
+    } catch {}
   }
 
   // Initialize

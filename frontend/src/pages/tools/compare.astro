@@ -369,42 +369,91 @@ const metadata = {
       
       // Show AI section
       aiSection.classList.remove('hidden');
+
+      // Build tool comparison cards HTML
+      const toolCards = (data.tool_comparisons || []).map((tc: any) => `
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-5 border-2 ${tc.is_winner ? 'border-green-500 shadow-lg shadow-green-100 dark:shadow-green-900/20' : 'border-gray-200 dark:border-gray-700'}">
+          <div class="flex items-center justify-between mb-3">
+            <h5 class="text-lg font-bold text-gray-900 dark:text-white">${tc.name}</h5>
+            ${tc.is_winner ? '<span class="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs font-bold rounded-full">AI Winner</span>' : ''}
+          </div>
+          ${tc.overview ? `<p class="text-sm text-gray-600 dark:text-gray-400 mb-3">${tc.overview}</p>` : ''}
+          ${tc.ratings && Object.keys(tc.ratings).length > 0 ? `
+            <div class="mb-3 space-y-1.5">
+              ${['features','ease_of_use','pricing','customer_support'].filter(k => tc.ratings[k]).map((k: string) => `
+                <div class="flex items-center gap-2">
+                  <span class="text-xs text-gray-500 dark:text-gray-400 w-32 capitalize">${k.replace('_',' ')}</span>
+                  <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+                    <div class="bg-blue-500 h-1.5 rounded-full" style="width:${Math.min(100,(tc.ratings[k]/5)*100)}%"></div>
+                  </div>
+                  <span class="text-xs font-medium text-gray-700 dark:text-gray-300">${Number(tc.ratings[k]).toFixed(1)}</span>
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+          ${tc.pros?.length ? `
+            <div class="mb-2">
+              <p class="text-xs font-semibold text-green-700 dark:text-green-400 mb-1">Pros</p>
+              <ul class="space-y-0.5">${tc.pros.map((p: string) => `<li class="text-xs text-gray-600 dark:text-gray-400 flex items-start gap-1"><span class="text-green-500 mt-0.5">✓</span>${p}</li>`).join('')}</ul>
+            </div>
+          ` : ''}
+          ${tc.cons?.length ? `
+            <div class="mb-2">
+              <p class="text-xs font-semibold text-red-600 dark:text-red-400 mb-1">Cons</p>
+              <ul class="space-y-0.5">${tc.cons.map((c: string) => `<li class="text-xs text-gray-600 dark:text-gray-400 flex items-start gap-1"><span class="text-red-500 mt-0.5">✗</span>${c}</li>`).join('')}</ul>
+            </div>
+          ` : ''}
+          ${tc.best_for?.length ? `
+            <div>
+              <p class="text-xs font-semibold text-blue-600 dark:text-blue-400 mb-1">Best For</p>
+              <div class="flex flex-wrap gap-1">${tc.best_for.map((b: string) => `<span class="text-xs px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full">${b}</span>`).join('')}</div>
+            </div>
+          ` : ''}
+        </div>
+      `).join('');
       
-      // Render AI analysis
+      // Render AI analysis with winner banner + comparison cards + recommendation
       aiContent.innerHTML = `
-        <div class="space-y-4">
-          ${data.summary ? `
-            <div class="bg-white dark:bg-gray-800 rounded-lg p-4">
-              <h4 class="font-semibold text-gray-900 dark:text-white mb-2">Summary</h4>
-              <p class="text-gray-700 dark:text-gray-300">${data.summary}</p>
-            </div>
-          ` : ''}
-          
+        <div class="space-y-5">
           ${data.winner ? `
-            <div class="bg-green-50 dark:bg-green-900/30 rounded-lg p-4 border border-green-200 dark:border-green-800">
-              <h4 class="font-semibold text-green-800 dark:text-green-200 mb-2">🏆 Recommended Winner</h4>
-              <p class="text-green-700 dark:text-green-300">${data.winner}</p>
+            <div class="flex items-center gap-4 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl p-5 text-white shadow-lg">
+              <div class="text-4xl">🏆</div>
+              <div>
+                <p class="text-sm font-medium opacity-90 mb-0.5">AI Recommended Winner</p>
+                <h4 class="text-2xl font-bold">${data.winner}</h4>
+              </div>
             </div>
           ` : ''}
           
-          ${data.detailed_comparison?.length ? `
-            <div class="bg-white dark:bg-gray-800 rounded-lg p-4">
-              <h4 class="font-semibold text-gray-900 dark:text-white mb-2">Detailed Analysis</h4>
-              <ul class="space-y-2">
-                ${data.detailed_comparison.map((item: any) => `
-                  <li class="flex items-start gap-2 text-gray-700 dark:text-gray-300">
-                    <span class="text-blue-600">•</span>
-                    <span>${typeof item === 'string' ? item : item.point || item.analysis || JSON.stringify(item)}</span>
-                  </li>
-                `).join('')}
-              </ul>
+          ${data.summary ? `
+            <div class="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
+              <h4 class="font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                AI Summary
+              </h4>
+              <p class="text-gray-700 dark:text-gray-300 leading-relaxed">${data.summary}</p>
+            </div>
+          ` : ''}
+
+          ${toolCards ? `
+            <div>
+              <h4 class="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                AI Tool Analysis
+              </h4>
+              <div class="grid grid-cols-1 md:grid-cols-${Math.min(data.tool_comparisons?.length || 1, 3)} gap-4">
+                ${toolCards}
+              </div>
             </div>
           ` : ''}
           
           ${data.recommendation ? `
-            <div class="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
-              <h4 class="font-semibold text-blue-800 dark:text-blue-200 mb-2">💡 Recommendation</h4>
-              <p class="text-blue-700 dark:text-blue-300">${data.recommendation}</p>
+            <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-5 border border-blue-200 dark:border-blue-700">
+              <h4 class="font-semibold text-blue-800 dark:text-blue-200 mb-2 flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                Recommendation
+              </h4>
+              <p class="text-blue-700 dark:text-blue-300 leading-relaxed">${data.recommendation}</p>
             </div>
           ` : ''}
         </div>
@@ -424,7 +473,7 @@ const metadata = {
       `;
     } finally {
       aiBtn.disabled = false;
-      aiBtn.innerHTML = '<span>🤖</span> Get AI Analysis';
+      aiBtn.innerHTML = 'Get AI Analysis';
     }
   }
   

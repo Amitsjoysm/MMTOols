@@ -239,7 +239,7 @@ const metadata = {
       (document.getElementById('excerpt') as HTMLTextAreaElement).value = blog.excerpt || '';
       (document.getElementById('content') as HTMLTextAreaElement).value = blog.content || '';
       (document.getElementById('featured_image') as HTMLInputElement).value = blog.featured_image || '';
-      (document.getElementById('tags') as HTMLInputElement).value = blog.tags || '';
+      (document.getElementById('tags') as HTMLInputElement).value = Array.isArray(blog.tags) ? blog.tags.join(', ') : (blog.tags || '');
       (document.getElementById('seo_title') as HTMLInputElement).value = blog.seo_title || '';
       (document.getElementById('seo_description') as HTMLTextAreaElement).value = blog.seo_description || '';
       (document.getElementById('seo_keywords') as HTMLInputElement).value = blog.seo_keywords || '';
@@ -266,12 +266,14 @@ const metadata = {
       const blogData = {
         title: (document.getElementById('title') as HTMLInputElement).value,
         content: (document.getElementById('content') as HTMLTextAreaElement).value,
-        excerpt: (document.getElementById('excerpt') as HTMLTextAreaElement).value,
-        featured_image: (document.getElementById('featured_image') as HTMLInputElement).value,
-        tags: (document.getElementById('tags') as HTMLInputElement).value,
-        seo_title: (document.getElementById('seo_title') as HTMLInputElement).value,
-        seo_description: (document.getElementById('seo_description') as HTMLTextAreaElement).value,
-        seo_keywords: (document.getElementById('seo_keywords') as HTMLInputElement).value
+        excerpt: (document.getElementById('excerpt') as HTMLTextAreaElement).value || null,
+        featured_image: (document.getElementById('featured_image') as HTMLInputElement).value || null,
+        tags: (document.getElementById('tags') as HTMLInputElement).value
+          ? (document.getElementById('tags') as HTMLInputElement).value.split(',').map((t: string) => t.trim()).filter((t: string) => t)
+          : [],
+        seo_title: (document.getElementById('seo_title') as HTMLInputElement).value || null,
+        seo_description: (document.getElementById('seo_description') as HTMLTextAreaElement).value || null,
+        seo_keywords: (document.getElementById('seo_keywords') as HTMLInputElement).value || null
       };
 
       try {

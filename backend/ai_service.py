@@ -163,7 +163,13 @@ class AIService:
             response_content = completion.choices[0].message.content
             
             try:
-                return json.loads(response_content)
+                # Clean up markdown code blocks if present (same as recommend_tools)
+                cleaned_content = response_content
+                if "```json" in cleaned_content:
+                    cleaned_content = cleaned_content.split("```json")[1].split("```")[0]
+                elif "```" in cleaned_content:
+                    cleaned_content = cleaned_content.split("```")[1].split("```")[0]
+                return json.loads(cleaned_content.strip())
             except json.JSONDecodeError:
                 # Fallback structured response
                 return {

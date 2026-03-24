@@ -510,6 +510,36 @@ def get_user_routes():
         
         return {"message": "Blog deleted successfully"}
     
+    @router.get("/api/user/bookmarks")
+    async def get_user_bookmarks(
+        current_user: User = Depends(get_current_user),
+        db: Session = Depends(get_db)
+    ):
+        """Get all blogs bookmarked by current user"""
+        from models import BlogBookmark
+        bookmarks = db.query(BlogBookmark).filter(
+            BlogBookmark.user_id == current_user.id
+        ).all()
+        blog_ids = [b.blog_id for b in bookmarks]
+        blogs = db.query(Blog).filter(Blog.id.in_(blog_ids)).all() if blog_ids else []
+        return [
+            {
+                "id": blog.id,
+                "title": blog.title,
+                "slug": blog.slug,
+                "excerpt": blog.excerpt,
+                "featured_image": blog.featured_image,
+                "author_id": blog.author_id,
+                "status": blog.status,
+                "view_count": blog.view_count,
+                "like_count": blog.like_count,
+                "created_at": blog.created_at,
+                "published_at": blog.published_at,
+                "reading_time": blog.reading_time,
+                "tags": blog.tags
+            } for blog in blogs
+        ]
+
     @router.post("/api/user/blogs/{blog_id}/publish")
     async def publish_user_blog(
         blog_id: str,

@@ -366,6 +366,7 @@ async def ai_recommend_tools(
                         "slug": tool.slug,
                         "description": tool.description,
                         "logo_url": tool.logo_url,
+                        "url": tool.url,
                         "pricing_type": tool.pricing_type,
                         "rating": tool.rating,
                         "features": tool.features[:5] if tool.features else [],
@@ -408,6 +409,7 @@ async def ai_recommend_tools(
                     "slug": tool.slug,
                     "description": tool.description,
                     "logo_url": tool.logo_url,
+                    "url": tool.url,
                     "pricing_type": tool.pricing_type,
                     "rating": tool.rating,
                     "features": tool.features[:5] if tool.features else [],
@@ -452,13 +454,12 @@ async def ai_quick_compare(
         # Generate AI comparison
         comparison_result = ai_service.compare_tools(
             tool_names=[t.name for t in tools],
-            comparison_criteria=["pricing", "features", "ease of use", "value for money"]
+            comparison_criteria=["pricing", "features", "ease of use", "value for money", "customer support"]
         )
         
-        # Extract summary from result
+        # Extract summary
         summary = comparison_result.get("summary", "")
         if not summary and comparison_result.get("blog_content"):
-            # Extract first paragraph as summary
             import re
             blog = comparison_result.get("blog_content", "")
             match = re.search(r'<p>(.*?)</p>', blog)
@@ -467,33 +468,45 @@ async def ai_quick_compare(
         # Get winner
         winner = comparison_result.get("overall_winner", "")
         
-        # Build detailed comparison points
-        detailed_comparison = []
+        # Build rich per-tool comparison data
+        tool_comparisons = []
         for comp in comparison_result.get("detailed_comparison", []):
             if isinstance(comp, dict):
                 name = comp.get("name") or comp.get("tool_name", "")
-                # Extract key points
                 pros = comp.get("pros_and_cons", {}).get("pros", comp.get("pros", []))
                 cons = comp.get("pros_and_cons", {}).get("cons", comp.get("cons", []))
                 best_for = comp.get("best_use_cases", comp.get("best_for", []))
+                ratings = comp.get("ratings", {})
+                overview = comp.get("overview_and_key_strengths", {}).get("overview", "")
+                pricing = comp.get("pricing_analysis", {})
                 
-                if pros:
-                    detailed_comparison.append(f"{name} strengths: {', '.join(pros[:3])}")
-                if best_for:
-                    best_for_str = ', '.join(best_for[:2]) if isinstance(best_for, list) else str(best_for)
-                    detailed_comparison.append(f"{name} is best for: {best_for_str}")
+                tool_comparisons.append({
+                    "name": name,
+                    "is_winner": name == winner,
+                    "overview": overview,
+                    "pros": pros[:4] if isinstance(pros, list) else [],
+                    "cons": cons[:3] if isinstance(cons, list) else [],
+                    "best_for": best_for[:3] if isinstance(best_for, list) else ([best_for] if isinstance(best_for, str) else []),
+                    "pricing_notes": pricing.get("notes", "") if isinstance(pricing, dict) else "",
+                    "ratings": {
+                        "features": ratings.get("features", 0),
+                        "pricing": ratings.get("pricing", 0),
+                        "ease_of_use": ratings.get("ease_of_use", 0),
+                        "customer_support": ratings.get("customer_support", 0),
+                        "overall": ratings.get("total_score", 0)
+                    } if ratings else {}
+                })
         
         # Build recommendation
         recommendation = ""
         if winner:
-            recommendation = f"Based on the comparison, {winner} appears to be the better choice overall."
+            recommendation = f"Based on the AI analysis, **{winner}** is the recommended choice overall."
             for comp in comparison_result.get("detailed_comparison", []):
                 if isinstance(comp, dict) and (comp.get("name") or comp.get("tool_name", "")) == winner:
-                    ratings = comp.get("ratings", {})
-                    if ratings:
-                        recommendation += f" It scores particularly well in "
-                        high_ratings = [k for k, v in ratings.items() if isinstance(v, (int, float)) and v >= 4.0]
-                        recommendation += ", ".join(high_ratings[:3]) + "."
+                    best_for = comp.get("best_use_cases", comp.get("best_for", []))
+                    if best_for:
+                        best_str = ', '.join(best_for[:2]) if isinstance(best_for, list) else str(best_for)
+                        recommendation += f" It is best for: {best_str}."
                     break
         
         return {
@@ -509,8 +522,8 @@ async def ai_quick_compare(
             ],
             "summary": summary or "Comparison analysis completed.",
             "winner": winner,
-            "detailed_comparison": detailed_comparison if detailed_comparison else ["Detailed analysis available in full comparison."],
-            "recommendation": recommendation or "Review the details above to make an informed decision."
+            "tool_comparisons": tool_comparisons,
+            "recommendation": recommendation or "Review the detailed comparison above to make an informed decision."
         }
     
     except HTTPException:

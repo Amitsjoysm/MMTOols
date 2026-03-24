@@ -58,6 +58,15 @@ const metadata = {
             Published <span id="published-count" class="ml-1 bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs">0</span>
           </button>
         </li>
+        <li class="mr-2">
+          <button
+            data-filter="bookmarks"
+            id="bookmarks-tab"
+            class="filter-tab inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300"
+          >
+            Bookmarked <span id="bookmark-count" class="ml-1 bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full text-xs">0</span>
+          </button>
+        </li>
       </ul>
     </div>
 
@@ -95,22 +104,10 @@ const metadata = {
   </div>
 
   <script>
-    // Dynamic API URL detection
-    function getApiBaseUrl() {
-      if (typeof window !== 'undefined') {
-        const currentOrigin = window.location.origin;
-        if (currentOrigin.includes('preview.app.github.dev') || 
-            currentOrigin.includes('github.dev') ||
-            currentOrigin.includes('preview.emergentagent.com')) {
-          return currentOrigin.replace(':3000', ':8001').replace('3000-', '8001-');
-        }
-      }
-      return 'http://localhost:8001';
-    }
-    
-    const API_URL = getApiBaseUrl();
+    const API_URL = (import.meta as any).env?.PUBLIC_API_URL || window.location.origin;
     let currentFilter = 'all';
-    let blogs = [];
+    let blogs: any[] = [];
+    let bookmarkedBlogs: any[] = [];
 
     function getAuthToken() {
       return localStorage.getItem('token') || localStorage.getItem('auth_token');
@@ -126,50 +123,56 @@ const metadata = {
       showLoading();
 
       try {
-        const response = await fetch(`${API_URL}/api/user/blogs`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
+        const [blogsResp, bookmarksResp] = await Promise.all([
+          fetch(`${API_URL}/api/user/blogs`, {
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+          }),
+          fetch(`${API_URL}/api/user/bookmarks`, {
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+          })
+        ]);
 
-        if (response.status === 401) {
+        if (blogsResp.status === 401) {
           window.location.href = '/auth/login';
           return;
         }
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch blogs');
-        }
+        if (!blogsResp.ok) throw new Error('Failed to fetch blogs');
 
-        blogs = await response.json();
+        blogs = await blogsResp.json();
+        bookmarkedBlogs = bookmarksResp.ok ? await bookmarksResp.json() : [];
         updateCounts();
         renderBlogs();
-      } catch (error) {
+      } catch (error: any) {
         showError(error.message);
       }
     }
 
     function updateCounts() {
       const all = blogs.length;
-      const draft = blogs.filter(b => b.status === 'draft').length;
-      const published = blogs.filter(b => b.status === 'published').length;
+      const draft = blogs.filter((b: any) => b.status === 'draft').length;
+      const published = blogs.filter((b: any) => b.status === 'published').length;
 
-      document.getElementById('all-count').textContent = all;
-      document.getElementById('draft-count').textContent = draft;
-      document.getElementById('published-count').textContent = published;
+      document.getElementById('all-count')!.textContent = String(all);
+      document.getElementById('draft-count')!.textContent = String(draft);
+      document.getElementById('published-count')!.textContent = String(published);
+      document.getElementById('bookmark-count')!.textContent = String(bookmarkedBlogs.length);
     }
 
     function renderBlogs() {
-      const container = document.getElementById('blogs-container');
-      const emptyState = document.getElementById('empty-state');
-      const loading = document.getElementById('loading');
+      const container = document.getElementById('blogs-container') as HTMLElement;
+      const emptyState = document.getElementById('empty-state') as HTMLElement;
+      const loading = document.getElementById('loading') as HTMLElement;
 
       loading.classList.add('hidden');
 
-      let filteredBlogs = blogs;
-      if (currentFilter !== 'all') {
-        filteredBlogs = blogs.filter(b => b.status === currentFilter);
+      let filteredBlogs: any[] = [];
+      if (currentFilter === 'bookmarks') {
+        filteredBlogs = bookmarkedBlogs;
+      } else if (currentFilter === 'all') {
+        filteredBlogs = blogs;
+      } else {
+        filteredBlogs = blogs.filter((b: any) => b.status === currentFilter);
       }
 
       if (filteredBlogs.length === 0) {
@@ -262,90 +265,74 @@ const metadata = {
       `).join('');
     }
 
-    // Publish blog
-    window.publishBlog = async function(blogId) {
-      if (!confirm('Are you sure you want to publish this blog? It will be visible to everyone and SEO will be automatically optimized.')) {
-        return;
-      }
+    // Toast notification
+    function showToast(message: string, type = 'success') {
+      const div = document.createElement('div');
+      div.className = `fixed bottom-4 right-4 z-50 px-5 py-3 rounded-lg text-white text-sm font-medium shadow-lg ${type === 'success' ? 'bg-green-600' : 'bg-red-600'}`;
+      div.textContent = message;
+      document.body.appendChild(div);
+      setTimeout(() => div.remove(), 3500);
+    }
 
+    // Publish blog
+    (window as any).publishBlog = async function(blogId: string) {
+      if (!confirm('Are you sure you want to publish this blog? It will be visible to everyone and SEO will be automatically optimized.')) return;
       const token = getAuthToken();
       try {
         const response = await fetch(`${API_URL}/api/user/blogs/${blogId}/publish`, {
           method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
         });
-
-        if (!response.ok) {
-          throw new Error('Failed to publish blog');
-        }
-
-        const result = await response.json();
-        alert('Blog published successfully with automatic SEO optimization!\n\n' + 
-              '✓ SEO Title: ' + result.blog.seo_title + '\n' +
-              '✓ SEO Description: Generated\n' +
-              '✓ JSON-LD Schema: Added');
+        if (!response.ok) throw new Error('Failed to publish blog');
+        showToast('Blog published successfully with SEO optimization!', 'success');
         fetchBlogs();
-      } catch (error) {
-        alert('Error: ' + error.message);
+      } catch (error: any) {
+        showToast('Error: ' + error.message, 'error');
       }
     };
 
     // Delete blog
-    window.deleteBlog = async function(blogId) {
-      if (!confirm('Are you sure you want to delete this blog? This action cannot be undone.')) {
-        return;
-      }
-
+    (window as any).deleteBlog = async function(blogId: string) {
+      if (!confirm('Are you sure you want to delete this blog? This action cannot be undone.')) return;
       const token = getAuthToken();
       try {
         const response = await fetch(`${API_URL}/api/user/blogs/${blogId}`, {
           method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
         });
-
-        if (!response.ok) {
-          throw new Error('Failed to delete blog');
-        }
-
-        alert('Blog deleted successfully!');
+        if (!response.ok) throw new Error('Failed to delete blog');
+        showToast('Blog deleted successfully!', 'success');
         fetchBlogs();
-      } catch (error) {
-        alert('Error: ' + error.message);
+      } catch (error: any) {
+        showToast('Error: ' + error.message, 'error');
       }
     };
 
     // Filter tabs
-    document.querySelectorAll('.filter-tab').forEach(tab => {
-      tab.addEventListener('click', (e) => {
-        document.querySelectorAll('.filter-tab').forEach(t => {
+    document.querySelectorAll('.filter-tab').forEach((tab: any) => {
+      tab.addEventListener('click', (e: any) => {
+        document.querySelectorAll('.filter-tab').forEach((t: any) => {
           t.classList.remove('border-blue-600', 'text-blue-600', 'active');
           t.classList.add('border-transparent');
         });
         e.target.classList.add('border-blue-600', 'text-blue-600', 'active');
         e.target.classList.remove('border-transparent');
-
         currentFilter = e.target.dataset.filter;
         renderBlogs();
       });
     });
 
     function showLoading() {
-      document.getElementById('loading').classList.remove('hidden');
-      document.getElementById('blogs-container').classList.add('hidden');
-      document.getElementById('empty-state').classList.add('hidden');
-      document.getElementById('error').classList.add('hidden');
+      (document.getElementById('loading') as HTMLElement).classList.remove('hidden');
+      (document.getElementById('blogs-container') as HTMLElement).classList.add('hidden');
+      (document.getElementById('empty-state') as HTMLElement).classList.add('hidden');
+      (document.getElementById('error') as HTMLElement).classList.add('hidden');
     }
 
-    function showError(message) {
-      document.getElementById('loading').classList.add('hidden');
-      document.getElementById('error').classList.remove('hidden');
-      document.getElementById('error-message').textContent = message;
+    function showError(message: string) {
+      (document.getElementById('loading') as HTMLElement).classList.add('hidden');
+      (document.getElementById('error') as HTMLElement).classList.remove('hidden');
+      (document.getElementById('error-message') as HTMLElement).textContent = message;
     }
 
     // Initial load
