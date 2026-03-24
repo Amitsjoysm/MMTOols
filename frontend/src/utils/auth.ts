@@ -83,14 +83,42 @@ export async function requireAuth(request?: Request): Promise<User | null> {
   return null;
 }
 
-export async function requireAdmin(request?: Request): Promise<User | null> {
-  // This is a placeholder for server-side admin check
-  // In practice, this should verify the token and role server-side
-  return null;
+export function requireAdmin(): void {
+  // Client-side admin check - redirect if not admin
+  if (typeof window !== 'undefined') {
+    const user = getUserData();
+    const token = getAuthToken();
+    
+    if (!token || !user) {
+      // Not logged in, redirect to login
+      window.location.href = '/admin/login?redirect=' + encodeURIComponent(window.location.pathname);
+      return;
+    }
+    
+    if (user.role !== 'admin' && user.role !== 'superadmin') {
+      // Not an admin, redirect to home
+      alert('Access denied. Admin privileges required.');
+      window.location.href = '/';
+      return;
+    }
+  }
 }
 
-export async function requireSuperAdmin(request?: Request): Promise<User | null> {
-  // This is a placeholder for server-side superadmin check
-  // In practice, this should verify the token and role server-side
-  return null;
+export function requireSuperAdmin(): void {
+  // Client-side superadmin check - redirect if not superadmin
+  if (typeof window !== 'undefined') {
+    const user = getUserData();
+    const token = getAuthToken();
+    
+    if (!token || !user) {
+      window.location.href = '/admin/login?redirect=' + encodeURIComponent(window.location.pathname);
+      return;
+    }
+    
+    if (user.role !== 'superadmin') {
+      alert('Access denied. SuperAdmin privileges required.');
+      window.location.href = '/admin';
+      return;
+    }
+  }
 }
