@@ -135,6 +135,41 @@ const metadata = {
       </form>
     </div>
 
+    <!-- Favicon Upload -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mt-8">
+      <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Favicon (Browser Tab Icon)</h2>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div>
+          <p class="text-gray-600 dark:text-gray-400 mb-4">Upload a favicon for browser tabs. Recommended: 32x32 or 64x64 PNG/ICO file.</p>
+          <form id="upload-favicon-form" enctype="multipart/form-data">
+            <div class="mb-4">
+              <label for="favicon-file" class="flex flex-col items-center justify-center w-full h-24 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500">
+                <div class="flex items-center justify-center pt-3 pb-3">
+                  <svg class="w-6 h-6 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                  </svg>
+                  <p class="text-sm text-gray-500"><span class="font-semibold">Upload Favicon</span> (PNG, ICO, max 512KB)</p>
+                </div>
+                <input id="favicon-file" name="file" type="file" class="hidden" accept="image/png,image/x-icon,image/ico,image/svg+xml,image/webp" />
+              </label>
+              <div id="favicon-selected" class="mt-2 text-sm text-gray-600 dark:text-gray-400 hidden">
+                Selected: <span id="selected-favicon-name"></span>
+              </div>
+            </div>
+            <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
+              Upload Favicon
+            </button>
+          </form>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Current Favicon Preview:</p>
+          <div id="favicon-preview" class="p-4 bg-gray-100 dark:bg-gray-700 rounded-lg inline-block">
+            <img src="/favicon.ico" alt="Current favicon" class="w-8 h-8" id="current-favicon-img" />
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Reset Logo -->
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mt-8">
       <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Reset to Default</h2>
@@ -154,13 +189,18 @@ const metadata = {
     function getApiBaseUrl() {
       if (typeof window !== 'undefined') {
         const currentOrigin = window.location.origin;
+        if (currentOrigin.includes('preview.emergentagent.com')) {
+          return currentOrigin;  // Same origin for preview
+        }
         if (currentOrigin.includes('preview.app.github.dev') || 
-            currentOrigin.includes('github.dev') ||
-            currentOrigin.includes('preview.emergentagent.com')) {
+            currentOrigin.includes('github.dev')) {
           return currentOrigin.replace(':3000', ':8001').replace('3000-', '8001-');
         }
+        if (currentOrigin.includes('localhost:3000')) {
+          return 'http://localhost:8001';
+        }
       }
-      return 'http://localhost:8001';
+      return '';
     }
     
     const API_URL = getApiBaseUrl();
@@ -320,22 +360,68 @@ const metadata = {
       }
 
       try {
-        const response = await fetch(`${API_URL}/api/superadmin/site-settings/name`, {
+        const response = await fetch(`${API_URL}/api/superadmin/settings/site_name`, {
           method: 'PUT',
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ site_name: siteName })
+          body: JSON.stringify({ value: siteName, description: 'Site name' })
+        });
+
+        if (response.ok) {
+          showSuccess('Site name updated successfully!');
+          loadCurrentSettings();
+        } else {
+          const error = await response.json();
+          showError(error.detail || 'Failed to update site name');
+        }
+      } catch (error) {
+        showError('Network error. Please try again.');
+      }
+    });
+
+    // Favicon file selection handler
+    document.getElementById('favicon-file').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        document.getElementById('favicon-selected').classList.remove('hidden');
+        document.getElementById('selected-favicon-name').textContent = file.name;
+      }
+    });
+
+    // Favicon upload form
+    document.getElementById('upload-favicon-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const token = getAuthToken();
+      const fileInput = document.getElementById('favicon-file');
+      
+      if (!fileInput.files[0]) {
+        showError('Please select a favicon file');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+
+      try {
+        const response = await fetch(`${API_URL}/api/superadmin/site-settings/favicon/upload`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: formData
         });
 
         if (response.ok) {
           const data = await response.json();
-          showSuccess('Site name updated successfully!');
-          updateLogoPreview(data.logo_url, data.site_name);
+          showSuccess('Favicon uploaded successfully! Refresh the page to see the new favicon.');
+          // Update preview
+          const faviconImg = document.getElementById('current-favicon-img');
+          faviconImg.src = `${API_URL}${data.favicon_url}?t=${Date.now()}`;
         } else {
           const error = await response.json();
-          showError(error.detail || 'Failed to update site name');
+          showError(error.detail || 'Failed to upload favicon');
         }
       } catch (error) {
         showError('Network error. Please try again.');
@@ -349,7 +435,7 @@ const metadata = {
       const token = getAuthToken();
 
       try {
-        const response = await fetch(`${API_URL}/api/superadmin/site-settings/logo`, {
+        const response = await fetch(`${API_URL}/api/superadmin/settings/site_logo_url`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`
@@ -357,9 +443,8 @@ const metadata = {
         });
 
         if (response.ok) {
-          const data = await response.json();
           showSuccess('Logo reset to default!');
-          updateLogoPreview(null, data.site_name);
+          updateLogoPreview(null, 'MarketMindAI');
           document.getElementById('logo-url').value = '';
         } else {
           const error = await response.json();

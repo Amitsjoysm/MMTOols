@@ -2,19 +2,20 @@
 /**
  * Favicons & App Icons - full multi-device support
  * Works for all screen sizes: desktop, tablet, mobile, PWA
+ * Supports dynamic favicon from admin settings
  */
 import favIcon from '~/assets/favicons/favicon.ico';
 import appleTouchIcon from '~/assets/favicons/apple-touch-icon.png';
 ---
 
-<!-- Standard favicons -->
-<link rel="shortcut icon" href={favIcon} />
-<link rel="icon" type="image/x-icon" href="/favicon.ico" />
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+<!-- Standard favicons (defaults) -->
+<link rel="shortcut icon" href={favIcon} id="favicon-shortcut" />
+<link rel="icon" type="image/x-icon" href="/favicon.ico" id="favicon-ico" />
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" id="favicon-16" />
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" id="favicon-32" />
 
 <!-- Apple touch icons (iOS / iPadOS all sizes) -->
-<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" id="apple-touch-icon" />
 <link rel="apple-touch-icon" sizes="57x57" href="/apple-touch-icon.png" />
 <link rel="apple-touch-icon" sizes="60x60" href="/apple-touch-icon.png" />
 <link rel="apple-touch-icon" sizes="72x72" href="/apple-touch-icon.png" />
@@ -42,3 +43,48 @@ import appleTouchIcon from '~/assets/favicons/apple-touch-icon.png';
 <meta name="application-name" content="MarketMindAI" />
 <meta name="theme-color" content="#2563eb" media="(prefers-color-scheme: light)" />
 <meta name="theme-color" content="#1e293b" media="(prefers-color-scheme: dark)" />
+
+<script>
+  // Dynamic favicon loader
+  async function loadDynamicFavicon() {
+    try {
+      function getApiBaseUrl() {
+        if (typeof window !== 'undefined') {
+          const origin = window.location.origin;
+          if (origin.includes('preview.emergentagent.com')) return origin;
+          if (origin.includes('localhost:3000')) return 'http://localhost:8001';
+        }
+        return '';
+      }
+      
+      const API_URL = getApiBaseUrl();
+      const response = await fetch(`${API_URL}/api/site-settings/logo`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.favicon_url) {
+          let faviconUrl = data.favicon_url;
+          if (faviconUrl.startsWith('/api/') || faviconUrl.startsWith('/uploads/')) {
+            faviconUrl = API_URL + faviconUrl;
+          }
+          
+          // Update favicon links
+          const faviconLinks = document.querySelectorAll('link[rel*="icon"]');
+          faviconLinks.forEach(link => {
+            if (!link.getAttribute('sizes') || link.getAttribute('sizes') === '32x32' || link.getAttribute('sizes') === '16x16') {
+              link.href = faviconUrl;
+            }
+          });
+        }
+      }
+    } catch (error) {
+      // Use default favicons on error
+    }
+  }
+  
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadDynamicFavicon);
+  } else {
+    loadDynamicFavicon();
+  }
+</script>

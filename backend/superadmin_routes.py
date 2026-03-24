@@ -2187,7 +2187,9 @@ async def get_public_site_settings(db: Session = Depends(get_db)):
         "social_discord_url",
         "social_facebook_url",
         "site_logo_url",
-        "site_logo_alt_text"
+        "site_logo_alt_text",
+        "site_name",
+        "site_favicon_url"
     ]
     
     settings = db.query(SiteSettings).filter(SiteSettings.key.in_(public_keys)).all()
@@ -2198,6 +2200,260 @@ async def get_public_site_settings(db: Session = Depends(get_db)):
         settings_dict['site_logo_url'] = "/api/public/logo"
     
     return settings_dict
+
+# Alias endpoint for backwards compatibility with frontend Logo component
+@router.get("/api/site-settings/logo")
+async def get_site_logo_settings(db: Session = Depends(get_db)):
+    """Get logo and site name for navbar - returns consistent format"""
+    
+    logo_setting = db.query(SiteSettings).filter(SiteSettings.key == "site_logo_url").first()
+    name_setting = db.query(SiteSettings).filter(SiteSettings.key == "site_name").first()
+    favicon_setting = db.query(SiteSettings).filter(SiteSettings.key == "site_favicon_url").first()
+    
+    logo_url = logo_setting.value if logo_setting else None
+    site_name = name_setting.value if name_setting else "MarketMindAI"
+    favicon_url = favicon_setting.value if favicon_setting else None
+    
+    # Convert relative URLs to API endpoints
+    if logo_url and logo_url.startswith('/uploads/'):
+        logo_url = "/api/public/logo"
+    if favicon_url and favicon_url.startswith('/uploads/'):
+        favicon_url = "/api/public/favicon"
+    
+    return {
+        "logo_url": logo_url,
+        "site_name": site_name,
+        "favicon_url": favicon_url
+    }
+
+# Upload logo endpoint - alias for frontend compatibility
+@router.post("/api/superadmin/site-settings/logo/upload")
+async def upload_site_logo(
+    file: UploadFile = File(...),
+    current_superadmin: User = Depends(get_current_superadmin),
+    db: Session = Depends(get_db)
+):
+    """Upload site logo - wrapper for the main upload endpoint"""
+    
+    # Validate file type
+    allowed_types = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/webp', 'image/gif']
+    if file.content_type not in allowed_types:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Unsupported file type. Allowed types: {', '.join(allowed_types)}"
+        )
+    
+    # Validate file size (2MB limit)
+    max_size = 2 * 1024 * 1024
+    file_content = await file.read()
+    file_size = len(file_content)
+    
+    if file_size > max_size:
+        raise HTTPException(
+            status_code=400,
+            detail=f"File too large. Maximum size is 2MB."
+        )
+    
+    await file.seek(0)
+    
+    try:
+        # Create logos directory
+        logos_dir = "uploads/logos"
+        os.makedirs(logos_dir, exist_ok=True)
+        
+        # Generate unique filename
+        import time
+        timestamp = int(time.time())
+        file_extension = os.path.splitext(file.filename)[1].lower()
+        new_filename = f"site_logo_{timestamp}{file_extension}"
+        file_path = os.path.join(logos_dir, new_filename)
+        
+        # Save file
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        logo_url = f"/uploads/logos/{new_filename}"
+        
+        # Update site_logo_url setting
+        logo_setting = db.query(SiteSettings).filter(SiteSettings.key == "site_logo_url").first()
+        if logo_setting:
+            # Delete old logo file
+            if logo_setting.value and logo_setting.value.startswith("/uploads/logos/"):
+                old_path = logo_setting.value.lstrip("/")
+                if os.path.exists(old_path):
+                    try:
+                        os.remove(old_path)
+                    except:
+                        pass
+            logo_setting.value = logo_url
+            logo_setting.updated_at = datetime.utcnow()
+        else:
+            logo_setting = SiteSettings(
+                id=str(uuid.uuid4()),
+                key="site_logo_url",
+                value=logo_url,
+                description="Site logo image URL"
+            )
+            db.add(logo_setting)
+        
+        db.commit()
+        
+        # Get site name for response
+        name_setting = db.query(SiteSettings).filter(SiteSettings.key == "site_name").first()
+        site_name = name_setting.value if name_setting else "MarketMindAI"
+        
+        return {
+            "message": "Logo uploaded successfully",
+            "logo_url": "/api/public/logo",
+            "site_name": site_name
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to upload logo: {str(e)}")
+
+# Update logo URL endpoint
+@router.put("/api/superadmin/site-settings/logo")
+async def update_site_logo_url(
+    data: dict,
+    current_superadmin: User = Depends(get_current_superadmin),
+    db: Session = Depends(get_db)
+):
+    """Update site logo URL directly"""
+    
+    logo_url = data.get("logo_url")
+    if not logo_url:
+        raise HTTPException(status_code=400, detail="logo_url is required")
+    
+    # Update or create the setting
+    logo_setting = db.query(SiteSettings).filter(SiteSettings.key == "site_logo_url").first()
+    if logo_setting:
+        logo_setting.value = logo_url
+        logo_setting.updated_at = datetime.utcnow()
+    else:
+        logo_setting = SiteSettings(
+            id=str(uuid.uuid4()),
+            key="site_logo_url",
+            value=logo_url,
+            description="Site logo image URL"
+        )
+        db.add(logo_setting)
+    
+    db.commit()
+    
+    # Get site name for response
+    name_setting = db.query(SiteSettings).filter(SiteSettings.key == "site_name").first()
+    site_name = name_setting.value if name_setting else "MarketMindAI"
+    
+    return {
+        "message": "Logo URL updated successfully",
+        "logo_url": logo_url,
+        "site_name": site_name
+    }
+
+# Favicon endpoints
+@router.post("/api/superadmin/site-settings/favicon/upload")
+async def upload_site_favicon(
+    file: UploadFile = File(...),
+    current_superadmin: User = Depends(get_current_superadmin),
+    db: Session = Depends(get_db)
+):
+    """Upload site favicon"""
+    
+    allowed_types = ['image/png', 'image/x-icon', 'image/ico', 'image/svg+xml', 'image/webp']
+    if file.content_type not in allowed_types:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Unsupported file type for favicon. Allowed: PNG, ICO, SVG, WebP"
+        )
+    
+    max_size = 512 * 1024  # 512KB for favicon
+    file_content = await file.read()
+    
+    if len(file_content) > max_size:
+        raise HTTPException(status_code=400, detail="Favicon too large. Maximum 512KB.")
+    
+    await file.seek(0)
+    
+    try:
+        favicons_dir = "uploads/favicons"
+        os.makedirs(favicons_dir, exist_ok=True)
+        
+        import time
+        timestamp = int(time.time())
+        file_extension = os.path.splitext(file.filename)[1].lower()
+        new_filename = f"site_favicon_{timestamp}{file_extension}"
+        file_path = os.path.join(favicons_dir, new_filename)
+        
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        favicon_url = f"/uploads/favicons/{new_filename}"
+        
+        # Update setting
+        favicon_setting = db.query(SiteSettings).filter(SiteSettings.key == "site_favicon_url").first()
+        if favicon_setting:
+            if favicon_setting.value and favicon_setting.value.startswith("/uploads/favicons/"):
+                old_path = favicon_setting.value.lstrip("/")
+                if os.path.exists(old_path):
+                    try:
+                        os.remove(old_path)
+                    except:
+                        pass
+            favicon_setting.value = favicon_url
+            favicon_setting.updated_at = datetime.utcnow()
+        else:
+            favicon_setting = SiteSettings(
+                id=str(uuid.uuid4()),
+                key="site_favicon_url",
+                value=favicon_url,
+                description="Site favicon URL"
+            )
+            db.add(favicon_setting)
+        
+        db.commit()
+        
+        return {
+            "message": "Favicon uploaded successfully",
+            "favicon_url": "/api/public/favicon"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to upload favicon: {str(e)}")
+
+@router.get("/api/public/favicon")
+async def get_public_favicon(db: Session = Depends(get_db)):
+    """Get the current site favicon file"""
+    from fastapi.responses import FileResponse
+    
+    try:
+        favicon_setting = db.query(SiteSettings).filter(SiteSettings.key == "site_favicon_url").first()
+        
+        if not favicon_setting or not favicon_setting.value:
+            raise HTTPException(status_code=404, detail="Favicon not found")
+        
+        favicon_path = favicon_setting.value
+        if favicon_path.startswith('/'):
+            favicon_path = favicon_path[1:]
+        
+        if not os.path.exists(favicon_path):
+            raise HTTPException(status_code=404, detail="Favicon file not found")
+        
+        import mimetypes
+        content_type, _ = mimetypes.guess_type(favicon_path)
+        if not content_type:
+            content_type = "image/x-icon"
+        
+        return FileResponse(
+            favicon_path,
+            media_type=content_type,
+            headers={
+                "Cache-Control": "public, max-age=86400",
+                "Access-Control-Allow-Origin": "*"
+            }
+        )
+        
+    except Exception:
+        raise HTTPException(status_code=404, detail="Favicon not available")
 
 @router.get("/api/public/logo")
 async def get_public_logo(db: Session = Depends(get_db)):

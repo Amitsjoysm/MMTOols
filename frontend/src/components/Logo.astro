@@ -15,33 +15,54 @@ import { Icon } from 'astro-icon/components';
       function getApiBaseUrl() {
         if (typeof window !== 'undefined') {
           const currentOrigin = window.location.origin;
+          // Handle various preview environments
+          if (currentOrigin.includes('preview.emergentagent.com')) {
+            return currentOrigin;  // Same origin, use /api prefix
+          }
           if (currentOrigin.includes('preview.app.github.dev') || 
-              currentOrigin.includes('github.dev') ||
-              currentOrigin.includes('preview.emergentagent.com')) {
+              currentOrigin.includes('github.dev')) {
             return currentOrigin.replace(':3000', ':8001').replace('3000-', '8001-');
           }
+          if (currentOrigin.includes('localhost:3000')) {
+            return 'http://localhost:8001';
+          }
         }
-        return 'http://localhost:8001';
+        return '';  // Use relative URL
       }
       
       const API_URL = getApiBaseUrl();
-      const response = await fetch(`${API_URL}/api/site-settings/logo`);
+      const response = await fetch(`${API_URL}/api/site-settings/logo`, {
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
       
       if (response.ok) {
         const data = await response.json();
         if (data.logo_url) {
+          // Build full logo URL
+          let fullLogoUrl = data.logo_url;
+          if (fullLogoUrl.startsWith('/api/')) {
+            fullLogoUrl = API_URL + fullLogoUrl;
+          } else if (fullLogoUrl.startsWith('/uploads/')) {
+            fullLogoUrl = API_URL + fullLogoUrl;
+          }
+          
+          const siteName = data.site_name || 'MarketMindAI';
+          
           // Replace all logo containers with the custom logo
           const logoContainers = document.querySelectorAll('#site-logo-container, .site-logo-container');
           logoContainers.forEach(container => {
             container.innerHTML = `
-              <img src="${data.logo_url}" alt="${data.site_name || 'MarketMindAI'}" class="h-8 md:h-10 w-auto mr-2" />
-              <span class="text-gray-900 dark:text-white">${data.site_name || 'MarketMindAI'}</span>
+              <img src="${fullLogoUrl}" alt="${siteName}" class="h-8 md:h-10 w-auto mr-2" onerror="this.style.display='none'" />
+              <span class="text-gray-900 dark:text-white">${siteName}</span>
             `;
           });
         }
       }
     } catch (error) {
-      // Use default logo on error - no console spam
+      // Use default logo on error - silently fail
+      console.debug('Logo loading skipped:', error.message);
     }
   }
   
