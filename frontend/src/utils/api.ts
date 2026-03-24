@@ -11,11 +11,14 @@ function getApiBaseUrl(): string {
   if (typeof window !== 'undefined') {
     const currentOrigin = window.location.origin;
     
-    // Check if we're in a preview/codespace environment
+    // For Emergent preview environments - use same origin (ingress routes /api to backend)
+    if (currentOrigin.includes('preview.emergentagent.com')) {
+      return currentOrigin;  // Same origin, /api prefix routes to backend
+    }
+    
+    // Check if we're in GitHub Codespaces
     if (currentOrigin.includes('preview.app.github.dev') || 
-        currentOrigin.includes('github.dev') ||
-        currentOrigin.includes('preview.emergentagent.com')) {
-      // In preview environments, backend is on same origin
+        currentOrigin.includes('github.dev')) {
       return currentOrigin.replace(':3000', ':8001').replace('3000-', '8001-');
     }
   }
