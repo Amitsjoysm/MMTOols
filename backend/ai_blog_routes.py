@@ -283,3 +283,240 @@ async def get_suggested_blog_topics(
             } for tool in trending_tools[:5]
         ]
     }
+
+
+# AI Tool Recommendation Models
+class AIRecommendRequest(BaseModel):
+    user_needs: str  # Description of what the user is looking for
+    category: Optional[str] = None
+    budget: Optional[str] = None  # free, freemium, paid, any
+    features_needed: Optional[List[str]] = []
+    limit: Optional[int] = 5
+
+
+@router.post("/api/ai/recommend-tools")
+async def ai_recommend_tools(
+    request: AIRecommendRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """AI-powered tool recommendation based on user needs"""
+    try:
+        # Build query filters
+        query = db.query(Tool).filter(Tool.is_active == True)
+        
+        if request.category:
+            query = query.filter(
+                (Tool.new_category.ilike(f"%{request.category}%")) | 
+                (Tool.new_subcategory.ilike(f"%{request.category}%"))
+            )
+        
+        if request.budget and request.budget != "any":
+            query = query.filter(Tool.pricing_type == request.budget)
+        
+        # Get top tools by rating
+        tools = query.order_by(Tool.rating.desc()).limit(50).all()
+        
+        if not tools:
+            return {
+                "recommendations": [],
+                "ai_analysis": "No tools found matching your criteria. Try broadening your search.",
+                "match_scores": []
+            }
+        
+        # Format tool info for AI
+        tool_info = []
+        for tool in tools:
+            tool_info.append({
+                "id": tool.id,
+                "name": tool.name,
+                "description": tool.description[:300] if tool.description else "",
+                "features": tool.features[:5] if tool.features else [],
+                "pricing_type": tool.pricing_type,
+                "rating": tool.rating,
+                "best_for": tool.best_for,
+                "category": tool.new_category,
+                "subcategory": tool.new_subcategory
+            })
+        
+        # Use AI to analyze and rank tools
+        try:
+            ai_response = ai_service.recommend_tools(
+                user_needs=request.user_needs,
+                available_tools=tool_info,
+                features_needed=request.features_needed or [],
+                limit=request.limit or 5
+            )
+            
+            # Get full tool details for recommended tools
+            recommended_ids = [r["id"] for r in ai_response.get("recommendations", [])]
+            recommended_tools = db.query(Tool).filter(Tool.id.in_(recommended_ids)).all()
+            
+            # Create tool lookup
+            tool_lookup = {t.id: t for t in recommended_tools}
+            
+            # Build response with full tool details
+            recommendations = []
+            for rec in ai_response.get("recommendations", []):
+                tool = tool_lookup.get(rec["id"])
+                if tool:
+                    recommendations.append({
+                        "id": tool.id,
+                        "name": tool.name,
+                        "slug": tool.slug,
+                        "description": tool.description,
+                        "logo_url": tool.logo_url,
+                        "pricing_type": tool.pricing_type,
+                        "rating": tool.rating,
+                        "features": tool.features[:5] if tool.features else [],
+                        "best_for": tool.best_for,
+                        "category": tool.new_category,
+                        "match_reason": rec.get("reason", "Matches your requirements"),
+                        "match_score": rec.get("score", 0.8)
+                    })
+            
+            return {
+                "recommendations": recommendations,
+                "ai_analysis": ai_response.get("analysis", "Based on your needs, here are our top recommendations."),
+                "total_analyzed": len(tools)
+            }
+            
+        except Exception as ai_error:
+            # Fallback to simple matching if AI fails
+            print(f"AI recommendation failed: {ai_error}")
+            
+            # Simple keyword matching fallback
+            search_terms = request.user_needs.lower().split()
+            scored_tools = []
+            
+            for tool in tools[:20]:
+                score = 0
+                tool_text = f"{tool.name} {tool.description or ''} {tool.best_for or ''}".lower()
+                for term in search_terms:
+                    if term in tool_text:
+                        score += 1
+                if score > 0:
+                    scored_tools.append((tool, score))
+            
+            scored_tools.sort(key=lambda x: (-x[1], -x[0].rating))
+            
+            recommendations = []
+            for tool, score in scored_tools[:request.limit or 5]:
+                recommendations.append({
+                    "id": tool.id,
+                    "name": tool.name,
+                    "slug": tool.slug,
+                    "description": tool.description,
+                    "logo_url": tool.logo_url,
+                    "pricing_type": tool.pricing_type,
+                    "rating": tool.rating,
+                    "features": tool.features[:5] if tool.features else [],
+                    "best_for": tool.best_for,
+                    "category": tool.new_category,
+                    "match_reason": "Matches your search criteria",
+                    "match_score": min(1.0, score / len(search_terms))
+                })
+            
+            return {
+                "recommendations": recommendations,
+                "ai_analysis": "Here are tools that match your needs based on keyword analysis.",
+                "total_analyzed": len(tools)
+            }
+    
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error generating recommendations: {str(e)}"
+        )
+
+
+@router.post("/api/ai/quick-compare")
+async def ai_quick_compare(
+    tool_ids: List[str],
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Quick AI-powered comparison summary for tools"""
+    try:
+        if len(tool_ids) < 2:
+            raise HTTPException(status_code=400, detail="At least 2 tools required for comparison")
+        
+        if len(tool_ids) > 5:
+            raise HTTPException(status_code=400, detail="Maximum 5 tools can be compared")
+        
+        tools = db.query(Tool).filter(Tool.id.in_(tool_ids)).all()
+        
+        if len(tools) < 2:
+            raise HTTPException(status_code=404, detail="Tools not found")
+        
+        # Generate AI comparison
+        comparison_result = ai_service.compare_tools(
+            tool_names=[t.name for t in tools],
+            comparison_criteria=["pricing", "features", "ease of use", "value for money"]
+        )
+        
+        # Extract summary from result
+        summary = comparison_result.get("summary", "")
+        if not summary and comparison_result.get("blog_content"):
+            # Extract first paragraph as summary
+            import re
+            blog = comparison_result.get("blog_content", "")
+            match = re.search(r'<p>(.*?)</p>', blog)
+            summary = match.group(1) if match else "Comparison completed."
+        
+        # Get winner
+        winner = comparison_result.get("overall_winner", "")
+        
+        # Build detailed comparison points
+        detailed_comparison = []
+        for comp in comparison_result.get("detailed_comparison", []):
+            if isinstance(comp, dict):
+                name = comp.get("name") or comp.get("tool_name", "")
+                # Extract key points
+                pros = comp.get("pros_and_cons", {}).get("pros", comp.get("pros", []))
+                cons = comp.get("pros_and_cons", {}).get("cons", comp.get("cons", []))
+                best_for = comp.get("best_use_cases", comp.get("best_for", []))
+                
+                if pros:
+                    detailed_comparison.append(f"{name} strengths: {', '.join(pros[:3])}")
+                if best_for:
+                    best_for_str = ', '.join(best_for[:2]) if isinstance(best_for, list) else str(best_for)
+                    detailed_comparison.append(f"{name} is best for: {best_for_str}")
+        
+        # Build recommendation
+        recommendation = ""
+        if winner:
+            recommendation = f"Based on the comparison, {winner} appears to be the better choice overall."
+            for comp in comparison_result.get("detailed_comparison", []):
+                if isinstance(comp, dict) and (comp.get("name") or comp.get("tool_name", "")) == winner:
+                    ratings = comp.get("ratings", {})
+                    if ratings:
+                        recommendation += f" It scores particularly well in "
+                        high_ratings = [k for k, v in ratings.items() if isinstance(v, (int, float)) and v >= 4.0]
+                        recommendation += ", ".join(high_ratings[:3]) + "."
+                    break
+        
+        return {
+            "tools": [
+                {
+                    "id": t.id,
+                    "name": t.name,
+                    "slug": t.slug,
+                    "rating": t.rating,
+                    "pricing_type": t.pricing_type
+                }
+                for t in tools
+            ],
+            "summary": summary or "Comparison analysis completed.",
+            "winner": winner,
+            "detailed_comparison": detailed_comparison if detailed_comparison else ["Detailed analysis available in full comparison."],
+            "recommendation": recommendation or "Review the details above to make an informed decision."
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error generating comparison: {str(e)}"
+        )

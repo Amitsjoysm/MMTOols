@@ -227,6 +227,93 @@ class AIService:
                 
         except Exception as e:
             raise Exception(f"SEO content generation failed: {str(e)}")
+    
+    def recommend_tools(self, user_needs: str, available_tools: List[Dict], features_needed: List[str] = [], limit: int = 5) -> Dict[str, Any]:
+        """AI-powered tool recommendation based on user needs"""
+        
+        tools_summary = "\n".join([
+            f"- {t['name']}: {t['description'][:150]}... | Features: {', '.join(t['features'][:3]) if t['features'] else 'N/A'} | Pricing: {t['pricing_type']} | Rating: {t['rating']} | Best for: {t.get('best_for', 'N/A')}"
+            for t in available_tools[:30]
+        ])
+        
+        features_str = ", ".join(features_needed) if features_needed else "general use"
+        
+        prompt = f"""
+        Analyze and recommend the best tools for a user with the following needs:
+        
+        USER NEEDS: {user_needs}
+        FEATURES WANTED: {features_str}
+        
+        AVAILABLE TOOLS:
+        {tools_summary}
+        
+        Based on the user's needs, select the top {limit} most suitable tools.
+        
+        Return a JSON object with:
+        {{
+            "recommendations": [
+                {{
+                    "id": "tool_id_here",
+                    "reason": "Why this tool is recommended",
+                    "score": 0.95  // Match score between 0 and 1
+                }}
+            ],
+            "analysis": "Brief analysis of why these tools were selected"
+        }}
+        
+        Only include tools from the provided list. Match tool names exactly.
+        """
+        
+        try:
+            completion = self.client.chat.completions.create(
+                model=self.model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.3,
+                max_completion_tokens=2048,
+                top_p=1
+            )
+            
+            response_content = completion.choices[0].message.content
+            
+            # Try to parse JSON from response
+            try:
+                # Clean up response if needed
+                if "```json" in response_content:
+                    response_content = response_content.split("```json")[1].split("```")[0]
+                elif "```" in response_content:
+                    response_content = response_content.split("```")[1].split("```")[0]
+                
+                result = json.loads(response_content.strip())
+                
+                # Map tool names back to IDs
+                name_to_id = {t['name'].lower(): t['id'] for t in available_tools}
+                
+                for rec in result.get("recommendations", []):
+                    # If ID is actually a name, convert it
+                    if rec.get("id") and rec["id"].lower() in name_to_id:
+                        rec["id"] = name_to_id[rec["id"].lower()]
+                    elif not any(t['id'] == rec.get("id") for t in available_tools):
+                        # Try to find by partial name match
+                        for tool in available_tools:
+                            if tool['name'].lower() in str(rec.get("id", "")).lower() or str(rec.get("id", "")).lower() in tool['name'].lower():
+                                rec["id"] = tool['id']
+                                break
+                
+                return result
+                
+            except json.JSONDecodeError:
+                # Fallback: return top rated tools
+                top_tools = sorted(available_tools, key=lambda x: x['rating'], reverse=True)[:limit]
+                return {
+                    "recommendations": [
+                        {"id": t['id'], "reason": f"High rating ({t['rating']}) and matches general needs", "score": 0.7}
+                        for t in top_tools
+                    ],
+                    "analysis": response_content[:500] if response_content else "Recommended based on ratings and relevance."
+                }
+                
+        except Exception as e:
+            raise Exception(f"AI recommendation failed: {str(e)}")
 
 # Global AI service instance
 ai_service = AIService()

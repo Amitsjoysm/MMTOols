@@ -69,8 +69,32 @@ const metadata = {
       <p class="mt-4 text-gray-600 dark:text-gray-400">Loading comparison...</p>
     </div>
 
+    <!-- AI Comparison Results -->
+    <div id="ai-comparison-section" class="hidden mt-8 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-xl p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+          <span class="text-2xl">🤖</span> AI Analysis
+        </h3>
+        <span class="px-3 py-1 bg-purple-100 dark:bg-purple-800 text-purple-800 dark:text-purple-200 text-sm rounded-full">
+          Powered by AI
+        </span>
+      </div>
+      <div id="ai-comparison-content" class="prose dark:prose-invert max-w-none">
+        <!-- AI analysis will be inserted here -->
+      </div>
+    </div>
+
     <!-- Comparison Table -->
     <div id="comparison-container" class="hidden" data-testid="comparison-table">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-xl font-bold text-gray-900 dark:text-white">Side-by-Side Comparison</h3>
+        <button
+          id="ai-compare-btn"
+          class="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all font-medium flex items-center gap-2 disabled:opacity-50"
+        >
+          <span>🤖</span> Get AI Analysis
+        </button>
+      </div>
       <div class="overflow-x-auto">
         <table class="w-full bg-white dark:bg-gray-800 rounded-lg shadow-md">
           <thead>
@@ -308,6 +332,104 @@ const metadata = {
       window.history.pushState({}, '', window.location.pathname);
     }
   }
+
+  // AI Comparison functionality
+  async function getAIComparison() {
+    if (selectedTools.length < 2) {
+      alert('Please select at least 2 tools to compare');
+      return;
+    }
+    
+    const aiBtn = document.getElementById('ai-compare-btn') as HTMLButtonElement;
+    const aiSection = document.getElementById('ai-comparison-section')!;
+    const aiContent = document.getElementById('ai-comparison-content')!;
+    
+    aiBtn.disabled = true;
+    aiBtn.innerHTML = '<span class="animate-spin">⏳</span> Analyzing...';
+    
+    try {
+      const API_URL = import.meta.env.PUBLIC_API_URL || '';
+      const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
+      
+      const response = await fetch(`${API_URL}/api/ai/quick-compare`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(selectedTools.map(t => t.id))
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'AI comparison failed');
+      }
+      
+      const data = await response.json();
+      
+      // Show AI section
+      aiSection.classList.remove('hidden');
+      
+      // Render AI analysis
+      aiContent.innerHTML = `
+        <div class="space-y-4">
+          ${data.summary ? `
+            <div class="bg-white dark:bg-gray-800 rounded-lg p-4">
+              <h4 class="font-semibold text-gray-900 dark:text-white mb-2">Summary</h4>
+              <p class="text-gray-700 dark:text-gray-300">${data.summary}</p>
+            </div>
+          ` : ''}
+          
+          ${data.winner ? `
+            <div class="bg-green-50 dark:bg-green-900/30 rounded-lg p-4 border border-green-200 dark:border-green-800">
+              <h4 class="font-semibold text-green-800 dark:text-green-200 mb-2">🏆 Recommended Winner</h4>
+              <p class="text-green-700 dark:text-green-300">${data.winner}</p>
+            </div>
+          ` : ''}
+          
+          ${data.detailed_comparison?.length ? `
+            <div class="bg-white dark:bg-gray-800 rounded-lg p-4">
+              <h4 class="font-semibold text-gray-900 dark:text-white mb-2">Detailed Analysis</h4>
+              <ul class="space-y-2">
+                ${data.detailed_comparison.map((item: any) => `
+                  <li class="flex items-start gap-2 text-gray-700 dark:text-gray-300">
+                    <span class="text-blue-600">•</span>
+                    <span>${typeof item === 'string' ? item : item.point || item.analysis || JSON.stringify(item)}</span>
+                  </li>
+                `).join('')}
+              </ul>
+            </div>
+          ` : ''}
+          
+          ${data.recommendation ? `
+            <div class="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+              <h4 class="font-semibold text-blue-800 dark:text-blue-200 mb-2">💡 Recommendation</h4>
+              <p class="text-blue-700 dark:text-blue-300">${data.recommendation}</p>
+            </div>
+          ` : ''}
+        </div>
+      `;
+      
+      // Scroll to AI section
+      aiSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      
+    } catch (error: any) {
+      console.error('AI comparison error:', error);
+      aiSection.classList.remove('hidden');
+      aiContent.innerHTML = `
+        <div class="bg-red-50 dark:bg-red-900/30 rounded-lg p-4 border border-red-200 dark:border-red-800">
+          <h4 class="font-semibold text-red-800 dark:text-red-200 mb-2">⚠️ Error</h4>
+          <p class="text-red-700 dark:text-red-300">${error.message || 'Failed to generate AI comparison. Please try again.'}</p>
+        </div>
+      `;
+    } finally {
+      aiBtn.disabled = false;
+      aiBtn.innerHTML = '<span>🤖</span> Get AI Analysis';
+    }
+  }
+  
+  // Setup AI compare button
+  document.getElementById('ai-compare-btn')?.addEventListener('click', getAIComparison);
 
   // Authentication check before initializing the page
   function checkAuthentication() {
