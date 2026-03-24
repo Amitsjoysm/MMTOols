@@ -659,6 +659,133 @@ async def delete_tool(
     
     return {"message": "Tool deleted successfully"}
 
+# Tool Assignment to Admins
+@router.post("/api/superadmin/tools/{tool_id}/assign")
+async def assign_tool_to_admin(
+    tool_id: str,
+    admin_id: str = Query(..., description="ID of admin user to assign tool to"),
+    current_superadmin: User = Depends(get_current_superadmin),
+    db: Session = Depends(get_db)
+):
+    """Assign a tool to an admin user for management"""
+    
+    tool = db.query(Tool).filter(Tool.id == tool_id).first()
+    if not tool:
+        raise HTTPException(status_code=404, detail="Tool not found")
+    
+    admin = db.query(User).filter(User.id == admin_id).first()
+    if not admin:
+        raise HTTPException(status_code=404, detail="Admin user not found")
+    
+    if admin.role not in ['admin', 'superadmin']:
+        raise HTTPException(status_code=400, detail="User must be an admin or superadmin")
+    
+    tool.claimed_by_user_id = admin_id
+    tool.claim_status = "approved"
+    tool.claim_approved_date = datetime.utcnow()
+    tool.updated_at = datetime.utcnow()
+    db.commit()
+    
+    return {
+        "message": f"Tool '{tool.name}' assigned to {admin.username}",
+        "tool_id": tool_id,
+        "admin_id": admin_id,
+        "admin_username": admin.username
+    }
+
+@router.post("/api/superadmin/tools/{tool_id}/unassign")
+async def unassign_tool_from_admin(
+    tool_id: str,
+    current_superadmin: User = Depends(get_current_superadmin),
+    db: Session = Depends(get_db)
+):
+    """Remove tool assignment from admin"""
+    
+    tool = db.query(Tool).filter(Tool.id == tool_id).first()
+    if not tool:
+        raise HTTPException(status_code=404, detail="Tool not found")
+    
+    previous_admin_id = tool.claimed_by_user_id
+    tool.claimed_by_user_id = None
+    tool.claim_status = "unclaimed"
+    tool.claim_approved_date = None
+    tool.updated_at = datetime.utcnow()
+    db.commit()
+    
+    return {
+        "message": f"Tool '{tool.name}' unassigned",
+        "tool_id": tool_id,
+        "previous_admin_id": previous_admin_id
+    }
+
+@router.get("/api/superadmin/tools/assigned")
+async def get_assigned_tools(
+    admin_id: Optional[str] = None,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=200),
+    current_superadmin: User = Depends(get_current_superadmin),
+    db: Session = Depends(get_db)
+):
+    """Get all tools assigned to admins, optionally filtered by admin ID"""
+    
+    query = db.query(Tool).filter(Tool.claim_status == "approved")
+    
+    if admin_id:
+        query = query.filter(Tool.claimed_by_user_id == admin_id)
+    
+    total = query.count()
+    tools = query.offset(skip).limit(limit).all()
+    
+    return {
+        "total": total,
+        "tools": [
+            {
+                "id": t.id,
+                "name": t.name,
+                "slug": t.slug,
+                "claimed_by_user_id": t.claimed_by_user_id,
+                "claimed_by": t.claimed_by.username if t.claimed_by else None,
+                "claim_approved_date": t.claim_approved_date,
+                "is_active": t.is_active
+            }
+            for t in tools
+        ]
+    }
+
+@router.post("/api/superadmin/tools/bulk-assign")
+async def bulk_assign_tools(
+    tool_ids: List[str],
+    admin_id: str,
+    current_superadmin: User = Depends(get_current_superadmin),
+    db: Session = Depends(get_db)
+):
+    """Bulk assign multiple tools to an admin"""
+    
+    admin = db.query(User).filter(User.id == admin_id).first()
+    if not admin:
+        raise HTTPException(status_code=404, detail="Admin user not found")
+    
+    if admin.role not in ['admin', 'superadmin']:
+        raise HTTPException(status_code=400, detail="User must be an admin or superadmin")
+    
+    assigned_count = 0
+    for tool_id in tool_ids:
+        tool = db.query(Tool).filter(Tool.id == tool_id).first()
+        if tool:
+            tool.claimed_by_user_id = admin_id
+            tool.claim_status = "approved"
+            tool.claim_approved_date = datetime.utcnow()
+            tool.updated_at = datetime.utcnow()
+            assigned_count += 1
+    
+    db.commit()
+    
+    return {
+        "message": f"{assigned_count} tools assigned to {admin.username}",
+        "assigned_count": assigned_count,
+        "admin_username": admin.username
+    }
+
 # Bulk Operations
 @router.post("/api/superadmin/tools/bulk-upload")
 async def bulk_upload_tools(

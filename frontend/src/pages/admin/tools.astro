@@ -13,6 +13,13 @@ const metadata = {
       <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Tools Management</h2>
       <div class="flex gap-3">
         <button
+          id="assign-tools-btn"
+          class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+          data-testid="assign-tools-btn"
+        >
+          👤 Assign Tools
+        </button>
+        <button
           id="bulk-upload-btn"
           class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
           data-testid="bulk-upload-btn"
@@ -73,6 +80,9 @@ const metadata = {
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-gray-900">
             <tr>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <input type="checkbox" id="select-all-tools" class="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500" title="Select All" />
+              </th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tool</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Categories</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Pricing</th>
@@ -338,6 +348,49 @@ const metadata = {
         </div>
       </div>
     </div>
+
+    <!-- Assign Tools Modal -->
+    <div id="assign-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Assign Tools to Admin</h3>
+        
+        <div class="space-y-4">
+          <!-- Select Admin -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Admin User *</label>
+            <select id="assign-admin-select" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500">
+              <option value="">-- Select an Admin --</option>
+            </select>
+          </div>
+          
+          <!-- Selected Tools -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Selected Tools (<span id="selected-tools-count">0</span>)
+            </label>
+            <div id="selected-tools-list" class="max-h-40 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-lg p-2">
+              <p class="text-gray-500 dark:text-gray-400 text-sm">Select tools from the table below using checkboxes</p>
+            </div>
+          </div>
+          
+          <!-- Instructions -->
+          <div class="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg">
+            <p class="text-sm text-blue-800 dark:text-blue-200">
+              <strong>Tip:</strong> Check the boxes next to tools in the table, then click "Assign Selected" to assign them to the selected admin.
+            </p>
+          </div>
+        </div>
+        
+        <div class="flex items-center justify-end space-x-4 pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
+          <button type="button" id="close-assign-modal" class="px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600">
+            Cancel
+          </button>
+          <button type="button" id="assign-selected-btn" class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700" data-testid="assign-selected-btn">
+            Assign Selected
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </AdminLayout>
 
@@ -351,13 +404,41 @@ const metadata = {
   let currentSkip = 0;
   const limit = 20;
   let allCategories: any[] = [];
+  let allAdmins: any[] = [];
   let editingToolId: string | null = null;
+  let selectedToolIds: Set<string> = new Set();
 
   // Initialize
   async function init() {
     await loadCategories();
+    await loadAdmins();
     await loadTools();
     setupEventListeners();
+  }
+
+  async function loadAdmins() {
+    try {
+      const response = await superAdminApi.users.getAll({ role: 'admin', limit: 100 });
+      allAdmins = response.users || [];
+      
+      // Also include superadmins
+      const superadminResponse = await superAdminApi.users.getAll({ role: 'superadmin', limit: 100 });
+      if (superadminResponse.users) {
+        allAdmins = [...allAdmins, ...superadminResponse.users];
+      }
+      
+      // Populate admin select
+      const adminSelect = document.getElementById('assign-admin-select') as HTMLSelectElement;
+      adminSelect.innerHTML = '<option value="">-- Select an Admin --</option>';
+      allAdmins.forEach(admin => {
+        const option = document.createElement('option');
+        option.value = admin.id;
+        option.textContent = `${admin.username} (${admin.email}) - ${admin.role}`;
+        adminSelect.appendChild(option);
+      });
+    } catch (error) {
+      console.error('Error loading admins:', error);
+    }
   }
 
   async function loadCategories() {
@@ -412,12 +493,16 @@ const metadata = {
 
       tbody.innerHTML = tools.map((tool: any) => `
         <tr data-testid="tool-row-${tool.id}">
+          <td class="px-4 py-4">
+            <input type="checkbox" class="tool-checkbox w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500" data-tool-id="${tool.id}" data-tool-name="${tool.name}" ${selectedToolIds.has(tool.id) ? 'checked' : ''} />
+          </td>
           <td class="px-6 py-4">
             <div class="flex items-center space-x-3">
               ${tool.logo_url ? `<img src="${tool.logo_url}" alt="${tool.name}" class="h-10 w-10 object-contain rounded" />` : ''}
               <div>
                 <div class="font-medium text-gray-900 dark:text-white">${tool.name}</div>
                 <div class="text-sm text-gray-500 dark:text-gray-400">${tool.slug}</div>
+                ${tool.claimed_by ? `<div class="text-xs text-purple-600 dark:text-purple-400">Assigned to: ${tool.claimed_by}</div>` : ''}
               </div>
             </div>
           </td>
@@ -458,6 +543,22 @@ const metadata = {
           </td>
         </tr>
       `).join('');
+
+      // Add checkbox event listeners
+      document.querySelectorAll('.tool-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', (e) => {
+          const target = e.target as HTMLInputElement;
+          const toolId = target.dataset.toolId!;
+          const toolName = target.dataset.toolName!;
+          
+          if (target.checked) {
+            selectedToolIds.add(toolId);
+          } else {
+            selectedToolIds.delete(toolId);
+          }
+          updateSelectedToolsList();
+        });
+      });
 
       loading.classList.add('hidden');
       tableContainer.classList.remove('hidden');
@@ -673,6 +774,106 @@ const metadata = {
       alert('Failed to delete tool: ' + (error.message || 'Unknown error'));
     }
   };
+
+  // Helper function to update selected tools list in modal
+  function updateSelectedToolsList() {
+    const listContainer = document.getElementById('selected-tools-list')!;
+    const countSpan = document.getElementById('selected-tools-count')!;
+    
+    countSpan.textContent = String(selectedToolIds.size);
+    
+    if (selectedToolIds.size === 0) {
+      listContainer.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-sm">Select tools from the table below using checkboxes</p>';
+    } else {
+      const checkboxes = document.querySelectorAll('.tool-checkbox:checked') as NodeListOf<HTMLInputElement>;
+      const names: string[] = [];
+      checkboxes.forEach(cb => names.push(cb.dataset.toolName || 'Unknown'));
+      
+      listContainer.innerHTML = names.map(name => 
+        `<span class="inline-block px-2 py-1 m-1 text-xs bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded">${name}</span>`
+      ).join('');
+    }
+  }
+
+  // Open assign modal
+  function openAssignModal() {
+    const modal = document.getElementById('assign-modal')!;
+    updateSelectedToolsList();
+    modal.classList.remove('hidden');
+  }
+
+  // Close assign modal
+  function closeAssignModal() {
+    const modal = document.getElementById('assign-modal')!;
+    modal.classList.add('hidden');
+  }
+
+  // Handle bulk assign
+  async function handleBulkAssign() {
+    const adminSelect = document.getElementById('assign-admin-select') as HTMLSelectElement;
+    const adminId = adminSelect.value;
+    
+    if (!adminId) {
+      alert('Please select an admin to assign tools to');
+      return;
+    }
+    
+    if (selectedToolIds.size === 0) {
+      alert('Please select at least one tool to assign');
+      return;
+    }
+    
+    try {
+      const response = await fetch(`${import.meta.env.PUBLIC_API_URL || ''}/api/superadmin/tools/bulk-assign`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        },
+        body: JSON.stringify({
+          tool_ids: Array.from(selectedToolIds),
+          admin_id: adminId
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        alert(data.message);
+        closeAssignModal();
+        selectedToolIds.clear();
+        loadTools();
+      } else {
+        const error = await response.json();
+        alert('Failed to assign tools: ' + (error.detail || 'Unknown error'));
+      }
+    } catch (error: any) {
+      console.error('Error assigning tools:', error);
+      alert('Failed to assign tools: ' + (error.message || 'Unknown error'));
+    }
+  }
+
+  // Setup additional event listeners for assign functionality
+  document.getElementById('assign-tools-btn')?.addEventListener('click', openAssignModal);
+  document.getElementById('close-assign-modal')?.addEventListener('click', closeAssignModal);
+  document.getElementById('assign-selected-btn')?.addEventListener('click', handleBulkAssign);
+  
+  // Select all checkbox
+  document.getElementById('select-all-tools')?.addEventListener('change', (e) => {
+    const target = e.target as HTMLInputElement;
+    const checkboxes = document.querySelectorAll('.tool-checkbox') as NodeListOf<HTMLInputElement>;
+    
+    checkboxes.forEach(cb => {
+      cb.checked = target.checked;
+      const toolId = cb.dataset.toolId!;
+      if (target.checked) {
+        selectedToolIds.add(toolId);
+      } else {
+        selectedToolIds.delete(toolId);
+      }
+    });
+    
+    updateSelectedToolsList();
+  });
 
   // Initialize on page load
   init();
