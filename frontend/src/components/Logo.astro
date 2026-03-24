@@ -1,75 +1,98 @@
 ---
-import { Icon } from 'astro-icon/components';
+/**
+ * Logo component - fetches logo from site settings server-side (SSR)
+ * Falls back to icon+text if no logo is set
+ */
+let logoUrl: string | null = null;
+let siteName = 'MarketMindAI';
+
+try {
+  const BACKEND_URL = import.meta.env.BACKEND_URL || 'http://localhost:8001';
+  const res = await fetch(`${BACKEND_URL}/api/site-settings/logo`, {
+    headers: { 'Accept': 'application/json' },
+  });
+  if (res.ok) {
+    const data = await res.json();
+    logoUrl = data.logo_url || null;
+    siteName = data.site_name || 'MarketMindAI';
+  }
+} catch {
+  // SSR fetch failed - use fallback
+}
 ---
 
-<span class="self-center ml-2 rtl:ml-0 rtl:mr-2 text-2xl md:text-xl font-bold text-gray-900 dark:text-white whitespace-nowrap flex items-center" id="site-logo-container">
-  <Icon name="tabler:chart-bar" class="w-8 h-8 mr-2 text-blue-600" />
-  <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">Market</span><span class="text-gray-900 dark:text-white">MindAI</span>
+<span
+  class="self-center ml-2 rtl:ml-0 rtl:mr-2 font-bold text-gray-900 dark:text-white whitespace-nowrap flex items-center gap-2"
+  id="site-logo-container"
+  data-testid="site-logo"
+>
+  {logoUrl ? (
+    <img
+      src={logoUrl.startsWith('/') ? logoUrl : `/${logoUrl}`}
+      alt={siteName}
+      class="h-9 md:h-10 w-auto"
+      id="site-logo-img"
+      onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='flex';"
+    />
+  ) : (
+    <span class="flex items-center gap-2" id="logo-fallback">
+      <svg class="w-8 h-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+      </svg>
+      <span>
+        <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">Market</span><span class="text-gray-900 dark:text-white">MindAI</span>
+      </span>
+    </span>
+  )}
 </span>
 
+{logoUrl && (
+  <span class="hidden flex items-center gap-2" id="logo-fallback">
+    <svg class="w-8 h-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+    </svg>
+    <span>
+      <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">Market</span><span class="text-gray-900 dark:text-white">MindAI</span>
+    </span>
+  </span>
+)}
+
 <script>
-  // Dynamic logo loader from settings
-  async function loadSiteLogo() {
+  // Client-side update: reload logo if SuperAdmin changes it
+  async function refreshLogo() {
     try {
-      // Get API base URL dynamically
-      function getApiBaseUrl() {
-        if (typeof window !== 'undefined') {
-          const currentOrigin = window.location.origin;
-          // Handle various preview environments
-          if (currentOrigin.includes('preview.emergentagent.com')) {
-            return currentOrigin;  // Same origin, use /api prefix
-          }
-          if (currentOrigin.includes('preview.app.github.dev') || 
-              currentOrigin.includes('github.dev')) {
-            return currentOrigin.replace(':3000', ':8001').replace('3000-', '8001-');
-          }
-          if (currentOrigin.includes('localhost:3000')) {
-            return 'http://localhost:8001';
-          }
-        }
-        return '';  // Use relative URL
-      }
-      
-      const API_URL = getApiBaseUrl();
-      const response = await fetch(`${API_URL}/api/site-settings/logo`, {
-        headers: {
-          'Accept': 'application/json'
-        }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        if (data.logo_url) {
-          // Build full logo URL
-          let fullLogoUrl = data.logo_url;
-          if (fullLogoUrl.startsWith('/api/')) {
-            fullLogoUrl = API_URL + fullLogoUrl;
-          } else if (fullLogoUrl.startsWith('/uploads/')) {
-            fullLogoUrl = API_URL + fullLogoUrl;
-          }
-          
-          const siteName = data.site_name || 'MarketMindAI';
-          
-          // Replace all logo containers with the custom logo
-          const logoContainers = document.querySelectorAll('#site-logo-container, .site-logo-container');
-          logoContainers.forEach(container => {
-            container.innerHTML = `
-              <img src="${fullLogoUrl}" alt="${siteName}" class="h-8 md:h-10 w-auto mr-2" onerror="this.style.display='none'" />
-              <span class="text-gray-900 dark:text-white">${siteName}</span>
-            `;
-          });
+      const API_URL = (import.meta as any).env?.PUBLIC_API_URL || window.location.origin;
+      const res = await fetch(`${API_URL}/api/site-settings/logo`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (!data.logo_url) return;
+
+      const logoUrl = data.logo_url.startsWith('/') ? data.logo_url : `/${data.logo_url}`;
+      const existing = document.getElementById('site-logo-img') as HTMLImageElement | null;
+      const fallback = document.getElementById('logo-fallback');
+
+      if (existing) {
+        existing.src = logoUrl;
+      } else {
+        // Logo wasn't loaded server-side - inject it
+        const container = document.getElementById('site-logo-container');
+        if (container) {
+          container.innerHTML = `<img src="${logoUrl}" alt="${data.site_name || 'MarketMindAI'}" class="h-9 md:h-10 w-auto" />`;
         }
       }
-    } catch (error) {
-      // Use default logo on error - silently fail
-      console.debug('Logo loading skipped:', error.message);
+      if (fallback) fallback.style.display = 'none';
+    } catch {
+      // silently fail
     }
   }
+
+  // Listen for logo update events (from admin panel)
+  window.addEventListener('logo-updated', refreshLogo);
   
-  // Load on DOM ready
+  // Also run once after load for dynamic environments
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', loadSiteLogo);
+    document.addEventListener('DOMContentLoaded', refreshLogo);
   } else {
-    loadSiteLogo();
+    refreshLogo();
   }
 </script>

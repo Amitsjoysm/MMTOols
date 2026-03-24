@@ -5,6 +5,13 @@ const metadata = {
   title: 'Login - MarketMindAI',
   description: 'Sign in to your MarketMindAI account',
 };
+
+let logoUrl: string | null = null;
+let siteName = 'MarketMindAI';
+try {
+  const res = await fetch(`${import.meta.env.BACKEND_URL || 'http://localhost:8001'}/api/site-settings/logo`);
+  if (res.ok) { const d = await res.json(); logoUrl = d.logo_url; siteName = d.site_name || 'MarketMindAI'; }
+} catch {}
 ---
 
 <!doctype html>
@@ -21,11 +28,17 @@ const metadata = {
       <!-- Logo and Header -->
       <div class="text-center mb-8">
         <a href="/" class="inline-block mb-4">
-          <div class="flex items-center justify-center space-x-2">
-            <svg class="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-            <span class="text-2xl font-bold text-gray-900 dark:text-white">MarketMindAI</span>
+          <div class="flex items-center justify-center">
+            {logoUrl ? (
+              <img src={logoUrl} alt={siteName} class="h-14 w-auto" />
+            ) : (
+              <div class="flex items-center gap-2">
+                <svg class="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                <span class="text-2xl font-bold text-gray-900 dark:text-white">{siteName}</span>
+              </div>
+            )}
           </div>
         </a>
         <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">Welcome Back</h1>

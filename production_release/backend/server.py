@@ -1,0 +1,317 @@
+from fastapi import FastAPI, HTTPException, Request, Response, Depends
+from fastapi.staticfiles import StaticFiles
+from sqlalchemy.orm import Session
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from starlette.middleware.gzip import GZipMiddleware
+from sqlalchemy import create_engine, text
+from database import get_db, engine
+from models import Base
+from scheduler import start_trending_updater, start_seo_updater
+from security_config import (
+    SecurityHeadersMiddleware, 
+    RateLimitMiddleware, 
+    RequestSizeLimitMiddleware,
+    AuditLogger
+)
+import os
+import logging
+import traceback
+import time
+from datetime import datetime
+from dotenv import load_dotenv
+
+# Import route modules
+from superadmin_routes import router as superadmin_router
+from admin_routes import router as admin_router
+from user_routes import get_user_routes
+from tools_routes import get_tools_routes
+from blogs_routes import router as blogs_router
+from ai_blog_routes import router as ai_blog_router
+from sitemap_routes import router as sitemap_router
+from seo_routes import router as seo_router
+from email_verification_routes import get_email_verification_routes
+from contact_routes import router as contact_router
+from newsletter_routes import router as newsletter_router
+from auto_seo_routes import router as auto_seo_router
+from sitemap_management_routes import router as sitemap_management_router
+from free_tools_routes import router as free_tools_router
+from password_reset_routes import router as password_reset_router
+from tool_claim_routes import router as tool_claim_router
+from user_interaction_routes import router as user_interaction_router
+from site_settings_routes import router as site_settings_router
+
+# Configure logging
+os.makedirs('/tmp/logs', exist_ok=True)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('/tmp/logs/backend.log'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
+
+load_dotenv()
+
+# Database connection test
+def test_database_connection():
+    try:
+        with engine.connect() as conn:
+            result = conn.execute(text("SELECT 1"))
+            logger.info("Database connection successful")
+            return True
+    except Exception as e:
+        logger.error(f"Database connection failed: {e}")
+        return False
+
+app = FastAPI(
+    title="MarketMindAI API",
+    description="Enhanced B2B Blogging and Tools Platform with AI Integration - Modular Architecture",
+    version="2.0.0",
+    debug=True
+)
+
+# Custom middleware for request logging and CORS debugging
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start_time = time.time()
+    origin = request.headers.get('origin', 'No origin header')
+    
+    logger.info(f"Request: {request.method} {request.url} from origin: {origin}")
+    logger.info(f"Headers: {dict(request.headers)}")
+    
+    try:
+        response = await call_next(request)
+        process_time = time.time() - start_time
+        
+        logger.info(f"Response: {response.status_code} - Time: {process_time:.4f}s")
+        
+        # Add debugging headers
+        response.headers["X-Request-ID"] = str(int(time.time() * 1000000))
+        response.headers["X-Process-Time"] = str(process_time)
+        
+        return response
+    except Exception as e:
+        logger.error(f"Request failed: {e}")
+        logger.error(traceback.format_exc())
+        raise
+
+# Get environment variables
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:3000')
+API_URL = os.getenv('API_URL', 'http://localhost:8001')
+CORS_ORIGINS_ENV = os.getenv('CORS_ORIGINS', '')
+
+# Parse CORS origins from environment variable
+cors_origins_from_env = [origin.strip() for origin in CORS_ORIGINS_ENV.split(',') if origin.strip()]
+
+# CORS Configuration - Production ready
+# Start with origins from environment variable
+allowed_origins = []
+
+if cors_origins_from_env:
+    allowed_origins.extend(cors_origins_from_env)
+    logger.info(f"CORS origins from environment: {cors_origins_from_env}")
+else:
+    # Fallback to default allowed origins if env var is not set
+    allowed_origins = [
+        "https://marketmindai.com",
+        "https://www.marketmindai.com",
+        "http://localhost:3000",
+    ]
+    logger.info("Using default CORS origins")
+
+# Remove duplicates and None values
+allowed_origins = list(set(filter(None, allowed_origins)))
+logger.info(f"Final allowed CORS origins: {allowed_origins}")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["*"]
+)
+
+# Add security middlewares
+logger.info("Adding security middlewares...")
+
+# 1. GZip compression for better performance
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+# 2. Request size limit to prevent memory exhaustion
+max_request_size = int(os.getenv("MAX_REQUEST_SIZE_MB", "10"))
+app.add_middleware(RequestSizeLimitMiddleware, max_size_mb=max_request_size)
+
+# 3. Rate limiting to prevent abuse
+rate_limit = int(os.getenv("RATE_LIMIT_REQUESTS_PER_MINUTE", "100"))
+app.add_middleware(RateLimitMiddleware, requests_per_minute=rate_limit)
+
+# 4. Security headers
+app.add_middleware(SecurityHeadersMiddleware)
+
+logger.info(f"Security configured: Rate Limit={rate_limit} req/min, Max Request Size={max_request_size}MB")
+
+# Create database tables
+Base.metadata.create_all(bind=engine)
+
+# Test database connection on startup
+if test_database_connection():
+    logger.info("Database connection verified successfully")
+else:
+    logger.error("Database connection failed during startup")
+
+# Start the trending updater background task
+start_trending_updater()
+
+# Start the SEO updater background task (page generation + sitemap)
+start_seo_updater()
+
+# Enhanced health check endpoint with database connectivity
+@app.get("/api/health")
+async def health_check():
+    health_status = {
+        "status": "healthy",
+        "app": "MarketMindAI",
+        "version": "2.0.0",
+        "timestamp": datetime.now().isoformat(),
+        "database": "disconnected",
+        "services": {
+            "api": "healthy",
+            "database": "disconnected",
+            "scheduler": "running"
+        }
+    }
+    
+    try:
+        # Test database connection
+        with engine.connect() as conn:
+            result = conn.execute(text("SELECT 1"))
+            if result.fetchone():
+                health_status["database"] = "connected"
+                health_status["services"]["database"] = "connected"
+                health_status["status"] = "healthy"
+    except Exception as e:
+        logger.error(f"Health check database error: {e}")
+        health_status["database"] = f"error: {str(e)}"
+        health_status["services"]["database"] = f"error: {str(e)}"
+        health_status["status"] = "unhealthy"
+    
+    return health_status
+
+# Debug endpoint for connectivity testing
+@app.get("/api/debug/connectivity")
+async def debug_connectivity():
+    debug_info = {
+        "timestamp": datetime.now().isoformat(),
+        "environment": {
+            "DATABASE_URL": bool(os.getenv("DATABASE_URL")),
+            "FRONTEND_URL": FRONTEND_URL,
+            "API_URL": API_URL
+        },
+        "cors_origins": allowed_origins,
+        "database_test": "failed",
+        "recent_logs": []
+    }
+    
+    # Test database connection
+    try:
+        with engine.connect() as conn:
+            from models import User
+            result = conn.execute(text("SELECT COUNT(*) FROM users"))
+            user_count = result.fetchone()[0]
+            debug_info["database_test"] = "success"
+            debug_info["database_info"] = {
+                "user_count": user_count,
+                "engine_pool_size": engine.pool.size(),
+                "engine_pool_checked_in": engine.pool.checkedin(),
+                "engine_pool_checked_out": engine.pool.checkedout()
+            }
+    except Exception as e:
+        debug_info["database_test"] = f"error: {str(e)}"
+        debug_info["database_error"] = str(e)
+    
+    return debug_info
+
+# Enhanced CORS preflight endpoint
+@app.options("/api/{path:path}")
+async def cors_preflight(path: str, request: Request):
+    origin = request.headers.get('origin', '')
+    
+    # Only allow origins that are in our allowed list
+    if origin in allowed_origins:
+        return Response(
+            content="",
+            headers={
+                "Access-Control-Allow-Origin": origin,
+                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept, Origin, X-Requested-With",
+                "Access-Control-Allow-Credentials": "true",
+                "Access-Control-Max-Age": "86400",
+                "Vary": "Origin"
+            }
+        )
+    else:
+        # Return 403 for disallowed origins
+        logger.warning(f"CORS preflight rejected for origin: {origin}")
+        return Response(
+            content="Origin not allowed",
+            status_code=403
+        )
+
+# Include route modules
+app.include_router(superadmin_router, prefix="", tags=["superadmin"])
+app.include_router(admin_router, prefix="", tags=["admin"])
+app.include_router(get_user_routes(), prefix="", tags=["user", "authentication"])
+app.include_router(get_email_verification_routes(), prefix="", tags=["email-verification"])
+app.include_router(password_reset_router, prefix="", tags=["password-reset"])
+app.include_router(get_tools_routes(), prefix="", tags=["tools", "free-tools"])
+app.include_router(tool_claim_router, prefix="", tags=["tool-claims"])
+app.include_router(user_interaction_router, prefix="", tags=["user-interactions"])
+app.include_router(site_settings_router, prefix="/api", tags=["site-settings"])
+app.include_router(blogs_router, prefix="", tags=["blogs"])
+app.include_router(ai_blog_router, prefix="", tags=["ai-blog"])
+app.include_router(sitemap_router, prefix="", tags=["seo"])
+app.include_router(seo_router, prefix="", tags=["seo"])
+app.include_router(auto_seo_router, prefix="", tags=["auto-seo"])
+app.include_router(sitemap_management_router, prefix="", tags=["sitemap-management"])
+app.include_router(contact_router, prefix="", tags=["contact"])
+app.include_router(newsletter_router, prefix="", tags=["newsletter"])
+app.include_router(free_tools_router, prefix="", tags=["free-tools"])
+
+# Create uploads directory if it doesn't exist
+os.makedirs("uploads", exist_ok=True)
+os.makedirs("uploads/blog-images", exist_ok=True)
+os.makedirs("uploads/avatars", exist_ok=True)
+
+# Mount static files for uploads
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
+# Global Categories Route
+@app.get("/api/categories")
+async def get_categories_global(db: Session = Depends(get_db)):
+    """Get all categories - Global endpoint"""
+    from models import Category
+    categories = db.query(Category).all()
+    return categories
+
+# Root endpoint
+@app.get("/")
+async def root():
+    return {
+        "message": "MarketMindAI API - Modular Architecture",
+        "version": "2.0.0",
+        "modules": [
+            "superadmin",
+            "admin", 
+            "user",
+            "tools",
+            "blogs"
+        ]
+    }
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8001)

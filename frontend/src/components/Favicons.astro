@@ -1,30 +1,46 @@
 ---
 /**
- * Favicons & App Icons - full multi-device support
- * Works for all screen sizes: desktop, tablet, mobile, PWA
- * Supports dynamic favicon from admin settings
+ * Favicons & App Icons - full multi-device support with dynamic favicon from site settings
  */
-import favIcon from '~/assets/favicons/favicon.ico';
-import appleTouchIcon from '~/assets/favicons/apple-touch-icon.png';
+let faviconUrl = '/favicon.ico';
+let favicon16 = '/favicon-16x16.png';
+let favicon32 = '/favicon-32x32.png';
+let appleTouchIconUrl = '/apple-touch-icon.png';
+let siteName = 'MarketMindAI';
+
+try {
+  const BACKEND_URL = import.meta.env.BACKEND_URL || 'http://localhost:8001';
+  const res = await fetch(`${BACKEND_URL}/api/site-settings/logo`);
+  if (res.ok) {
+    const data = await res.json();
+    siteName = data.site_name || 'MarketMindAI';
+    if (data.favicon_url) {
+      faviconUrl = data.favicon_url;
+      favicon16 = data.favicon_url;
+      favicon32 = data.favicon_url;
+    }
+    if (data.logo_url) {
+      appleTouchIconUrl = data.logo_url;
+    }
+  }
+} catch {
+  // Use defaults on error
+}
 ---
 
-<!-- Standard favicons (defaults) -->
-<link rel="shortcut icon" href={favIcon} id="favicon-shortcut" />
-<link rel="icon" type="image/x-icon" href="/favicon.ico" id="favicon-ico" />
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" id="favicon-16" />
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" id="favicon-32" />
+<!-- Standard favicons -->
+<link rel="shortcut icon" href={faviconUrl} id="favicon-shortcut" />
+<link rel="icon" type="image/x-icon" href={faviconUrl} id="favicon-ico" />
+<link rel="icon" type="image/png" sizes="16x16" href={favicon16} id="favicon-16" />
+<link rel="icon" type="image/png" sizes="32x32" href={favicon32} id="favicon-32" />
 
-<!-- Apple touch icons (iOS / iPadOS all sizes) -->
-<link rel="apple-touch-icon" href="/apple-touch-icon.png" id="apple-touch-icon" />
-<link rel="apple-touch-icon" sizes="57x57" href="/apple-touch-icon.png" />
-<link rel="apple-touch-icon" sizes="60x60" href="/apple-touch-icon.png" />
-<link rel="apple-touch-icon" sizes="72x72" href="/apple-touch-icon.png" />
-<link rel="apple-touch-icon" sizes="76x76" href="/apple-touch-icon.png" />
-<link rel="apple-touch-icon" sizes="114x114" href="/apple-touch-icon.png" />
-<link rel="apple-touch-icon" sizes="120x120" href="/apple-touch-icon.png" />
-<link rel="apple-touch-icon" sizes="144x144" href="/apple-touch-icon.png" />
-<link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon.png" />
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+<!-- Apple touch icons (iOS / iPadOS) -->
+<link rel="apple-touch-icon" href={appleTouchIconUrl} id="apple-touch-icon" />
+<link rel="apple-touch-icon" sizes="57x57" href={appleTouchIconUrl} />
+<link rel="apple-touch-icon" sizes="72x72" href={appleTouchIconUrl} />
+<link rel="apple-touch-icon" sizes="120x120" href={appleTouchIconUrl} />
+<link rel="apple-touch-icon" sizes="152x152" href={appleTouchIconUrl} />
+<link rel="apple-touch-icon" sizes="180x180" href={appleTouchIconUrl} />
 
 <!-- Android Chrome / PWA icons -->
 <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png" />
@@ -38,53 +54,8 @@ import appleTouchIcon from '~/assets/favicons/apple-touch-icon.png';
 <meta name="msapplication-TileImage" content="/android-chrome-192x192.png" />
 <meta name="msapplication-config" content="none" />
 
-<!-- Safari pinned tab -->
-<meta name="apple-mobile-web-app-title" content="MarketMindAI" />
-<meta name="application-name" content="MarketMindAI" />
+<!-- App meta -->
+<meta name="apple-mobile-web-app-title" content={siteName} />
+<meta name="application-name" content={siteName} />
 <meta name="theme-color" content="#2563eb" media="(prefers-color-scheme: light)" />
 <meta name="theme-color" content="#1e293b" media="(prefers-color-scheme: dark)" />
-
-<script>
-  // Dynamic favicon loader
-  async function loadDynamicFavicon() {
-    try {
-      function getApiBaseUrl() {
-        if (typeof window !== 'undefined') {
-          const origin = window.location.origin;
-          if (origin.includes('preview.emergentagent.com')) return origin;
-          if (origin.includes('localhost:3000')) return 'http://localhost:8001';
-        }
-        return '';
-      }
-      
-      const API_URL = getApiBaseUrl();
-      const response = await fetch(`${API_URL}/api/site-settings/logo`);
-      
-      if (response.ok) {
-        const data = await response.json();
-        if (data.favicon_url) {
-          let faviconUrl = data.favicon_url;
-          if (faviconUrl.startsWith('/api/') || faviconUrl.startsWith('/uploads/')) {
-            faviconUrl = API_URL + faviconUrl;
-          }
-          
-          // Update favicon links
-          const faviconLinks = document.querySelectorAll('link[rel*="icon"]');
-          faviconLinks.forEach(link => {
-            if (!link.getAttribute('sizes') || link.getAttribute('sizes') === '32x32' || link.getAttribute('sizes') === '16x16') {
-              link.href = faviconUrl;
-            }
-          });
-        }
-      }
-    } catch (error) {
-      // Use default favicons on error
-    }
-  }
-  
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', loadDynamicFavicon);
-  } else {
-    loadDynamicFavicon();
-  }
-</script>
